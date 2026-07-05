@@ -89,10 +89,10 @@ export const reviews = [
   },
   {
     id: 4,
-    name: "Patient Review",
-    role: "Google Review",
+    name: "Verified Patient",
+    role: "Google Review · Narayanguda",
     stars: 5,
-    text: "The clinic has a calm, hygienic environment and the staff is always welcoming. From severe pain to complete recovery — they have really done a wonderful job.",
+    text: "The clinic has a calm, hygienic environment and the staff is always welcoming. I was in immense pain when I came in — today I am completely recovered. They have really done a wonderful job.",
   },
 ];
 
