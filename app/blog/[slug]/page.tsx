@@ -23,7 +23,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   });
 
   return (
-    <article className="max-w-3xl mx-auto px-4 py-24">
+    <article className="max-w-3xl mx-auto px-4 pt-36 pb-24">
       <header className="mb-12 text-center">
         <span className="text-[10px] font-bold uppercase tracking-widest text-teal-700 bg-teal-50 border border-teal-100 px-4 py-1.5 rounded-full w-fit mb-6 inline-block">
           {post.category}

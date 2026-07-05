@@ -36,7 +36,7 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white py-24 px-4 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white pt-36 pb-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
         <div className="max-w-3xl mx-auto text-center flex flex-col gap-6 relative z-10">
           <h1 className="text-5xl font-display font-bold">About Sridatri Physio Care</h1>
