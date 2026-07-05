@@ -35,45 +35,46 @@ export default function ContactPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-cyan-700 to-cyan-900 text-white py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center flex flex-col gap-4">
-          <h1 className="text-4xl font-bold">Contact Us</h1>
-          <p className="text-cyan-100 text-lg">
+      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white py-24 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
+        <div className="max-w-3xl mx-auto text-center flex flex-col gap-6 relative z-10">
+          <h1 className="text-5xl font-display font-bold">Contact Us</h1>
+          <p className="text-teal-100 text-lg leading-relaxed">
             Ready to start your recovery? Reach out and our team will get back to
             you within 24 hours.
           </p>
         </div>
       </section>
 
-      <section className="py-16 px-4">
+      <section className="py-24 px-4 bg-slate-50">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Contact Info */}
           <div className="flex flex-col gap-6">
-            <h2 className="text-2xl font-bold text-[#134E4A]">Get in Touch</h2>
-            <div className="flex flex-col gap-4">
+            <h2 className="text-3xl font-display font-bold text-teal-950">Get in Touch</h2>
+            <div className="flex flex-col gap-4 mt-2">
               {contactItems.map((item) => (
-                <div key={item.label} className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-cyan-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <item.Icon className="w-4 h-4 text-cyan-700" strokeWidth={1.75} />
+                <div key={item.label} className="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                    <item.Icon className="w-5 h-5 text-teal-600" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
                       {item.label}
                     </p>
-                    <p className="text-slate-700">{item.value}</p>
+                    <p className="text-slate-700 font-medium">{item.value}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Map placeholder */}
-            <div className="w-full h-48 bg-cyan-50 rounded-2xl border border-cyan-100 flex items-center justify-center text-cyan-400 text-sm gap-2">
+            <div className="w-full h-48 bg-teal-50 rounded-3xl border border-teal-100 flex items-center justify-center text-teal-600/60 text-sm gap-2 mt-4 shadow-sm">
               <MapPin className="w-4 h-4" /> Map placeholder — embed Google Maps here
             </div>
           </div>
 
           {/* Client form */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] p-8">
             <ContactForm />
           </div>
         </div>

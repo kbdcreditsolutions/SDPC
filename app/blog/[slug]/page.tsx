@@ -23,24 +23,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   });
 
   return (
-    <article className="max-w-3xl mx-auto px-4 py-16">
-      <header className="mb-10 text-center">
-        <span className="text-sm font-semibold uppercase tracking-wider text-cyan-700 bg-cyan-50 px-3 py-1 rounded-full w-fit mb-4 inline-block">
+    <article className="max-w-3xl mx-auto px-4 py-24">
+      <header className="mb-12 text-center">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-teal-700 bg-teal-50 border border-teal-100 px-4 py-1.5 rounded-full w-fit mb-6 inline-block">
           {post.category}
         </span>
-        <h1 className="text-4xl font-bold text-slate-800 leading-tight mt-4 mb-4">
+        <h1 className="text-4xl md:text-5xl font-display font-bold text-teal-950 leading-tight mb-6">
           {post.title}
         </h1>
-        <p className="text-gray-500">{formattedDate}</p>
+        <p className="text-slate-500 font-medium">{formattedDate}</p>
       </header>
       
-      <div className="prose prose-cyan max-w-none text-gray-700 leading-relaxed text-lg">
-        <p className="text-xl text-gray-600 italic border-l-4 border-cyan-700 pl-6 py-2 mb-8 bg-gray-50 rounded-r-lg">
+      <div className="prose prose-teal max-w-none text-slate-700 leading-relaxed text-lg">
+        <p className="text-xl text-slate-600 font-medium italic border-l-4 border-teal-600 pl-6 py-2 mb-10 bg-slate-50/50 rounded-r-2xl">
           {post.excerpt}
         </p>
         
         {post.content && post.content.map((paragraph, idx) => (
-          <p key={idx} className="mb-6">
+          <p key={idx} className="mb-8">
             {paragraph}
           </p>
         ))}
