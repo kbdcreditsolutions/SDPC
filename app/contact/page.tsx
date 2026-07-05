@@ -67,9 +67,17 @@ export default function ContactPage() {
               ))}
             </div>
 
-            {/* Map placeholder */}
-            <div className="w-full h-48 bg-teal-50 rounded-3xl border border-teal-100 flex items-center justify-center text-teal-600/60 text-sm gap-2 mt-4 shadow-sm">
-              <MapPin className="w-4 h-4" /> Map placeholder — embed Google Maps here
+            {/* Map Embed */}
+            <div className="w-full h-64 rounded-3xl overflow-hidden border border-slate-100 shadow-sm mt-4">
+              <iframe
+                src="https://maps.google.com/maps?q=Flat%20101,%20Narasimha%20Nilayam,%203-4-529/2,%20Narayanguda,%20Hyderabad,%20Telangana%20500027&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
           </div>
 
