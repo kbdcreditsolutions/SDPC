@@ -31,7 +31,7 @@ export default function ContactPage() {
                 { icon: "📍", label: "Location", value: "Flat 101, Narasimha Nilayam, 3-4-529/2, Narayanguda, Hyderabad, Telangana 500027" },
                 { icon: "📞", label: "Phone", value: "+91 81432 38246 / +91 82477 31436" },
                 { icon: "✉️", label: "Email", value: "care@sridatriwellness.com" },
-                { icon: "🕐", label: "Hours", value: "Mon–Sat: 8am – 7pm" },
+                { icon: "🕐", label: "Hours", value: "Mon–Sun: 9am – 9pm" },
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-3">
                   <span className="text-2xl">{item.icon}</span>

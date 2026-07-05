@@ -43,6 +43,9 @@ export default function HomePage() {
               Our Services
             </Link>
           </div>
+          <p className="text-cyan-200 text-sm mt-2">
+            Online &amp; Offline consultations available · Home Physiotherapy · Mon–Sun 9am–9pm
+          </p>
         </div>
       </section>
 

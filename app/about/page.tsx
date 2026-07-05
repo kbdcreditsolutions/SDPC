@@ -26,9 +26,9 @@ const values = [
 ];
 
 const teamPlaceholders = [
-  { name: "Dr. Satish", role: "Lead Physiotherapist" },
-  { name: "Team Sridatri", role: "Rehabilitation Specialists" },
-  { name: "Video Consult", role: "Available — Book Online" },
+  { name: "Dr. Tejaswini Damerla", role: "Consultant Physiotherapist — Sports Injury & Musculoskeletal" },
+  { name: "Expert Team", role: "Rehabilitation Specialists" },
+  { name: "Online & Offline", role: "Consultations Available" },
 ];
 
 export default function AboutPage() {
@@ -62,9 +62,7 @@ export default function AboutPage() {
             unique story, and we honor that by building a unique plan.
           </p>
           <p className="text-gray-600 leading-relaxed">
-            Today, Sridatri Physio Care is a trusted name in Hyderabad for
-            evidence-based physiotherapy, neurological rehabilitation, and sports
-            injury recovery — guided by compassion, expertise, and results.
+            Today, Sridatri Physio Care is led by <strong>Dr. Tejaswini Damerla</strong>, Consultant Physiotherapist specializing in sports injury rehabilitation and musculoskeletal physiotherapy — focused on restoring strength, mobility, and pain-free living. We serve patients across Hyderabad with clinic visits, home physiotherapy, and online consultations.
           </p>
         </div>
       </section>

@@ -47,6 +47,22 @@ export const services = [
       "Expert kinesiology taping, shoulder and rotator cuff rehabilitation, and advanced hand therapy techniques to get athletes back to peak performance safely.",
     tags: ["Kinesiology Taping", "Rotator Cuff", "Hand Therapy"],
   },
+  {
+    id: 7,
+    title: "Home Physiotherapy",
+    icon: "🏠",
+    description:
+      "Can't visit the clinic? Our physiotherapists come to you. Receive the same expert care and personalized treatment plans from the comfort of your home.",
+    tags: ["Home Visit", "Flexible Scheduling", "All Conditions"],
+  },
+  {
+    id: 8,
+    title: "Physio Gym & Wellness",
+    icon: "🏋️",
+    description:
+      "A dedicated physio gym equipped for supervised rehabilitation and wellness training — combining therapeutic exercise with functional fitness to accelerate recovery.",
+    tags: ["Supervised Rehab", "Functional Fitness", "Wellness"],
+  },
 ];
 
 export const blogPosts = [
