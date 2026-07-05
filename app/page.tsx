@@ -17,74 +17,84 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-cyan-700 to-cyan-900 text-white relative overflow-hidden">
+      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white relative overflow-hidden pt-12">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            backgroundImage: "radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.25), transparent 25%), radial-gradient(circle at 85% 30%, rgba(20, 184, 166, 0.25), transparent 25%)",
+          }}
+        />
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: "radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
           }}
         />
-        <div className="max-w-6xl mx-auto px-4 py-24 flex flex-col items-center text-center gap-6">
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/10 border border-white/20 rounded-full text-sm font-medium text-cyan-100">
-            ⚕ Physiotherapy &amp; Wellness · Narayanguda, Hyderabad
+        <div className="max-w-6xl mx-auto px-4 py-28 flex flex-col items-center text-center gap-8 relative z-10">
+          <span className="inline-flex items-center gap-2 px-5 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm font-medium text-teal-50 shadow-lg animate-fade-in-up">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Physiotherapy &amp; Wellness · Narayanguda, Hyderabad
           </span>
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-            Healing from Core
+          <h1 className="text-5xl md:text-7xl font-display font-bold leading-tight tracking-tight drop-shadow-sm">
+            Healing from the <span className="text-emerald-400 italic">Core</span>
           </h1>
-          <p className="text-lg md:text-xl text-cyan-100 max-w-2xl">
+          <p className="text-lg md:text-xl text-teal-100/90 max-w-2xl leading-relaxed">
             Personalized, evidence-based physiotherapy care that targets the root
             cause — not just the symptoms. Restore movement, relieve pain, and
             reclaim your life.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 mt-2">
+          <div className="flex flex-col sm:flex-row gap-5 mt-4">
             <Link
               href="/contact"
-              className="px-8 py-3 bg-white text-cyan-800 font-semibold rounded-lg hover:bg-cyan-50 transition-colors"
+              className="px-8 py-4 bg-white text-teal-900 font-semibold rounded-full hover:bg-teal-50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:-translate-y-0.5"
             >
               Book Appointment
             </Link>
             <Link
               href="/services"
-              className="px-8 py-3 border border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors"
+              className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-all duration-300"
             >
               Our Services
             </Link>
           </div>
 
           {/* Stats bar */}
-          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 mt-4 text-cyan-100 text-sm">
-            <span className="flex items-center gap-1.5">
-              <span className="text-yellow-300">★</span> 5.0 Google Rating
+          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-3 mt-8 text-teal-100/80 text-sm font-medium">
+            <span className="flex items-center gap-2">
+              <span className="text-yellow-400 text-lg">★</span> 5.0 Google Rating
             </span>
-            <span className="hidden sm:inline text-cyan-500">·</span>
+            <span className="hidden sm:inline text-teal-500/50">|</span>
             <span>42+ Reviews</span>
-            <span className="hidden sm:inline text-cyan-500">·</span>
+            <span className="hidden sm:inline text-teal-500/50">|</span>
             <span>2 Locations</span>
-            <span className="hidden sm:inline text-cyan-500">·</span>
+            <span className="hidden sm:inline text-teal-500/50">|</span>
             <span>8+ Years Experience</span>
           </div>
         </div>
       </section>
 
       {/* Services */}
-      <section className="py-16 px-4">
+      <section className="py-24 px-4 bg-slate-50">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-[#134E4A]">Our Services</h2>
-            <p className="text-gray-500 mt-2">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-display font-bold text-teal-900">Our Services</h2>
+            <p className="text-slate-500 mt-4 max-w-2xl mx-auto text-lg">
               Comprehensive care tailored to your unique recovery needs.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((s) => (
               <ServiceCard key={s.id} {...s} />
             ))}
           </div>
-          <div className="text-center mt-8">
+          <div className="text-center mt-12">
             <Link
               href="/services"
-              className="inline-block px-6 py-2 border border-cyan-700 text-cyan-700 rounded-lg font-medium hover:bg-cyan-50 transition-colors"
+              className="inline-block px-8 py-3 bg-white border border-teal-200 text-teal-800 rounded-full font-semibold hover:bg-teal-50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
             >
               View All Services
             </Link>
@@ -93,19 +103,19 @@ export default function HomePage() {
       </section>
 
       {/* Conditions We Treat */}
-      <section className="bg-cyan-50 py-16 px-4">
+      <section className="bg-teal-50 py-24 px-4 border-y border-teal-100/50">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-[#134E4A]">Conditions We Treat</h2>
-            <p className="text-gray-500 mt-2">Expert care for a wide range of pain and mobility conditions.</p>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-display font-bold text-teal-900">Conditions We Treat</h2>
+            <p className="text-teal-700/70 mt-4 text-lg">Expert care for a wide range of pain and mobility conditions.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-4">
             {[
               "Neck & Back Pain","Shoulder Pain","Knee Pain","Sports Injuries",
               "Post-Surgery Rehab","Sciatica","Joint & Muscle Pain",
               "Elderly Care","Neurological Rehab","Posture Correction",
             ].map((c) => (
-              <span key={c} className="px-4 py-2 bg-white border border-cyan-200 rounded-full text-sm font-medium text-cyan-800 shadow-sm">
+              <span key={c} className="px-5 py-2.5 bg-white border border-teal-100 rounded-full text-sm font-semibold text-teal-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-default">
                 {c}
               </span>
             ))}
@@ -114,15 +124,15 @@ export default function HomePage() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="bg-white py-16 px-4">
+      <section className="bg-white py-24 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-[#134E4A]">Why Choose Us</h2>
-            <p className="text-gray-500 mt-2">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-display font-bold text-teal-900">Why Choose Us</h2>
+            <p className="text-slate-500 mt-4 text-lg">
               Trusted by hundreds of patients for lasting results.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               {
                 Icon: Users,
@@ -140,12 +150,12 @@ export default function HomePage() {
                 desc: "State-of-the-art therapeutic tools including ultrasound, electrotherapy, and advanced rehabilitation equipment.",
               },
             ].map((p) => (
-              <div key={p.title} className="text-center flex flex-col items-center gap-3 p-6 rounded-2xl border border-gray-100">
-                <div className="w-14 h-14 rounded-xl bg-cyan-50 flex items-center justify-center">
-                  <p.Icon className="w-7 h-7 text-cyan-700" strokeWidth={1.75} />
+              <div key={p.title} className="text-center flex flex-col items-center gap-4 p-8 rounded-3xl bg-white border border-slate-100 card-hover">
+                <div className="w-16 h-16 rounded-2xl bg-teal-50 flex items-center justify-center mb-2">
+                  <p.Icon className="w-8 h-8 text-teal-600" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-lg font-semibold text-[#134E4A]">{p.title}</h3>
-                <p className="text-sm text-gray-600">{p.desc}</p>
+                <h3 className="text-xl font-display font-semibold text-teal-950">{p.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{p.desc}</p>
               </div>
             ))}
           </div>
@@ -153,24 +163,24 @@ export default function HomePage() {
       </section>
 
       {/* Reviews */}
-      <section className="bg-white py-16 px-4">
+      <section className="bg-slate-50 py-24 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-[#134E4A]">What Our Patients Say</h2>
-            <p className="text-gray-500 mt-2">5.0 ★ · 42 Google reviews</p>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-display font-bold text-teal-900">What Our Patients Say</h2>
+            <p className="text-slate-500 mt-4 text-lg">5.0 <span className="text-yellow-400">★</span> · 42 Google reviews</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {reviews.map((r) => (
-              <div key={r.id} className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col gap-3">
-                <div className="flex gap-0.5">
+              <div key={r.id} className="bg-white rounded-3xl border border-slate-100 p-8 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div className="flex gap-1">
                   {Array.from({ length: r.stars }).map((_, i) => (
                     <span key={i} className="text-yellow-400 text-lg">★</span>
                   ))}
                 </div>
-                <p className="text-sm text-gray-700 leading-relaxed flex-1">&ldquo;{r.text}&rdquo;</p>
-                <div>
-                  <p className="text-sm font-semibold text-[#134E4A]">{r.name}</p>
-                  <p className="text-xs text-gray-400">{r.role}</p>
+                <p className="text-slate-600 leading-relaxed flex-1 italic">&ldquo;{r.text}&rdquo;</p>
+                <div className="mt-2 pt-4 border-t border-slate-50">
+                  <p className="text-sm font-semibold text-teal-950">{r.name}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{r.role}</p>
                 </div>
               </div>
             ))}
@@ -179,23 +189,23 @@ export default function HomePage() {
       </section>
 
       {/* Blog Preview */}
-      <section className="py-16 px-4">
+      <section className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-[#134E4A]">Latest from Our Blog</h2>
-            <p className="text-gray-500 mt-2">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-display font-bold text-teal-900">Latest from Our Blog</h2>
+            <p className="text-slate-500 mt-4 text-lg">
               Expert insights on recovery, rehabilitation, and wellness.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {latestPosts.map((p) => (
               <BlogCard key={p.id} {...p} />
             ))}
           </div>
-          <div className="text-center mt-8">
+          <div className="text-center mt-12">
             <Link
               href="/blog"
-              className="inline-block px-6 py-2 border border-cyan-700 text-cyan-700 rounded-lg font-medium hover:bg-cyan-50 transition-colors"
+              className="inline-block px-8 py-3 bg-white border border-teal-200 text-teal-800 rounded-full font-semibold hover:bg-teal-50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
             >
               Read All Posts
             </Link>
@@ -204,16 +214,17 @@ export default function HomePage() {
       </section>
 
       {/* CTA Banner */}
-      <section className="bg-cyan-700 text-white py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-5">
-          <h2 className="text-3xl font-bold">Ready to Start Your Recovery?</h2>
-          <p className="text-cyan-100">
+      <section className="bg-teal-900 text-white py-24 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
+        <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-8 relative z-10">
+          <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight">Ready to Start Your Recovery?</h2>
+          <p className="text-teal-100 text-lg leading-relaxed max-w-2xl">
             Take the first step toward pain-free living. Our expert team is here
             to guide you every step of the way.
           </p>
           <Link
             href="/contact"
-            className="px-8 py-3 bg-white text-cyan-800 font-semibold rounded-lg hover:bg-cyan-50 transition-colors"
+            className="px-10 py-4 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-400 hover:shadow-xl hover:shadow-emerald-500/20 hover:-translate-y-1 transition-all duration-300"
           >
             Book Appointment
           </Link>

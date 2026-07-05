@@ -17,13 +17,15 @@ export default function BlogCard({ title, slug, category, excerpt, date }: BlogC
   });
 
   return (
-    <Link href={`/blog/${slug}`} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3 group">
-      <span className="text-xs font-semibold uppercase tracking-wider text-cyan-700 bg-cyan-50 px-2 py-1 rounded-full w-fit">
+    <Link href={`/blog/${slug}`} className="bg-white rounded-3xl border border-slate-100 p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col gap-4 group card-hover">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1 rounded-full w-fit">
         {category}
       </span>
-      <h3 className="text-base font-semibold text-slate-800 leading-snug group-hover:text-cyan-700 transition-colors">{title}</h3>
-      <p className="text-sm text-gray-600 leading-relaxed flex-1">{excerpt}</p>
-      <p className="text-xs text-gray-400">{formatted}</p>
+      <h3 className="text-lg font-display font-semibold text-teal-950 leading-snug group-hover:text-emerald-600 transition-colors">{title}</h3>
+      <p className="text-slate-600 leading-relaxed flex-1">{excerpt}</p>
+      <div className="pt-4 border-t border-slate-50">
+        <p className="text-xs font-medium text-slate-400">{formatted}</p>
+      </div>
     </Link>
   );
 }
