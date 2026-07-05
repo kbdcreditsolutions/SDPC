@@ -6,10 +6,11 @@ interface BlogCardProps {
 }
 
 export default function BlogCard({ title, category, excerpt, date }: BlogCardProps) {
-  const formatted = new Date(date).toLocaleDateString("en-US", {
+  const formatted = new Date(date + "T00:00:00").toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
 
   return (
