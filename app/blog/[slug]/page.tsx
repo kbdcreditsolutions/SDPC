@@ -39,13 +39,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {post.excerpt}
         </p>
         
-        <p className="mb-6">
-          This is a placeholder for the full article content. When a full CMS is connected or more data is provided, the complete blog content for &quot;{post.title}&quot; will be rendered here. For now, this serves to demonstrate the dynamic routing and presentation layer of the Sridatri Physio Care blog.
-        </p>
-        
-        <p>
-          Proper physiotherapy, like the techniques highlighted in this excerpt about <strong>{post.category.toLowerCase()}</strong>, can make a lasting difference in your quality of life. Always consult a qualified professional before starting any rigorous treatment program.
-        </p>
+        {post.content && post.content.map((paragraph, idx) => (
+          <p key={idx} className="mb-6">
+            {paragraph}
+          </p>
+        ))}
       </div>
     </article>
   );
