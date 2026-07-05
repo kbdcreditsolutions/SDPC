@@ -71,6 +71,27 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Conditions We Treat */}
+      <section className="bg-cyan-50 py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-800">Conditions We Treat</h2>
+            <p className="text-gray-500 mt-2">Expert care for a wide range of pain and mobility conditions.</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              "Neck & Back Pain","Shoulder Pain","Knee Pain","Sports Injuries",
+              "Post-Surgery Rehab","Sciatica","Joint & Muscle Pain",
+              "Elderly Care","Neurological Rehab","Posture Correction",
+            ].map((c) => (
+              <span key={c} className="px-4 py-2 bg-white border border-cyan-200 rounded-full text-sm font-medium text-cyan-800 shadow-sm">
+                {c}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Why Choose Us */}
       <section className="bg-white py-16 px-4">
         <div className="max-w-6xl mx-auto">

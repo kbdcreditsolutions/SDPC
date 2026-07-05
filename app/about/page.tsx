@@ -26,9 +26,9 @@ const values = [
 ];
 
 const teamPlaceholders = [
-  { name: "Dr. Sridatri K.", role: "Lead Physiotherapist" },
-  { name: "Ananya R.", role: "Sports Rehab Specialist" },
-  { name: "Kiran M.", role: "Neurological Rehab Therapist" },
+  { name: "Dr. Satish", role: "Lead Physiotherapist" },
+  { name: "Team Sridatri", role: "Rehabilitation Specialists" },
+  { name: "Video Consult", role: "Available — Book Online" },
 ];
 
 export default function AboutPage() {

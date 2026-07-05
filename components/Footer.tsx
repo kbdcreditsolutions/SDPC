@@ -35,7 +35,7 @@ export default function Footer() {
           <h4 className="text-white font-semibold mb-3">Contact</h4>
           <ul className="space-y-2 text-sm text-gray-400">
             <li>📍 Narayanguda, Hyderabad 500027</li>
-            <li>📞 +91 81432 38246</li>
+            <li>📞 +91 81432 38246 / 82477 31436</li>
             <li>✉️ care@sridatriwellness.com</li>
           </ul>
         </div>
