@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -33,11 +34,23 @@ export default function Footer() {
 
         <div>
           <h4 className="text-white font-semibold mb-3">Contact</h4>
-          <ul className="space-y-2 text-sm text-gray-400">
-            <li>📍 Narayanguda, Hyderabad 500027</li>
-            <li>📞 +91 81432 38246 / 82477 31436</li>
-            <li>✉️ care@sridatriwellness.com</li>
-            <li>🕐 All Days: 8am – 9pm</li>
+          <ul className="space-y-2.5 text-sm text-gray-400">
+            <li className="flex items-start gap-2">
+              <MapPin className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+              Narayanguda, Hyderabad 500027
+            </li>
+            <li className="flex items-center gap-2">
+              <Phone className="w-4 h-4 text-cyan-500 flex-shrink-0" strokeWidth={1.75} />
+              +91 81432 38246 / 82477 31436
+            </li>
+            <li className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-cyan-500 flex-shrink-0" strokeWidth={1.75} />
+              care@sridatriwellness.com
+            </li>
+            <li className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-cyan-500 flex-shrink-0" strokeWidth={1.75} />
+              All Days: 8am – 9pm
+            </li>
           </ul>
         </div>
       </div>

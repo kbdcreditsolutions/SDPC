@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Heart, FlaskConical, Leaf, UserCircle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -9,17 +10,17 @@ export const metadata: Metadata = {
 
 const values = [
   {
-    icon: "❤️",
+    Icon: Heart,
     title: "Patient-First",
     desc: "Every decision we make is guided by what is best for the patient. We listen, we assess, and we create plans that truly serve your recovery.",
   },
   {
-    icon: "🔬",
+    Icon: FlaskConical,
     title: "Evidence-Based",
     desc: "Our treatments are grounded in the latest clinical research and physiotherapy best practices — not guesswork.",
   },
   {
-    icon: "🌱",
+    Icon: Leaf,
     title: "Holistic Approach",
     desc: "We treat the whole person, not just the injury. Physical, functional, and lifestyle factors are all part of your care plan.",
   },
@@ -47,7 +48,7 @@ export default function AboutPage() {
       {/* Story */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-4xl mx-auto flex flex-col gap-6">
-          <h2 className="text-3xl font-bold text-slate-800">Our Story</h2>
+          <h2 className="text-3xl font-bold text-[#134E4A]">Our Story</h2>
           <p className="text-gray-600 leading-relaxed">
             Sridatri Physio Care was founded with one mission — to help people
             heal from the core. We believe that effective physiotherapy goes
@@ -71,7 +72,7 @@ export default function AboutPage() {
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800">Our Values</h2>
+            <h2 className="text-3xl font-bold text-[#134E4A]">Our Values</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {values.map((v) => (
@@ -79,8 +80,10 @@ export default function AboutPage() {
                 key={v.title}
                 className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm text-center flex flex-col items-center gap-3"
               >
-                <div className="text-4xl">{v.icon}</div>
-                <h3 className="text-lg font-semibold text-slate-800">{v.title}</h3>
+                <div className="w-14 h-14 rounded-xl bg-cyan-50 flex items-center justify-center">
+                  <v.Icon className="w-7 h-7 text-cyan-700" strokeWidth={1.75} />
+                </div>
+                <h3 className="text-lg font-semibold text-[#134E4A]">{v.title}</h3>
                 <p className="text-sm text-gray-600">{v.desc}</p>
               </div>
             ))}
@@ -92,7 +95,7 @@ export default function AboutPage() {
       <section className="bg-white py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800">Meet Our Team</h2>
+            <h2 className="text-3xl font-bold text-[#134E4A]">Meet Our Team</h2>
             <p className="text-gray-500 mt-2">
               Experienced, compassionate, and dedicated to your recovery.
             </p>
@@ -103,10 +106,10 @@ export default function AboutPage() {
                 key={m.name}
                 className="flex flex-col items-center gap-3 p-6 rounded-2xl border border-gray-100 bg-gray-50"
               >
-                <div className="w-20 h-20 rounded-full bg-cyan-100 flex items-center justify-center text-3xl">
-                  👤
+                <div className="w-20 h-20 rounded-full bg-cyan-100 flex items-center justify-center">
+                  <UserCircle className="w-10 h-10 text-cyan-700" strokeWidth={1.5} />
                 </div>
-                <h3 className="font-semibold text-slate-800">{m.name}</h3>
+                <h3 className="font-semibold text-[#134E4A]">{m.name}</h3>
                 <p className="text-sm text-cyan-700">{m.role}</p>
               </div>
             ))}

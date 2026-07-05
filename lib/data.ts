@@ -2,7 +2,7 @@ export const services = [
   {
     id: 1,
     title: "Back & Spine Therapy",
-    icon: "🦴",
+    icon: "Bone",
     description:
       "Comprehensive spinal manipulation and alignment restoration targeting nerve irritation and structural imbalances. Our specialists restore optimal spinal function through evidence-based manual techniques.",
     tags: ["Spinal Manipulation", "Alignment Restoration", "Nerve Relief"],
@@ -10,7 +10,7 @@ export const services = [
   {
     id: 2,
     title: "Body Recovery",
-    icon: "⚡",
+    icon: "Zap",
     description:
       "Targeted therapeutic ultrasound and deep tissue treatment to accelerate healing, reduce inflammation, and improve circulation in injured or overworked muscle groups.",
     tags: ["Ultrasound Therapy", "Deep Tissue", "Circulation Improvement"],
@@ -18,7 +18,7 @@ export const services = [
   {
     id: 3,
     title: "Neurological Rehabilitation",
-    icon: "🧠",
+    icon: "Brain",
     description:
       "Specialized stroke rehabilitation and functional movement restoration programs designed to help patients regain independence and rebuild neural pathways after neurological events.",
     tags: ["Stroke Rehabilitation", "Functional Movement", "Neural Recovery"],
@@ -26,7 +26,7 @@ export const services = [
   {
     id: 4,
     title: "Pain Management",
-    icon: "🎯",
+    icon: "Target",
     description:
       "Holistic lower back pain assessment, muscle imbalance correction, and personalized ergonomic guidance to reduce pain at the source and prevent recurrence.",
     tags: ["Lower Back Pain", "Muscle Balance", "Ergonomic Guidance"],
@@ -34,7 +34,7 @@ export const services = [
   {
     id: 5,
     title: "Physiotherapy Treatments",
-    icon: "💪",
+    icon: "Dumbbell",
     description:
       "Personalized exercise plans, manual therapy sessions, and progressive resistance training programs tailored to your recovery goals and fitness level.",
     tags: ["Exercise Plans", "Manual Therapy", "Resistance Training"],
@@ -42,7 +42,7 @@ export const services = [
   {
     id: 6,
     title: "Sports Injury Rehab",
-    icon: "🏃",
+    icon: "PersonStanding",
     description:
       "Expert kinesiology taping, shoulder and rotator cuff rehabilitation, and advanced hand therapy techniques to get athletes back to peak performance safely.",
     tags: ["Kinesiology Taping", "Rotator Cuff", "Hand Therapy"],
@@ -50,7 +50,7 @@ export const services = [
   {
     id: 7,
     title: "Home Physiotherapy",
-    icon: "🏠",
+    icon: "Home",
     description:
       "Can't visit the clinic? Our physiotherapists come to you. Receive the same expert care and personalized treatment plans from the comfort of your home.",
     tags: ["Home Visit", "Flexible Scheduling", "All Conditions"],
@@ -58,7 +58,7 @@ export const services = [
   {
     id: 8,
     title: "Physio Gym & Wellness",
-    icon: "🏋️",
+    icon: "Bike",
     description:
       "A dedicated physio gym equipped for supervised rehabilitation and wellness training — combining therapeutic exercise with functional fitness to accelerate recovery.",
     tags: ["Supervised Rehab", "Functional Fitness", "Wellness"],

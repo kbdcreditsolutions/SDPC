@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Users, Target, Activity } from "lucide-react";
 import ServiceCard from "@/components/ServiceCard";
 import BlogCard from "@/components/BlogCard";
 import { services, blogPosts, reviews } from "@/lib/data";
@@ -16,10 +17,17 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-cyan-700 to-cyan-900 text-white">
+      <section
+        className="bg-gradient-to-br from-cyan-700 to-cyan-900 text-white relative overflow-hidden"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      >
         <div className="max-w-6xl mx-auto px-4 py-24 flex flex-col items-center text-center gap-6">
-          <span className="text-sm font-semibold uppercase tracking-widest text-cyan-200">
-            Physiotherapy &amp; Wellness Clinic
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/10 border border-white/20 rounded-full text-sm font-medium text-cyan-100">
+            ⚕ Physiotherapy &amp; Wellness · Narayanguda, Hyderabad
           </span>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight">
             Healing from Core
@@ -43,9 +51,19 @@ export default function HomePage() {
               Our Services
             </Link>
           </div>
-          <p className="text-cyan-200 text-sm mt-2">
-            Online &amp; Offline consultations available · Home Physiotherapy · All Days 8am–9pm
-          </p>
+
+          {/* Stats bar */}
+          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 mt-4 text-cyan-100 text-sm">
+            <span className="flex items-center gap-1.5">
+              <span className="text-yellow-300">★</span> 5.0 Google Rating
+            </span>
+            <span className="hidden sm:inline text-cyan-500">·</span>
+            <span>42+ Reviews</span>
+            <span className="hidden sm:inline text-cyan-500">·</span>
+            <span>2 Locations</span>
+            <span className="hidden sm:inline text-cyan-500">·</span>
+            <span>8+ Years Experience</span>
+          </div>
         </div>
       </section>
 
@@ -53,7 +71,7 @@ export default function HomePage() {
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800">Our Services</h2>
+            <h2 className="text-3xl font-bold text-[#134E4A]">Our Services</h2>
             <p className="text-gray-500 mt-2">
               Comprehensive care tailored to your unique recovery needs.
             </p>
@@ -78,7 +96,7 @@ export default function HomePage() {
       <section className="bg-cyan-50 py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800">Conditions We Treat</h2>
+            <h2 className="text-3xl font-bold text-[#134E4A]">Conditions We Treat</h2>
             <p className="text-gray-500 mt-2">Expert care for a wide range of pain and mobility conditions.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
@@ -99,7 +117,7 @@ export default function HomePage() {
       <section className="bg-white py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800">Why Choose Us</h2>
+            <h2 className="text-3xl font-bold text-[#134E4A]">Why Choose Us</h2>
             <p className="text-gray-500 mt-2">
               Trusted by hundreds of patients for lasting results.
             </p>
@@ -107,24 +125,26 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                icon: "👨‍⚕️",
+                Icon: Users,
                 title: "Expert Team",
                 desc: "Our certified physiotherapists bring years of clinical experience and ongoing specialist training to every session.",
               },
               {
-                icon: "🎯",
+                Icon: Target,
                 title: "Personalized Care",
                 desc: "No two patients are the same. We design individual treatment plans based on thorough assessment and your specific goals.",
               },
               {
-                icon: "🏥",
+                Icon: Activity,
                 title: "Modern Equipment",
                 desc: "State-of-the-art therapeutic tools including ultrasound, electrotherapy, and advanced rehabilitation equipment.",
               },
             ].map((p) => (
               <div key={p.title} className="text-center flex flex-col items-center gap-3 p-6 rounded-2xl border border-gray-100">
-                <div className="text-4xl">{p.icon}</div>
-                <h3 className="text-lg font-semibold text-slate-800">{p.title}</h3>
+                <div className="w-14 h-14 rounded-xl bg-cyan-50 flex items-center justify-center">
+                  <p.Icon className="w-7 h-7 text-cyan-700" strokeWidth={1.75} />
+                </div>
+                <h3 className="text-lg font-semibold text-[#134E4A]">{p.title}</h3>
                 <p className="text-sm text-gray-600">{p.desc}</p>
               </div>
             ))}
@@ -136,7 +156,7 @@ export default function HomePage() {
       <section className="bg-white py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800">What Our Patients Say</h2>
+            <h2 className="text-3xl font-bold text-[#134E4A]">What Our Patients Say</h2>
             <p className="text-gray-500 mt-2">5.0 ★ · 42 Google reviews</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -149,7 +169,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed flex-1">&ldquo;{r.text}&rdquo;</p>
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">{r.name}</p>
+                  <p className="text-sm font-semibold text-[#134E4A]">{r.name}</p>
                   <p className="text-xs text-gray-400">{r.role}</p>
                 </div>
               </div>
@@ -162,7 +182,7 @@ export default function HomePage() {
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-slate-800">Latest from Our Blog</h2>
+            <h2 className="text-3xl font-bold text-[#134E4A]">Latest from Our Blog</h2>
             <p className="text-gray-500 mt-2">
               Expert insights on recovery, rehabilitation, and wellness.
             </p>

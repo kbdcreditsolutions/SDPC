@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
 
 export const metadata: Metadata = {
@@ -6,6 +7,29 @@ export const metadata: Metadata = {
   description:
     "Book an appointment at Sridatri Physio Care. Reach our team for personalized physiotherapy consultations.",
 };
+
+const contactItems = [
+  {
+    Icon: MapPin,
+    label: "Location",
+    value: "Flat 101, Narasimha Nilayam, 3-4-529/2, Narayanguda, Hyderabad, Telangana 500027",
+  },
+  {
+    Icon: Phone,
+    label: "Phone",
+    value: "+91 81432 38246 / +91 82477 31436",
+  },
+  {
+    Icon: Mail,
+    label: "Email",
+    value: "care@sridatriwellness.com",
+  },
+  {
+    Icon: Clock,
+    label: "Hours",
+    value: "All Days: 8am – 9pm",
+  },
+];
 
 export default function ContactPage() {
   return (
@@ -25,16 +49,13 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Contact Info */}
           <div className="flex flex-col gap-6">
-            <h2 className="text-2xl font-bold text-slate-800">Get in Touch</h2>
+            <h2 className="text-2xl font-bold text-[#134E4A]">Get in Touch</h2>
             <div className="flex flex-col gap-4">
-              {[
-                { icon: "📍", label: "Location", value: "Flat 101, Narasimha Nilayam, 3-4-529/2, Narayanguda, Hyderabad, Telangana 500027" },
-                { icon: "📞", label: "Phone", value: "+91 81432 38246 / +91 82477 31436" },
-                { icon: "✉️", label: "Email", value: "care@sridatriwellness.com" },
-                { icon: "🕐", label: "Hours", value: "All Days: 8am – 9pm" },
-              ].map((item) => (
+              {contactItems.map((item) => (
                 <div key={item.label} className="flex items-start gap-3">
-                  <span className="text-2xl">{item.icon}</span>
+                  <div className="w-9 h-9 rounded-lg bg-cyan-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <item.Icon className="w-4 h-4 text-cyan-700" strokeWidth={1.75} />
+                  </div>
                   <div>
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                       {item.label}
@@ -46,8 +67,8 @@ export default function ContactPage() {
             </div>
 
             {/* Map placeholder */}
-            <div className="w-full h-48 bg-cyan-50 rounded-2xl border border-cyan-100 flex items-center justify-center text-cyan-400 text-sm">
-              📍 Map placeholder — embed Google Maps here
+            <div className="w-full h-48 bg-cyan-50 rounded-2xl border border-cyan-100 flex items-center justify-center text-cyan-400 text-sm gap-2">
+              <MapPin className="w-4 h-4" /> Map placeholder — embed Google Maps here
             </div>
           </div>
 
