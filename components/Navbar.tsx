@@ -25,8 +25,8 @@ export default function Navbar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4 pb-2 pointer-events-none">
       <header 
-        className={`w-full max-w-6xl transition-all duration-300 rounded-full pointer-events-auto ${
-          scrolled ? 'glass-panel py-2 px-6' : 'bg-transparent py-2 px-2'
+        className={`w-full max-w-6xl transition-all duration-300 rounded-full pointer-events-auto glass-panel ${
+          scrolled ? 'py-2 px-6 shadow-lg bg-white/80' : 'py-3 px-6 shadow-md bg-white/60'
         }`}
       >
         <div className="flex items-center justify-between">
