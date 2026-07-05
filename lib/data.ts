@@ -65,6 +65,37 @@ export const services = [
   },
 ];
 
+export const reviews = [
+  {
+    id: 1,
+    name: "Mohd Mazhar Uddin",
+    role: "Local Guide · Google",
+    stars: 5,
+    text: "I am extremely satisfied with the physiotherapy services provided. She is highly professional, knowledgeable, and genuinely cares about her patients' recovery and well-being. What impressed me the most is the use of advanced technology.",
+  },
+  {
+    id: 2,
+    name: "Mouni Valam",
+    role: "Google Review",
+    stars: 5,
+    text: "Dr. Tejaswini treats her patients with utmost care. She is very professional and kind in her work. She explains in detail how the necessary treatment process has to be done. She is very keen about the improvement of the patient.",
+  },
+  {
+    id: 3,
+    name: "Anil Madishetty",
+    role: "Local Guide · Google",
+    stars: 5,
+    text: "Very experienced physiotherapist with truly great care for patients. Good recovery percentage and highly recommend to anyone looking for quality physiotherapy in Hyderabad.",
+  },
+  {
+    id: 4,
+    name: "Patient Review",
+    role: "Google Review",
+    stars: 5,
+    text: "The clinic has a calm, hygienic environment and the staff is always welcoming. From severe pain to complete recovery — they have really done a wonderful job.",
+  },
+];
+
 export const blogPosts = [
   {
     id: 1,

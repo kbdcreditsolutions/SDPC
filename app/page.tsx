@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ServiceCard from "@/components/ServiceCard";
 import BlogCard from "@/components/BlogCard";
-import { services, blogPosts } from "@/lib/data";
+import { services, blogPosts, reviews } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Sridatri Physio Care – Healing from Core",
@@ -44,7 +44,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="text-cyan-200 text-sm mt-2">
-            Online &amp; Offline consultations available · Home Physiotherapy · Mon–Sun 9am–9pm
+            Online &amp; Offline consultations available · Home Physiotherapy · All Days 8am–9pm
           </p>
         </div>
       </section>
@@ -126,6 +126,32 @@ export default function HomePage() {
                 <div className="text-4xl">{p.icon}</div>
                 <h3 className="text-lg font-semibold text-slate-800">{p.title}</h3>
                 <p className="text-sm text-gray-600">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews */}
+      <section className="bg-white py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-800">What Our Patients Say</h2>
+            <p className="text-gray-500 mt-2">5.0 ★ · 42 Google reviews</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {reviews.map((r) => (
+              <div key={r.id} className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col gap-3">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: r.stars }).map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-lg">★</span>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-700 leading-relaxed flex-1">&ldquo;{r.text}&rdquo;</p>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{r.name}</p>
+                  <p className="text-xs text-gray-400">{r.role}</p>
+                </div>
               </div>
             ))}
           </div>

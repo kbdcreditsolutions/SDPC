@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import Logo from "@/components/Logo";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -17,13 +18,16 @@ export default function Navbar() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="flex flex-col leading-tight">
-          <span className="text-lg font-bold text-cyan-700 tracking-tight">
-            Sridatri Physio Care
-          </span>
-          <span className="text-xs text-gray-500 tracking-widest uppercase">
-            Healing from Core
-          </span>
+        <Link href="/" className="flex items-center gap-3 leading-tight">
+          <Logo size={44} />
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-cyan-700 tracking-tight">
+              Sridatri Physio Care
+            </span>
+            <span className="text-xs text-gray-500 tracking-widest uppercase">
+              Healing from Core
+            </span>
+          </div>
         </Link>
 
         {/* Desktop nav */}

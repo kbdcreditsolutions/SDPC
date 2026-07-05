@@ -37,7 +37,7 @@ export default function Footer() {
             <li>📍 Narayanguda, Hyderabad 500027</li>
             <li>📞 +91 81432 38246 / 82477 31436</li>
             <li>✉️ care@sridatriwellness.com</li>
-            <li>🕐 Mon–Sun: 9am – 9pm</li>
+            <li>🕐 All Days: 8am – 9pm</li>
           </ul>
         </div>
       </div>
