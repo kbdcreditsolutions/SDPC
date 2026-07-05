@@ -17,14 +17,14 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section
-        className="bg-gradient-to-br from-cyan-700 to-cyan-900 text-white relative overflow-hidden"
-        style={{
-          backgroundImage:
-            "radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-      >
+      <section className="bg-gradient-to-br from-cyan-700 to-cyan-900 text-white relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
         <div className="max-w-6xl mx-auto px-4 py-24 flex flex-col items-center text-center gap-6">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white/10 border border-white/20 rounded-full text-sm font-medium text-cyan-100">
             ⚕ Physiotherapy &amp; Wellness · Narayanguda, Hyderabad
