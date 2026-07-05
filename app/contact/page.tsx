@@ -28,10 +28,10 @@ export default function ContactPage() {
             <h2 className="text-2xl font-bold text-slate-800">Get in Touch</h2>
             <div className="flex flex-col gap-4">
               {[
-                { icon: "📍", label: "Location", value: "Hyderabad, Telangana, India" },
-                { icon: "📞", label: "Phone", value: "+91 98765 43210" },
-                { icon: "✉️", label: "Email", value: "care@sridatriphysio.com" },
-                { icon: "🕐", label: "Hours", value: "Mon–Sat: 9am – 7pm" },
+                { icon: "📍", label: "Location", value: "Flat 101, Narasimha Nilayam, 3-4-529/2, Narayanguda, Hyderabad, Telangana 500027" },
+                { icon: "📞", label: "Phone", value: "+91 81432 38246" },
+                { icon: "✉️", label: "Email", value: "care@sridatriwellness.com" },
+                { icon: "🕐", label: "Hours", value: "Mon–Sat: 8am – 7pm" },
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-3">
                   <span className="text-2xl">{item.icon}</span>

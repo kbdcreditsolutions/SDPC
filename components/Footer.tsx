@@ -34,9 +34,9 @@ export default function Footer() {
         <div>
           <h4 className="text-white font-semibold mb-3">Contact</h4>
           <ul className="space-y-2 text-sm text-gray-400">
-            <li>📍 Hyderabad, Telangana, India</li>
-            <li>📞 +91 98765 43210</li>
-            <li>✉️ care@sridatriphysio.com</li>
+            <li>📍 Narayanguda, Hyderabad 500027</li>
+            <li>📞 +91 81432 38246</li>
+            <li>✉️ care@sridatriwellness.com</li>
           </ul>
         </div>
       </div>
