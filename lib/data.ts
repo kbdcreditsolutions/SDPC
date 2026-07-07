@@ -81,13 +81,6 @@ export const team = [
     bio: "16+ years of clinical expertise in musculoskeletal and neurological rehabilitation. Passionate about evidence-based care and patient empowerment.",
     specialties: ["Neuro Rehab", "Back & Spine", "Pain Management"],
   },
-  {
-    name: "Dr. Priya Sharma",
-    initials: "PS",
-    role: "Paediatric & Women's Health Physio",
-    bio: "Dedicated to child development, paediatric musculoskeletal care, and women's health — creating safe, child-friendly treatment experiences.",
-    specialties: ["Kids Wellness", "Women's Health", "Developmental Care"],
-  },
 ];
 
 export const reviews = [
