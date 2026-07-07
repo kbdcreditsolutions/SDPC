@@ -2,16 +2,24 @@
 
 > **Purpose:** This file is the single source of truth for any AI agent picking up work on this project.
 > Read this before touching any code.
+>
+> **Last updated:** 2026-07-08
 
 ---
 
 ## 1. What This Project Is
 
-A **public-facing marketing website** for **Sridatri Physio Care**, a physiotherapy clinic in Hyderabad.
+This is now **two things in one repo**:
 
-- **Clinic name:** Sridatri Physio Care
+1. **Public marketing website** — `app/(marketing)/` — the patient-facing site
+2. **Admin portal** — `app/admin/` — a full clinic management system (staff-only)
+
+### Clinic details
+- **Name:** Sridatri Physio Care
 - **Tagline:** "Healing from Core"
-- **Doctor:** Dr. Tejaswini Damerla (Consultant Physiotherapist — sports injury rehabilitation & musculoskeletal physiotherapy)
+- **Lead doctor:** Dr. Tejaswini Damerla (Consultant Physiotherapist — 16+ years, sports injury rehab & musculoskeletal physio)
+- **Specialisms highlighted:** Neuro Rehab + Paediatric Wellness
+- **Locations:** Narayanguda (primary) + Himayatnagar
 - **Address:** Flat 101, Narasimha Nilayam, 3-4-529/2, Narayanguda, Hyderabad, Telangana 500027
 - **Phone:** +91 81432 38246 / +91 82477 31436
 - **Email:** care@sridatriwellness.com
@@ -31,10 +39,18 @@ A **public-facing marketing website** for **Sridatri Physio Care**, a physiother
 | Language | **TypeScript** |
 | Icons | **lucide-react ^1.23.0** |
 | Fonts | **Outfit** (headings, `font-display`) + **Figtree** (body, `font-sans`) via `next/font/google` |
+| ORM | **Prisma 6** + **PostgreSQL** (admin portal DB) |
+| Auth | **JWT** via `jose` + `bcrypt`; sessions in HTTP-only cookies |
+| Images | **Pexels** (Indian doctor/patient photos) + **next/image** |
 | Deployment | **Vercel** (auto-deploy on push to `main`) |
 | Build cmd | `next build --webpack` |
 
-> ⚠️ **Next.js 16 + React 19 are cutting-edge.** Always check `node_modules/next/dist/docs/` for API changes before writing code.
+> ⚠️ **Next.js 16 + React 19 are cutting-edge.** Always check `node_modules/next/dist/docs/` before writing code.
+
+### New packages added (since initial build)
+- `jose`, `bcryptjs`, `@types/bcryptjs` — JWT auth
+- `@prisma/client`, `prisma` — database ORM
+- Image domains: `images.pexels.com` and `images.unsplash.com` allowed in `next.config.ts`
 
 ---
 
@@ -43,150 +59,244 @@ A **public-facing marketing website** for **Sridatri Physio Care**, a physiother
 ```
 /Users/manojaaa/SDPC/
 ├── app/
-│   ├── layout.tsx          # Root layout — Navbar, Footer, font variables, global meta
-│   ├── globals.css         # Tailwind base, custom utilities (card-hover, glass-panel, font-display)
-│   ├── page.tsx            # Home page (hero, services preview, blog preview, CTA)
-│   ├── about/page.tsx      # About page (story, values, team, CTA)
-│   ├── blog/
-│   │   ├── page.tsx        # Blog listing page
-│   │   └── [slug]/page.tsx # Individual blog post page
-│   ├── contact/page.tsx    # Contact page (contact info cards, Google Maps embed, contact form)
-│   └── services/page.tsx   # Services listing page (cards + CTA)
+│   ├── layout.tsx                      # Root layout (fonts, global meta only — no Navbar/Footer here now)
+│   ├── globals.css                     # Tailwind base + custom utilities
+│   │
+│   ├── (marketing)/                    # Route group — public marketing site
+│   │   ├── layout.tsx                  # Marketing layout — includes Navbar + Footer
+│   │   ├── page.tsx                    # Home page
+│   │   ├── about/page.tsx
+│   │   ├── blog/
+│   │   │   ├── page.tsx
+│   │   │   └── [slug]/page.tsx
+│   │   ├── contact/page.tsx            # Has live Google Maps embed
+│   │   └── services/page.tsx
+│   │
+│   ├── admin/                          # Staff-only admin portal
+│   │   ├── login/page.tsx              # Login page (outside auth guard)
+│   │   └── (protected)/               # Route group — requires valid JWT session
+│   │       ├── layout.tsx              # Admin layout — Sidebar + TopBar
+│   │       ├── page.tsx                # Dashboard (revenue, patients, appointments, charts)
+│   │       ├── patients/
+│   │       │   ├── page.tsx            # Patient list + search + add
+│   │       │   └── [id]/page.tsx       # Patient detail (packages, clinical notes)
+│   │       ├── appointments/page.tsx
+│   │       ├── invoices/
+│   │       │   ├── page.tsx            # GST invoice list
+│   │       │   └── [id]/page.tsx       # Invoice detail + payment recording
+│   │       ├── staff/page.tsx          # Staff & doctor management
+│   │       ├── attendance/page.tsx     # Daily staff/patient attendance
+│   │       ├── marketing/page.tsx      # Campaigns, workshops, lead attribution
+│   │       └── ratings/page.tsx        # Doctor ratings (patient + dept-head)
+│   │
+│   └── api/                            # Next.js API routes (admin backend)
+│       ├── auth/login/route.ts
+│       ├── auth/logout/route.ts
+│       ├── auth/me/route.ts
+│       ├── dashboard/route.ts
+│       ├── patients/[id]/...
+│       ├── appointments/route.ts
+│       ├── invoices/[id]/...
+│       ├── staff/[id]/...
+│       ├── attendance/route.ts
+│       ├── marketing/...
+│       ├── ratings/route.ts
+│       └── doctors/route.ts
+│
 ├── components/
-│   ├── Navbar.tsx          # Floating glass-pill navbar (fixed, glassmorphic)
-│   ├── Footer.tsx          # Site footer
-│   ├── Logo.tsx            # SVG logo component
-│   ├── BlogCard.tsx        # Blog post card (links to /blog/[slug])
-│   ├── ServiceCard.tsx     # Service card
-│   └── ContactForm.tsx     # Contact/appointment booking form
+│   ├── Navbar.tsx                      # Floating glass-pill navbar (marketing only)
+│   ├── Footer.tsx                      # Site footer (marketing only)
+│   ├── Logo.tsx                        # SVG logo
+│   ├── BlogCard.tsx                    # Blog card — now has cover image + doctor avatar/byline
+│   ├── ServiceCard.tsx                 # Service card — now has topic-matched photo
+│   ├── ContactForm.tsx                 # Appointment booking form
+│   ├── Card.tsx                        # Generic card component (admin)
+│   ├── Sidebar.tsx                     # Admin sidebar navigation
+│   └── TopBar.tsx                      # Admin top bar
+│
 ├── lib/
-│   └── data.ts             # All static content: blogPosts[], services[] arrays
-├── public/                 # Static assets
-├── context.md              # ← YOU ARE HERE
-└── AGENTS.md               # Agent-specific rules (do not delete)
+│   ├── data.ts                         # Static content: blogPosts[], services[] — now includes image URLs
+│   ├── auth.ts                         # JWT sign/verify helpers (jose + bcrypt)
+│   ├── db.ts                           # Prisma client singleton
+│   ├── guard.ts                        # requireSession() — checks JWT + isActive in DB
+│   ├── nav.ts                          # Admin sidebar nav config
+│   ├── roleLabel.ts                    # Role → display label map
+│   └── scope.ts                        # tenantScope() — Prisma where clause for tenant isolation
+│
+├── prisma/
+│   ├── schema.prisma                   # Full DB schema (321 lines)
+│   └── seed.ts                         # Seeds SDPC tenant + demo data
+│
+├── proxy.ts                            # Middleware proxy for auth-guarding /admin routes
+├── context.md                          # ← YOU ARE HERE
+└── AGENTS.md                           # Agent rules (do not delete)
 ```
 
 ---
 
-## 4. Design System
+## 4. Design System (Marketing Site)
 
 ### Colors (Tailwind classes)
-- **Primary gradient:** `from-teal-900 via-teal-800 to-emerald-900` — used on ALL hero sections
-- **Accent/CTA:** `bg-teal-700` (primary buttons), `bg-emerald-500` (secondary/highlight CTAs)
+- **Primary gradient:** `from-teal-900 via-teal-800 to-emerald-900` — ALL hero sections
+- **Accent/CTA:** `bg-teal-700` (primary buttons), `bg-emerald-500` (highlight CTAs)
 - **Page background:** `bg-[#F8FAFC]` (slate-50)
-- **Card background:** `bg-white` with `border border-slate-100` and soft shadow `shadow-[0_4px_20px_rgb(0,0,0,0.02)]`
+- **Card background:** `bg-white` + `border border-slate-100` + `shadow-[0_4px_20px_rgb(0,0,0,0.02)]`
 - **Headings:** `text-teal-950` or `text-teal-900`
 - **Body text:** `text-slate-600` or `text-slate-700`
-- **Muted/label text:** `text-slate-400` or `text-slate-500`
-- **Icon backgrounds:** `bg-teal-50` with `text-teal-600` icons
-- **No cyan colors** — cyan has been fully replaced with teal/emerald throughout
+- **No cyan** — fully replaced with teal/emerald
 
 ### Typography
-- **Headings:** `font-display` (maps to `--font-outfit`, Outfit font)
-- **Body:** `font-sans` (maps to `--font-figtree`, Figtree font)
-- **Hero H1 size:** `text-5xl font-display font-bold` (inner pages) / `text-5xl md:text-7xl` (home)
-- **Section H2:** `text-4xl font-display font-bold`
-- **Category badges:** `text-[10px] font-bold uppercase tracking-widest bg-teal-50 border border-teal-100 rounded-full`
+- **Headings:** `font-display` (Outfit font)
+- **Body:** `font-sans` (Figtree font)
+- **Hero H1:** `text-5xl font-display font-bold` (inner pages) / `text-5xl md:text-7xl` (home)
 
 ### Layout
-- **Max width:** `max-w-6xl mx-auto` for sections, `max-w-3xl mx-auto` for text-heavy sections
-- **Section padding:** `py-24 px-4` for content sections, `pt-36 pb-24 px-4` for hero sections (to clear fixed navbar)
-- **Card radius:** `rounded-3xl` for cards
-- **Button radius:** `rounded-full` for primary CTAs
+- **Max width:** `max-w-6xl mx-auto`
+- **Hero padding:** `pt-36 pb-24 px-4` — the `pt-36` is CRITICAL to clear the fixed floating navbar
+- **Card radius:** `rounded-3xl`
+- **Button radius:** `rounded-full`
 
-### Custom CSS Utilities (in `globals.css`)
-- `.card-hover` — smooth lift + shadow on hover
-- `.glass-panel` — frosted glass background + blur
-- `.font-display` — maps to Outfit font
+### Custom CSS Utilities (`globals.css`)
+- `.card-hover` — lift + shadow on hover
+- `.glass-panel` — frosted glass
+- `.font-display` — Outfit font
 
 ---
 
-## 5. Key Components — Notes
+## 5. Key Component Notes
 
-### `Navbar.tsx`
-- **Fixed, floating pill design** (`fixed top-0`, centered with `flex justify-center`)
-- Uses `bg-white/90 backdrop-blur-lg` so logo/text stays visible on dark hero backgrounds
-- Shrinks slightly + shadow increases on scroll (`scrolled` state via `useEffect`)
-- Mobile: hamburger menu with dropdown panel
-- Logo + "Sridatri Physio Care" + "HEALING FROM CORE" tagline always visible
-- CTA button: "Book Appointment" → `/contact`
+### `Navbar.tsx` (marketing only)
+- **Fixed, floating pill** — `fixed top-0`, centered, `bg-white/90 backdrop-blur-lg`
+- Always visible over dark hero backgrounds (opacity never drops)
+- Shrinks + shadow on scroll via `scrolled` state
+- CTA: "Book Appointment" → `/contact`
 
 ### `BlogCard.tsx`
-- Renders as `<Link href="/blog/[slug]">` — blog cards ARE clickable
-- Categories displayed as badge, title, excerpt shown
+- Now shows **cover image** (top), category badge, title, excerpt
+- Shows **doctor avatar + byline** (Dr. Tejaswini) on first 3 posts
+- Links to `/blog/[slug]` — fully clickable
+
+### `ServiceCard.tsx`
+- Now shows a **topic-matched Pexels photo** for each service
+- 9 services total (see lib/data.ts) including new Kids Wellness & Paediatric Physio
 
 ### `lib/data.ts`
-- All blog posts and services live here as static TypeScript arrays
-- Blog post schema: `{ id, slug, title, category, date, excerpt, content: string[] }`
-- Services schema: `{ id, title, description, icon }`
-- Blog content has been researched and filled with real, detailed physiotherapy content (not placeholder text)
+- `blogPosts[]` — schema: `{ id, slug, title, category, date, excerpt, content: string[], image?: string, author?: {...} }`
+- `services[]` — schema: `{ id, title, description, icon, image?: string }`
+- All images now use **Pexels** (Indian doctor/patient context), IDs carefully matched to service topic
 
-### `contact/page.tsx`
-- Real Google Maps iframe embedded (not a placeholder)
-- Maps src points to the clinic's address: Narasimha Nilayam, Narayanguda, Hyderabad
+### `proxy.ts` (middleware auth guard)
+- Guards all `/admin` routes EXCEPT `/admin/login`
+- Reads JWT from cookie, redirects to `/admin/login` if missing/invalid
+
+### Admin Auth
+- Login: `/admin/login` — credentials set via seed: `admin@sridatriphysio.in` / `Admin@123`
+- JWT stored in HTTP-only cookie, 7-day TTL
+- `lib/guard.ts` checks `user.isActive` in DB on every protected request
 
 ---
 
-## 6. What Has Been Done (History)
+## 6. What Has Been Done (Full History)
 
 ### Phase 1 — Initial Setup
 - Created Next.js 16 project with Tailwind CSS v4
-- Built all pages: Home, About, Services, Blog, Contact, Blog/[slug]
-- Deployed to Vercel, fixed build errors (output: 'export' removed, dynamic routes fixed)
+- Built all marketing pages: Home, About, Services, Blog, Contact, Blog/[slug]
+- Deployed to Vercel, fixed build errors
 
 ### Phase 2 — Blog Content
-- Researched and filled all blog posts with real, detailed physiotherapy content based on titles
-- Blog posts are clickable (Link component wraps BlogCard)
+- Researched and filled all blog posts with real physiotherapy content
+- Blog cards are clickable (Link component)
 
 ### Phase 3 — UI/UX Audit & Redesign
-Full redesign based on audit findings:
-- **Typography:** Upgraded to dual-font system (Outfit + Figtree)
-- **Colors:** Replaced all plain cyan with rich Teal + Emerald palette
-- **Navbar:** Redesigned to floating glassmorphic pill (fixed, centered, bg-white/90 + backdrop-blur)
-- **Hero sections:** Rich dark gradient on all pages with dot-grid overlay
-- **Cards:** Rounded-3xl, soft shadows, hover animations via `.card-hover`
-- **Color consistency:** All 5 pages now use the same teal/emerald design tokens
+- Dual-font system (Outfit + Figtree)
+- Teal + Emerald palette replacing cyan
+- Floating glassmorphic pill navbar
+- Rich dark gradient hero sections on all pages
+- Rounded-3xl cards with soft shadows + hover animations
 
 ### Phase 4 — Fixes
-- **Navbar visibility:** Fixed logo/text disappearing on dark backgrounds by using `bg-white/90` always
-- **Hero spacing:** Added `pt-36` to all hero sections to prevent content hiding behind fixed navbar
-- **Google Maps:** Replaced placeholder with live Google Maps iframe for clinic location
+- Navbar visibility fix: `bg-white/90` always applied
+- Hero spacing: `pt-36` on all inner pages to clear fixed navbar
+- Google Maps: live iframe embedded on contact page
+
+### Phase 5 — Major Feature: Admin Portal (separate session, 2026-07-07)
+- **Full clinic management system** added at `/admin`
+- Prisma 6 + PostgreSQL schema (321 lines) covering: users, patients, appointments, invoices, staff, attendance, marketing, ratings
+- JWT auth (jose + bcrypt), proxy middleware for route guarding
+- Dashboard: revenue, patients, appointments, outstanding balance, charts
+- Patients: list/search/add + detail view with packages and clinical notes
+- Appointments: schedule + status tracking
+- Billing: GST invoices with line items, partial/full payment recording
+- Staff & Doctors: add/deactivate by role
+- Attendance: mark staff and patient attendance by date
+- Marketing: campaigns, workshops, lead attribution
+- Doctor Ratings: patient + dept-head
+- Route groups: marketing → `(marketing)/`, admin auth-protected → `admin/(protected)/`
+- Fixed: login redirect loop (login page moved outside protected route group)
+- Fixed: IDOR vulnerability in `lib/scope.ts` (throws on null tenantId)
+- Fixed: JWT secret checked at call-time (throws if unset, no weak default)
+- Perf: removed per-request isActive DB lookup (checked at login only)
+- Added show/hide password toggle to login form
+
+### Phase 6 — Marketing Site Content & Images (2026-07-07)
+- Added 9th service: **Kids Wellness & Paediatric Physio**
+- Updated stats: 8+ → **16+ years experience**
+- Updated hero badge: Neuro Rehab + Paediatric Wellness prominent
+- Fixed service terminology: Body Recovery → **Electrotherapy & Ultrasound**, Sports Injury tags fixed
+- Added **Meet the Team** section (Dr. Tejaswini only — placeholder doctors removed)
+- Added **2 Locations** section (Narayanguda + Himayatnagar)
+- Added doctor avatar + byline to BlogCard for first 3 posts
+- Added **real photos** to hero (physio photo background), service cards, blog cards
+- Switched from Unsplash → **Pexels** (better Indian context photos)
+- Corrected mismatched service card photos to match service topics
 
 ---
 
 ## 7. Known Issues / Open Items
 
-- [ ] **Google Maps embed** may show a consent wall in some regions — consider upgrading to Google Maps Embed API with a key for reliability
-- [ ] **ContactForm.tsx** — form currently has no backend. Needs a form submission handler (e.g. Formspree, Resend, or a Next.js API route)
-- [ ] **Team section** (About page) uses placeholder avatars (UserCircle icon) — needs real team photos
-- [ ] **Blog post images** — no featured images on blog cards or post pages yet
-- [ ] **SEO** — meta descriptions are set per page, but Open Graph / Twitter card images not yet added
-- [ ] **Analytics** — no Google Analytics or similar tracking set up yet
-- [ ] **Custom domain** — currently on sdpc.vercel.app, may want to connect to kbdcreditsolutions.in subdomain
+- [ ] **Admin DB setup** — requires `DATABASE_URL` env var in Vercel + `prisma db push` + `npm run seed` to initialise
+- [ ] **ContactForm.tsx** — no backend. Needs Formspree, Resend, or a Next.js API route
+- [ ] **Google Maps embed** — may show consent wall in some regions; consider Google Maps Embed API with key
+- [ ] **Blog post images** — static Pexels URLs in data.ts; no CMS yet
+- [ ] **Team photos** — Dr. Tejaswini's photo is still an SVG silhouette placeholder
+- [ ] **SEO** — Open Graph / Twitter card images not set
+- [ ] **Analytics** — no tracking set up
+- [ ] **Custom domain** — on sdpc.vercel.app; may want a subdomain of kbdcreditsolutions.in
 
 ---
 
-## 8. Deployment
+## 8. Deployment & Setup
 
 ```bash
 # Local dev
 cd /Users/manojaaa/SDPC
 npm run dev
 
+# Admin DB setup (first time only)
+npx prisma db push
+npm run seed
+
 # Build check
 npm run build
 
-# Deploy: just push to main
+# Deploy: push to main — Vercel auto-deploys
 git add -A && git commit -m "your message" && git push origin main
-# Vercel auto-deploys from main branch
+```
+
+### Required env vars (Vercel + local .env)
+```
+DATABASE_URL=postgresql://...
+JWT_SECRET=<strong-random-secret>
 ```
 
 ---
 
 ## 9. Design Decisions & Constraints
 
-1. **No backend** — fully static site with `output: 'export'` NOT set (removed to support dynamic blog routes). Content is hardcoded in `lib/data.ts`.
-2. **No CMS** — content updates require code edits. Future: could add Sanity or Contentful.
-3. **Glassmorphic navbar must stay** — user preference confirmed. Keep `bg-white/90 backdrop-blur-lg` approach.
-4. **Teal/Emerald palette is locked** — do not revert to cyan. The design system is now fully on teal.
-5. **pt-36 on all inner page heroes** — required because navbar is `fixed` (not `sticky`). Home page hero uses `pt-12` + inner padding since it's full-height.
+1. **Teal/Emerald palette is locked** — do not revert to cyan anywhere
+2. **Glassmorphic navbar must stay** — keep `bg-white/90 backdrop-blur-lg`
+3. **`pt-36` on inner page heroes** — required because navbar is `fixed`. Do not change to `sticky`
+4. **Route groups are important** — `(marketing)` has Navbar/Footer, `admin/(protected)` has Sidebar/TopBar, they must not bleed into each other
+5. **Pexels for images** — Unsplash was replaced; use Pexels IDs, ensure `images.pexels.com` stays in `next.config.ts` allowed domains
+6. **Single-tenant admin** — the DB schema supports multi-tenant but SDPC runs as one tenant. `lib/scope.ts` tenantScope scopes all queries — never bypass it
+7. **No CMS** — content in `lib/data.ts`. Future: could add Sanity or Contentful
