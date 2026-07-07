@@ -3,7 +3,7 @@ export const services = [
     id: 1,
     title: "Back & Spine Therapy",
     icon: "Bone",
-    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/18870282/pexels-photo-18870282.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Comprehensive spinal manipulation and alignment restoration targeting nerve irritation and structural imbalances. Our specialists restore optimal spinal function through evidence-based manual techniques.",
     tags: ["Spinal Manipulation", "Alignment Restoration", "Nerve Relief"],
@@ -12,7 +12,7 @@ export const services = [
     id: 2,
     title: "Electrotherapy & Ultrasound",
     icon: "Zap",
-    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/14558557/pexels-photo-14558557.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Targeted therapeutic ultrasound and electrotherapy to accelerate healing, reduce inflammation, and improve circulation in injured or overworked muscle groups.",
     tags: ["Ultrasound Therapy", "Electrotherapy", "Inflammation Relief"],
@@ -21,7 +21,7 @@ export const services = [
     id: 3,
     title: "Neurological Rehabilitation",
     icon: "Brain",
-    image: "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/15277947/pexels-photo-15277947.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Specialized stroke rehabilitation and functional movement restoration programs designed to help patients regain independence and rebuild neural pathways after neurological events.",
     tags: ["Stroke Rehabilitation", "Functional Movement", "Neural Recovery"],
@@ -30,7 +30,7 @@ export const services = [
     id: 4,
     title: "Pain Management",
     icon: "Target",
-    image: "https://images.unsplash.com/photo-1616279967983-ec413476e824?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/14558560/pexels-photo-14558560.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Holistic lower back pain assessment, muscle imbalance correction, and personalized ergonomic guidance to reduce pain at the source and prevent recurrence.",
     tags: ["Lower Back Pain", "Muscle Balance", "Ergonomic Guidance"],
@@ -39,7 +39,7 @@ export const services = [
     id: 5,
     title: "Physiotherapy Treatments",
     icon: "Dumbbell",
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/6129660/pexels-photo-6129660.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Personalized exercise plans, manual therapy sessions, and progressive resistance training programs tailored to your recovery goals and fitness level.",
     tags: ["Exercise Plans", "Manual Therapy", "Resistance Training"],
@@ -48,7 +48,7 @@ export const services = [
     id: 6,
     title: "Sports Injury Rehab",
     icon: "PersonStanding",
-    image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/7578806/pexels-photo-7578806.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Expert kinesiology taping, sports-specific conditioning, and rotator cuff rehabilitation to get athletes back to peak performance safely and prevent re-injury.",
     tags: ["Kinesiology Taping", "Rotator Cuff", "Sports Conditioning"],
@@ -57,7 +57,7 @@ export const services = [
     id: 7,
     title: "Home Physiotherapy",
     icon: "Home",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/8312811/pexels-photo-8312811.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Can't visit the clinic? Our physiotherapists come to you. Receive the same expert care and personalized treatment plans from the comfort of your home.",
     tags: ["Home Visit", "Flexible Scheduling", "All Conditions"],
@@ -66,7 +66,7 @@ export const services = [
     id: 8,
     title: "Physio Gym & Wellness",
     icon: "Bike",
-    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/7659873/pexels-photo-7659873.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "A dedicated physio gym equipped for supervised rehabilitation and wellness training — combining therapeutic exercise with functional fitness to accelerate recovery.",
     tags: ["Supervised Rehab", "Functional Fitness", "Wellness"],
@@ -75,7 +75,7 @@ export const services = [
     id: 9,
     title: "Kids Wellness & Paediatric Physio",
     icon: "Baby",
-    image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.pexels.com/photos/7579831/pexels-photo-7579831.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Gentle, child-friendly physiotherapy for developmental delays, posture issues, and paediatric musculoskeletal conditions — helping children grow stronger and move with confidence.",
     tags: ["Paediatric Care", "Developmental Support", "Child-Friendly"],
@@ -130,7 +130,7 @@ export const blogPosts = [
     slug: "recover-faster-expert-physiotherapy",
     category: "Recovery",
     author: { name: "Dr. Tejaswini", initials: "DT" },
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/7578797/pexels-photo-7578797.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Discover how personalized physiotherapy treatment plans can significantly improve joint mobility and accelerate your recovery timeline after injury or surgery.",
     date: "2024-12-01",
@@ -146,7 +146,7 @@ export const blogPosts = [
     slug: "body-recovery-ultrasound-treatment",
     category: "Treatments",
     author: { name: "Dr. Tejaswini", initials: "DT" },
-    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/6129444/pexels-photo-6129444.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Therapeutic ultrasound is a powerful modality for reducing inflammation and promoting tissue repair. Learn how this non-invasive treatment can transform your healing journey.",
     date: "2024-11-20",
@@ -162,7 +162,7 @@ export const blogPosts = [
     slug: "physiotherapy-shoulder-relief",
     category: "Pain Relief",
     author: { name: "Dr. Tejaswini", initials: "DT" },
-    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/7579830/pexels-photo-7579830.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Manual therapy and spinal mobilization combined with targeted shoulder exercises offer lasting relief for chronic shoulder pain without aggressive interventions.",
     date: "2024-11-10",
@@ -177,7 +177,7 @@ export const blogPosts = [
     title: "Targeted Back Relief Through Expert Physiotherapy",
     slug: "targeted-back-relief-physiotherapy",
     category: "Back & Spine",
-    image: "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/7580254/pexels-photo-7580254.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Lower back pain affects millions. Our posture correction protocols and targeted physiotherapy deliver measurable relief and long-term spinal health improvements.",
     date: "2024-10-28",
@@ -192,7 +192,7 @@ export const blogPosts = [
     title: "Professional Physiotherapy Care for Spine And Joint Recovery",
     slug: "spine-joint-recovery-care",
     category: "Back & Spine",
-    image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/6129441/pexels-photo-6129441.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Spinal manipulation and alignment therapy conducted by certified physiotherapists can restore full joint function and eliminate chronic discomfort effectively.",
     date: "2024-10-15",
@@ -207,7 +207,7 @@ export const blogPosts = [
     title: "Supportive Physiotherapy For Upper Body Strength Training",
     slug: "upper-body-strength-physiotherapy",
     category: "Fitness & Rehab",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/7108346/pexels-photo-7108346.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Functional training and progressive resistance programs guided by physiotherapists ensure safe strength gains while protecting vulnerable joints and soft tissue.",
     date: "2024-09-30",
@@ -222,7 +222,7 @@ export const blogPosts = [
     title: "Physiotherapy Techniques To Regain Shoulder Flexibility",
     slug: "shoulder-flexibility-physiotherapy",
     category: "Sports Rehab",
-    image: "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/7580260/pexels-photo-7580260.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Kinesiology taping and targeted shoulder impingement protocols help athletes and active individuals regain full range of motion and return to sport confidently.",
     date: "2024-09-18",
@@ -237,7 +237,7 @@ export const blogPosts = [
     title: "Rehabilitation Support Through Hand Therapy Tools",
     slug: "hand-therapy-rehabilitation",
     category: "Specialized Care",
-    image: "https://images.unsplash.com/photo-1616279967983-ec413476e824?auto=format&fit=crop&w=800&q=80&crop=bottom",
+    image: "https://images.pexels.com/photos/7579823/pexels-photo-7579823.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "Hand therapy addressing carpal tunnel syndrome and sensory feedback deficits uses specialized tools and exercises to restore fine motor function and grip strength.",
     date: "2024-09-05",
@@ -252,7 +252,7 @@ export const blogPosts = [
     title: "Healing Through Movement: Physiotherapy For Lasting Relief",
     slug: "healing-through-movement-physiotherapy",
     category: "Holistic Care",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.pexels.com/photos/6303643/pexels-photo-6303643.jpeg?auto=compress&cs=tinysrgb&w=800",
     excerpt:
       "A holistic recovery approach combining movement therapy and chronic pain management strategies offers sustainable relief and improved quality of life.",
     date: "2024-08-22",
