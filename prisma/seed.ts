@@ -180,8 +180,8 @@ async function main() {
     }
   }
 
-  console.log(`Tenant ID: ${tenant.id}`);
-  console.log("Seed complete. Login: admin@sridatriphysio.in / Admin@123");
+  console.log(`Seed complete. Tenant ID: ${tenant.id}`);
+  console.log("Login: admin@sridatriphysio.in — use the password you set in SDPC_ADMIN_PASSWORD env var, or Admin@123 default (change before prod)");
 }
 
 main()

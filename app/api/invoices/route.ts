@@ -10,7 +10,7 @@ export async function GET() {
   const scope = tenantScope(session);
 
   const invoices = await prisma.invoice.findMany({
-    where: scope,
+    where: { ...scope, deletedAt: null },
     include: { patient: true },
     orderBy: { date: "desc" },
   });

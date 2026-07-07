@@ -2,7 +2,12 @@ import * as jose from "jose";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret");
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET env var is not set");
+  return new TextEncoder().encode(secret);
+}
+
 const COOKIE_NAME = "physiocare_session";
 
 export type Role = "SUPER_ADMIN" | "CLINIC_ADMIN" | "DOCTOR" | "STAFF";
@@ -27,12 +32,12 @@ export async function signSession(payload: SessionPayload) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 }
 
 export async function verifySession(token: string): Promise<SessionPayload | null> {
   try {
-    const { payload } = await jose.jwtVerify(token, JWT_SECRET);
+    const { payload } = await jose.jwtVerify(token, getJwtSecret());
     return payload as SessionPayload;
   } catch {
     return null;

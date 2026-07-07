@@ -20,8 +20,14 @@ export async function POST(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const invoice = await prisma.invoice.findFirst({ where: { id, tenantId: session.tenantId! } });
+  if (!session.tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const invoice = await prisma.invoice.findFirst({ where: { id, tenantId: session.tenantId, deletedAt: null } });
   if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const remaining = Number(invoice.total) - Number(invoice.paidAmount);
+  if (parsed.data.amount > remaining) {
+    return NextResponse.json({ error: `Payment exceeds balance of ₹${remaining}` }, { status: 400 });
+  }
 
   await prisma.payment.create({
     data: { invoiceId: id, method: parsed.data.method, amount: parsed.data.amount },

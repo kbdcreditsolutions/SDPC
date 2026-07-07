@@ -6,12 +6,12 @@ import { hashPassword } from "@/lib/auth";
 import { z } from "zod";
 
 export async function GET() {
-  const { session, response } = await requireSession();
+  const { session, response } = await requireSession(["CLINIC_ADMIN"]);
   if (!session) return response!;
   const scope = tenantScope(session);
 
   const users = await prisma.user.findMany({
-    where: scope,
+    where: { ...scope, deletedAt: null },
     orderBy: { name: "asc" },
   });
 
@@ -30,7 +30,7 @@ export async function GET() {
 const schema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(8),
   role: z.enum(["CLINIC_ADMIN", "DOCTOR", "STAFF"]),
   specialty: z.string().optional(),
 });

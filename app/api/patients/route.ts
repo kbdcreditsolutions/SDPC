@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   const patients = await prisma.patient.findMany({
     where: {
       ...scope,
+      deletedAt: null,
       ...(q
         ? {
             OR: [
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
         : {}),
     },
     include: {
-      invoices: true,
+      invoices: { where: { deletedAt: null } },
     },
     orderBy: { createdAt: "desc" },
   });

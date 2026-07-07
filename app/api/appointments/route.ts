@@ -10,7 +10,7 @@ export async function GET() {
   const scope = tenantScope(session);
 
   const appointments = await prisma.appointment.findMany({
-    where: scope,
+    where: { ...scope, deletedAt: null },
     include: { patient: true, doctor: true },
     orderBy: { datetime: "asc" },
   });

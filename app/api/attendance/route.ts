@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
   const date = dayRange(dateStr);
 
   const [staff, patients, records] = await Promise.all([
-    prisma.user.findMany({ where: { ...scope, isActive: true }, orderBy: { name: "asc" } }),
-    prisma.patient.findMany({ where: scope, orderBy: { name: "asc" } }),
+    prisma.user.findMany({ where: { ...scope, isActive: true, deletedAt: null }, orderBy: { name: "asc" } }),
+    prisma.patient.findMany({ where: { ...scope, deletedAt: null }, orderBy: { name: "asc" } }),
     prisma.attendanceRecord.findMany({ where: { ...scope, date } }),
   ]);
 
