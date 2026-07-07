@@ -57,7 +57,7 @@ export const services = [
     id: 7,
     title: "Home Physiotherapy",
     icon: "Home",
-    image: "https://images.pexels.com/photos/8312811/pexels-photo-8312811.jpeg?auto=compress&cs=tinysrgb&w=600",
+    image: "https://images.pexels.com/photos/7551627/pexels-photo-7551627.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Can't visit the clinic? Our physiotherapists come to you. Receive the same expert care and personalized treatment plans from the comfort of your home.",
     tags: ["Home Visit", "Flexible Scheduling", "All Conditions"],
@@ -66,7 +66,7 @@ export const services = [
     id: 8,
     title: "Physio Gym & Wellness",
     icon: "Bike",
-    image: "https://images.pexels.com/photos/7659873/pexels-photo-7659873.jpeg?auto=compress&cs=tinysrgb&w=600",
+    image: "https://images.pexels.com/photos/4046654/pexels-photo-4046654.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "A dedicated physio gym equipped for supervised rehabilitation and wellness training — combining therapeutic exercise with functional fitness to accelerate recovery.",
     tags: ["Supervised Rehab", "Functional Fitness", "Wellness"],
@@ -75,7 +75,7 @@ export const services = [
     id: 9,
     title: "Kids Wellness & Paediatric Physio",
     icon: "Baby",
-    image: "https://images.pexels.com/photos/7579831/pexels-photo-7579831.jpeg?auto=compress&cs=tinysrgb&w=600",
+    image: "https://images.pexels.com/photos/6340568/pexels-photo-6340568.jpeg?auto=compress&cs=tinysrgb&w=600",
     description:
       "Gentle, child-friendly physiotherapy for developmental delays, posture issues, and paediatric musculoskeletal conditions — helping children grow stronger and move with confidence.",
     tags: ["Paediatric Care", "Developmental Support", "Child-Friendly"],
