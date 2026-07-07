@@ -8,8 +8,8 @@ export default async function middleware(req: NextRequest) {
   const session = token ? await verifySession(token) : null;
   const { pathname } = req.nextUrl;
 
-  const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
-  const isLoginRoute = pathname === "/admin/login";
+  const isLoginRoute = pathname === "/admin/login" || pathname === "/admin/login/";
+  const isAdminRoute = pathname.startsWith("/admin") && !isLoginRoute;
 
   if (isAdminRoute && !session) {
     return NextResponse.redirect(new URL("/admin/login", req.url));
