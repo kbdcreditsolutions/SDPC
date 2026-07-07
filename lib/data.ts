@@ -21,7 +21,7 @@ export const services = [
     id: 3,
     title: "Neurological Rehabilitation",
     icon: "Brain",
-    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=600&q=80",
     description:
       "Specialized stroke rehabilitation and functional movement restoration programs designed to help patients regain independence and rebuild neural pathways after neurological events.",
     tags: ["Stroke Rehabilitation", "Functional Movement", "Neural Recovery"],
@@ -57,7 +57,7 @@ export const services = [
     id: 7,
     title: "Home Physiotherapy",
     icon: "Home",
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80",
     description:
       "Can't visit the clinic? Our physiotherapists come to you. Receive the same expert care and personalized treatment plans from the comfort of your home.",
     tags: ["Home Visit", "Flexible Scheduling", "All Conditions"],
@@ -177,6 +177,7 @@ export const blogPosts = [
     title: "Targeted Back Relief Through Expert Physiotherapy",
     slug: "targeted-back-relief-physiotherapy",
     category: "Back & Spine",
+    image: "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "Lower back pain affects millions. Our posture correction protocols and targeted physiotherapy deliver measurable relief and long-term spinal health improvements.",
     date: "2024-10-28",
@@ -191,6 +192,7 @@ export const blogPosts = [
     title: "Professional Physiotherapy Care for Spine And Joint Recovery",
     slug: "spine-joint-recovery-care",
     category: "Back & Spine",
+    image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "Spinal manipulation and alignment therapy conducted by certified physiotherapists can restore full joint function and eliminate chronic discomfort effectively.",
     date: "2024-10-15",
@@ -205,6 +207,7 @@ export const blogPosts = [
     title: "Supportive Physiotherapy For Upper Body Strength Training",
     slug: "upper-body-strength-physiotherapy",
     category: "Fitness & Rehab",
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "Functional training and progressive resistance programs guided by physiotherapists ensure safe strength gains while protecting vulnerable joints and soft tissue.",
     date: "2024-09-30",
@@ -219,6 +222,7 @@ export const blogPosts = [
     title: "Physiotherapy Techniques To Regain Shoulder Flexibility",
     slug: "shoulder-flexibility-physiotherapy",
     category: "Sports Rehab",
+    image: "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "Kinesiology taping and targeted shoulder impingement protocols help athletes and active individuals regain full range of motion and return to sport confidently.",
     date: "2024-09-18",
@@ -233,6 +237,7 @@ export const blogPosts = [
     title: "Rehabilitation Support Through Hand Therapy Tools",
     slug: "hand-therapy-rehabilitation",
     category: "Specialized Care",
+    image: "https://images.unsplash.com/photo-1616279967983-ec413476e824?auto=format&fit=crop&w=800&q=80&crop=bottom",
     excerpt:
       "Hand therapy addressing carpal tunnel syndrome and sensory feedback deficits uses specialized tools and exercises to restore fine motor function and grip strength.",
     date: "2024-09-05",
@@ -247,6 +252,7 @@ export const blogPosts = [
     title: "Healing Through Movement: Physiotherapy For Lasting Relief",
     slug: "healing-through-movement-physiotherapy",
     category: "Holistic Care",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "A holistic recovery approach combining movement therapy and chronic pain management strategies offers sustainable relief and improved quality of life.",
     date: "2024-08-22",
