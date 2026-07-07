@@ -178,8 +178,8 @@ export default function HomePage() {
             {team.map((member) => (
               <div key={member.name} className="bg-white rounded-3xl border border-emerald-100 p-8 flex flex-col items-center gap-4 text-center shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 w-full max-w-sm">
                 <div className="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-100 to-teal-200 flex items-center justify-center shadow-md overflow-hidden border-4 border-white">
-                  {member.photo ? (
-                    <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                  {(member as { photo?: string }).photo ? (
+                    <img src={(member as { photo?: string }).photo} alt={member.name} className="w-full h-full object-cover" />
                   ) : (
                     <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="50" cy="38" r="18" fill="#0f766e" opacity="0.7" />
