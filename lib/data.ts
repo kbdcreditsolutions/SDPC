@@ -9,11 +9,11 @@ export const services = [
   },
   {
     id: 2,
-    title: "Body Recovery",
+    title: "Electrotherapy & Ultrasound",
     icon: "Zap",
     description:
-      "Targeted therapeutic ultrasound and deep tissue treatment to accelerate healing, reduce inflammation, and improve circulation in injured or overworked muscle groups.",
-    tags: ["Ultrasound Therapy", "Deep Tissue", "Circulation Improvement"],
+      "Targeted therapeutic ultrasound and electrotherapy to accelerate healing, reduce inflammation, and improve circulation in injured or overworked muscle groups.",
+    tags: ["Ultrasound Therapy", "Electrotherapy", "Inflammation Relief"],
   },
   {
     id: 3,
@@ -44,8 +44,8 @@ export const services = [
     title: "Sports Injury Rehab",
     icon: "PersonStanding",
     description:
-      "Expert kinesiology taping, shoulder and rotator cuff rehabilitation, and advanced hand therapy techniques to get athletes back to peak performance safely.",
-    tags: ["Kinesiology Taping", "Rotator Cuff", "Hand Therapy"],
+      "Expert kinesiology taping, sports-specific conditioning, and rotator cuff rehabilitation to get athletes back to peak performance safely and prevent re-injury.",
+    tags: ["Kinesiology Taping", "Rotator Cuff", "Sports Conditioning"],
   },
   {
     id: 7,
@@ -62,6 +62,38 @@ export const services = [
     description:
       "A dedicated physio gym equipped for supervised rehabilitation and wellness training — combining therapeutic exercise with functional fitness to accelerate recovery.",
     tags: ["Supervised Rehab", "Functional Fitness", "Wellness"],
+  },
+  {
+    id: 9,
+    title: "Kids Wellness & Paediatric Physio",
+    icon: "Baby",
+    description:
+      "Gentle, child-friendly physiotherapy for developmental delays, posture issues, and paediatric musculoskeletal conditions — helping children grow stronger and move with confidence.",
+    tags: ["Paediatric Care", "Developmental Support", "Child-Friendly"],
+  },
+];
+
+export const team = [
+  {
+    name: "Dr. Tejaswini",
+    initials: "DT",
+    role: "Lead Physiotherapist & Founder",
+    bio: "16+ years of clinical expertise in musculoskeletal and neurological rehabilitation. Passionate about evidence-based care and patient empowerment.",
+    specialties: ["Neuro Rehab", "Back & Spine", "Pain Management"],
+  },
+  {
+    name: "Dr. Surya Chandra",
+    initials: "SC",
+    role: "Sports & Orthopaedic Physio",
+    bio: "Specialist in sports injury rehabilitation and orthopaedic physiotherapy. Helps athletes of all levels recover faster and perform better.",
+    specialties: ["Sports Rehab", "Orthopaedics", "Kinesiology Taping"],
+  },
+  {
+    name: "Dr. Priya Sharma",
+    initials: "PS",
+    role: "Paediatric & Women's Health Physio",
+    bio: "Dedicated to child development, paediatric musculoskeletal care, and women's health — creating safe, child-friendly treatment experiences.",
+    specialties: ["Kids Wellness", "Women's Health", "Developmental Care"],
   },
 ];
 
@@ -102,6 +134,7 @@ export const blogPosts = [
     title: "Recover Faster With Expert Physiotherapy Support",
     slug: "recover-faster-expert-physiotherapy",
     category: "Recovery",
+    author: { name: "Dr. Tejaswini", initials: "DT" },
     excerpt:
       "Discover how personalized physiotherapy treatment plans can significantly improve joint mobility and accelerate your recovery timeline after injury or surgery.",
     date: "2024-12-01",
@@ -116,6 +149,7 @@ export const blogPosts = [
     title: "Body Recovery Through Targeted Ultrasound Treatment",
     slug: "body-recovery-ultrasound-treatment",
     category: "Treatments",
+    author: { name: "Dr. Tejaswini", initials: "DT" },
     excerpt:
       "Therapeutic ultrasound is a powerful modality for reducing inflammation and promoting tissue repair. Learn how this non-invasive treatment can transform your healing journey.",
     date: "2024-11-20",
@@ -130,6 +164,7 @@ export const blogPosts = [
     title: "Gentle Physiotherapy Techniques For Lasting Shoulder Relief",
     slug: "physiotherapy-shoulder-relief",
     category: "Pain Relief",
+    author: { name: "Dr. Surya Chandra", initials: "SC" },
     excerpt:
       "Manual therapy and spinal mobilization combined with targeted shoulder exercises offer lasting relief for chronic shoulder pain without aggressive interventions.",
     date: "2024-11-10",

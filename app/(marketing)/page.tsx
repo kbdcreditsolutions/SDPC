@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Users, Target, Activity } from "lucide-react";
+import { Users, Target, Activity, Award, Clock, MapPin } from "lucide-react";
 import ServiceCard from "@/components/ServiceCard";
 import BlogCard from "@/components/BlogCard";
-import { services, blogPosts, reviews } from "@/lib/data";
+import { services, blogPosts, reviews, team } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Sridatri Physio Care – Healing from Core",
@@ -37,7 +37,7 @@ export default function HomePage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            Physiotherapy &amp; Wellness · Narayanguda, Hyderabad
+            Physiotherapy · Neuro Rehab · Paediatric Wellness · Hyderabad
           </span>
           <h1 className="text-5xl md:text-7xl font-display font-bold leading-tight tracking-tight drop-shadow-sm">
             Healing from the <span className="text-emerald-400 italic">Core</span>
@@ -72,7 +72,7 @@ export default function HomePage() {
             <span className="hidden sm:inline text-teal-500/50">|</span>
             <span>2 Locations</span>
             <span className="hidden sm:inline text-teal-500/50">|</span>
-            <span>8+ Years Experience</span>
+            <span>16+ Years Experience</span>
           </div>
         </div>
       </section>
@@ -156,6 +156,77 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-xl font-display font-semibold text-teal-950">{p.title}</h3>
                 <p className="text-slate-600 leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Our Team */}
+      <section className="bg-emerald-50 py-24 px-4 border-y border-emerald-100/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="inline-block px-4 py-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-widest rounded-full mb-4">Our Experts</span>
+            <h2 className="text-4xl font-display font-bold text-teal-900">Meet the Team</h2>
+            <p className="text-slate-500 mt-4 text-lg max-w-xl mx-auto">
+              Qualified physiotherapists with deep clinical experience — your recovery is in expert hands.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+            {team.map((member) => (
+              <div key={member.name} className="bg-white rounded-3xl border border-emerald-100 p-8 flex flex-col items-center gap-4 text-center shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 w-full max-w-sm">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white text-3xl font-bold shadow-md">
+                  {member.initials}
+                </div>
+                <div>
+                  <h3 className="text-lg font-display font-semibold text-teal-950">{member.name}</h3>
+                  <p className="text-emerald-700 text-sm font-medium mt-0.5">{member.role}</p>
+                </div>
+                <p className="text-slate-500 text-sm leading-relaxed">{member.bio}</p>
+                <div className="flex flex-wrap gap-2 justify-center mt-2">
+                  {member.specialties.map((s) => (
+                    <span key={s} className="px-3 py-1 bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs font-semibold rounded-full">{s}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Locations */}
+      <section className="bg-white py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-display font-bold text-teal-900">Our Locations</h2>
+            <p className="text-slate-500 mt-3">Two convenient clinics serving Hyderabad.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {[
+              {
+                name: "Narayanguda",
+                address: "Plot No. 11, Narayanguda, Hyderabad – 500029",
+                hours: "Mon–Sat: 9 AM – 7 PM",
+                phone: "+91 98765 43210",
+              },
+              {
+                name: "Himayatnagar",
+                address: "Himayatnagar Main Road, Hyderabad – 500029",
+                hours: "Mon–Sat: 9 AM – 7 PM",
+                phone: "+91 98765 43211",
+              },
+            ].map((loc) => (
+              <div key={loc.name} className="rounded-3xl border border-teal-100 bg-teal-50/50 p-8 flex flex-col gap-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <MapPin className="w-5 h-5 text-emerald-600" />
+                  <h3 className="font-display font-semibold text-teal-900 text-lg">{loc.name}</h3>
+                </div>
+                <p className="text-slate-600 text-sm">{loc.address}</p>
+                <p className="text-slate-500 text-sm">{loc.hours}</p>
+                <p className="text-emerald-700 text-sm font-medium">{loc.phone}</p>
+                <Link href="/contact" className="mt-2 inline-block text-sm font-semibold text-teal-800 hover:text-emerald-600 transition-colors">
+                  Get Directions →
+                </Link>
               </div>
             ))}
           </div>

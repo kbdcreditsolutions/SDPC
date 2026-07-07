@@ -7,6 +7,7 @@ import {
   PersonStanding,
   Home,
   Bike,
+  Baby,
   LucideIcon,
 } from "lucide-react";
 
@@ -19,6 +20,7 @@ const iconMap: Record<string, LucideIcon> = {
   PersonStanding,
   Home,
   Bike,
+  Baby,
 };
 
 interface ServiceCardProps {
