@@ -3,6 +3,7 @@ export const services = [
     id: 1,
     title: "Back & Spine Therapy",
     icon: "Bone",
+    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&w=600&q=80",
     description:
       "Comprehensive spinal manipulation and alignment restoration targeting nerve irritation and structural imbalances. Our specialists restore optimal spinal function through evidence-based manual techniques.",
     tags: ["Spinal Manipulation", "Alignment Restoration", "Nerve Relief"],
@@ -11,6 +12,7 @@ export const services = [
     id: 2,
     title: "Electrotherapy & Ultrasound",
     icon: "Zap",
+    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=600&q=80",
     description:
       "Targeted therapeutic ultrasound and electrotherapy to accelerate healing, reduce inflammation, and improve circulation in injured or overworked muscle groups.",
     tags: ["Ultrasound Therapy", "Electrotherapy", "Inflammation Relief"],
@@ -19,6 +21,7 @@ export const services = [
     id: 3,
     title: "Neurological Rehabilitation",
     icon: "Brain",
+    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&w=600&q=80",
     description:
       "Specialized stroke rehabilitation and functional movement restoration programs designed to help patients regain independence and rebuild neural pathways after neurological events.",
     tags: ["Stroke Rehabilitation", "Functional Movement", "Neural Recovery"],
@@ -27,6 +30,7 @@ export const services = [
     id: 4,
     title: "Pain Management",
     icon: "Target",
+    image: "https://images.unsplash.com/photo-1616279967983-ec413476e824?auto=format&fit=crop&w=600&q=80",
     description:
       "Holistic lower back pain assessment, muscle imbalance correction, and personalized ergonomic guidance to reduce pain at the source and prevent recurrence.",
     tags: ["Lower Back Pain", "Muscle Balance", "Ergonomic Guidance"],
@@ -35,6 +39,7 @@ export const services = [
     id: 5,
     title: "Physiotherapy Treatments",
     icon: "Dumbbell",
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=600&q=80",
     description:
       "Personalized exercise plans, manual therapy sessions, and progressive resistance training programs tailored to your recovery goals and fitness level.",
     tags: ["Exercise Plans", "Manual Therapy", "Resistance Training"],
@@ -43,6 +48,7 @@ export const services = [
     id: 6,
     title: "Sports Injury Rehab",
     icon: "PersonStanding",
+    image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80",
     description:
       "Expert kinesiology taping, sports-specific conditioning, and rotator cuff rehabilitation to get athletes back to peak performance safely and prevent re-injury.",
     tags: ["Kinesiology Taping", "Rotator Cuff", "Sports Conditioning"],
@@ -51,6 +57,7 @@ export const services = [
     id: 7,
     title: "Home Physiotherapy",
     icon: "Home",
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=600&q=80",
     description:
       "Can't visit the clinic? Our physiotherapists come to you. Receive the same expert care and personalized treatment plans from the comfort of your home.",
     tags: ["Home Visit", "Flexible Scheduling", "All Conditions"],
@@ -59,6 +66,7 @@ export const services = [
     id: 8,
     title: "Physio Gym & Wellness",
     icon: "Bike",
+    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80",
     description:
       "A dedicated physio gym equipped for supervised rehabilitation and wellness training — combining therapeutic exercise with functional fitness to accelerate recovery.",
     tags: ["Supervised Rehab", "Functional Fitness", "Wellness"],
@@ -67,6 +75,7 @@ export const services = [
     id: 9,
     title: "Kids Wellness & Paediatric Physio",
     icon: "Baby",
+    image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=600&q=80",
     description:
       "Gentle, child-friendly physiotherapy for developmental delays, posture issues, and paediatric musculoskeletal conditions — helping children grow stronger and move with confidence.",
     tags: ["Paediatric Care", "Developmental Support", "Child-Friendly"],
@@ -121,6 +130,7 @@ export const blogPosts = [
     slug: "recover-faster-expert-physiotherapy",
     category: "Recovery",
     author: { name: "Dr. Tejaswini", initials: "DT" },
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "Discover how personalized physiotherapy treatment plans can significantly improve joint mobility and accelerate your recovery timeline after injury or surgery.",
     date: "2024-12-01",
@@ -136,6 +146,7 @@ export const blogPosts = [
     slug: "body-recovery-ultrasound-treatment",
     category: "Treatments",
     author: { name: "Dr. Tejaswini", initials: "DT" },
+    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "Therapeutic ultrasound is a powerful modality for reducing inflammation and promoting tissue repair. Learn how this non-invasive treatment can transform your healing journey.",
     date: "2024-11-20",
@@ -151,6 +162,7 @@ export const blogPosts = [
     slug: "physiotherapy-shoulder-relief",
     category: "Pain Relief",
     author: { name: "Dr. Tejaswini", initials: "DT" },
+    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&w=800&q=80",
     excerpt:
       "Manual therapy and spinal mobilization combined with targeted shoulder exercises offer lasting relief for chronic shoulder pain without aggressive interventions.",
     date: "2024-11-10",

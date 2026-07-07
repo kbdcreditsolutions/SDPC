@@ -17,7 +17,9 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white relative overflow-hidden pt-12">
+      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white relative overflow-hidden pt-12"
+        style={{ backgroundImage: "linear-gradient(to bottom right, rgba(19,78,74,0.95), rgba(6,78,59,0.92)), url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1600&q=80')", backgroundSize: "cover", backgroundPosition: "center" }}
+      >
         <div
           className="absolute inset-0 pointer-events-none opacity-40"
           style={{
@@ -175,8 +177,15 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
             {team.map((member) => (
               <div key={member.name} className="bg-white rounded-3xl border border-emerald-100 p-8 flex flex-col items-center gap-4 text-center shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 w-full max-w-sm">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white text-3xl font-bold shadow-md">
-                  {member.initials}
+                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-100 to-teal-200 flex items-center justify-center shadow-md overflow-hidden border-4 border-white">
+                  {member.photo ? (
+                    <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="50" cy="38" r="18" fill="#0f766e" opacity="0.7" />
+                      <ellipse cx="50" cy="85" rx="28" ry="20" fill="#0f766e" opacity="0.5" />
+                    </svg>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-lg font-display font-semibold text-teal-950">{member.name}</h3>
