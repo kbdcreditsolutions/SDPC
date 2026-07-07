@@ -82,13 +82,6 @@ export const team = [
     specialties: ["Neuro Rehab", "Back & Spine", "Pain Management"],
   },
   {
-    name: "Dr. Surya Chandra",
-    initials: "SC",
-    role: "Sports & Orthopaedic Physio",
-    bio: "Specialist in sports injury rehabilitation and orthopaedic physiotherapy. Helps athletes of all levels recover faster and perform better.",
-    specialties: ["Sports Rehab", "Orthopaedics", "Kinesiology Taping"],
-  },
-  {
     name: "Dr. Priya Sharma",
     initials: "PS",
     role: "Paediatric & Women's Health Physio",
@@ -164,7 +157,7 @@ export const blogPosts = [
     title: "Gentle Physiotherapy Techniques For Lasting Shoulder Relief",
     slug: "physiotherapy-shoulder-relief",
     category: "Pain Relief",
-    author: { name: "Dr. Surya Chandra", initials: "SC" },
+    author: { name: "Dr. Tejaswini", initials: "DT" },
     excerpt:
       "Manual therapy and spinal mobilization combined with targeted shoulder exercises offer lasting relief for chronic shoulder pain without aggressive interventions.",
     date: "2024-11-10",
