@@ -1,0 +1,321 @@
+// PhysioCare Clinic OS — data model
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Role {
+  SUPER_ADMIN
+  CLINIC_ADMIN
+  DOCTOR
+  STAFF
+}
+
+enum LeadSource {
+  DIRECT
+  REFERRAL
+  GOOGLE
+  FACEBOOK
+  WALK_IN
+  WHATSAPP
+  INSTAGRAM
+}
+
+enum PackageStatus {
+  ACTIVE
+  FROZEN
+  COMPLETED
+  REFUNDED
+}
+
+enum InvoiceStatus {
+  PAID
+  PARTIAL
+  UNPAID
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceSubject {
+  STAFF
+  PATIENT
+}
+
+enum AttendanceStatus {
+  UNMARKED
+  PRESENT
+  LEAVE
+  ABSENT
+  LATE
+}
+
+enum CampaignType {
+  CAMPAIGN
+  WORKSHOP
+}
+
+enum ReferralType {
+  DOCTOR
+  OTHER
+}
+
+enum RatingType {
+  PATIENT
+  DEPT_HEAD
+}
+
+model Tenant {
+  id         String   @id @default(uuid())
+  name       String
+  gstNumber  String?
+  phone      String?
+  email      String?
+  address    String?
+  createdAt  DateTime @default(now())
+  deletedAt  DateTime?
+
+  branches     Branch[]
+  users        User[]
+  patients     Patient[]
+  invoices     Invoice[]
+  appointments Appointment[]
+  attendance   AttendanceRecord[]
+  campaigns    Campaign[]
+  referrals    Referral[]
+  ratings      Rating[]
+  auditLogs    AuditLog[]
+  packages     Package[]
+}
+
+model Branch {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+  name     String
+  city     String?
+
+  users        User[]
+  patients     Patient[]
+  appointments Appointment[]
+
+  deletedAt DateTime?
+}
+
+model User {
+  id           String    @id @default(uuid())
+  tenantId     String?
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id])
+  branchId     String?
+  branch       Branch?   @relation(fields: [branchId], references: [id])
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role
+  specialty    String?
+  title        String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
+
+  appointments   Appointment[] @relation("DoctorAppointments")
+  clinicalNotes  ClinicalNote[]
+  attendance     AttendanceRecord[]
+  ratingsGiven   Rating[]           @relation("RatingDoctor")
+  auditLogs      AuditLog[]
+}
+
+model Patient {
+  id             String     @id @default(uuid())
+  tenantId       String
+  tenant         Tenant     @relation(fields: [tenantId], references: [id])
+  branchId       String?
+  branch         Branch?    @relation(fields: [branchId], references: [id])
+  name           String
+  phone          String
+  gender         String?
+  address        String?
+  reason         String?
+  leadSource     LeadSource?
+  referralDoctor String?
+  notes          String?
+  createdAt      DateTime   @default(now())
+  deletedAt      DateTime?
+
+  packages     Package[]
+  invoices     Invoice[]
+  appointments Appointment[]
+  clinicalNotes ClinicalNote[]
+  attendance   AttendanceRecord[]
+}
+
+model Package {
+  id             String        @id @default(uuid())
+  tenantId       String
+  tenant         Tenant        @relation(fields: [tenantId], references: [id])
+  patientId      String
+  patient        Patient       @relation(fields: [patientId], references: [id])
+  name           String
+  totalSessions  Int
+  usedSessions   Int           @default(0)
+  price          Decimal       @db.Decimal(10, 2)
+  status         PackageStatus @default(ACTIVE)
+  startDate      DateTime      @default(now())
+  endDate        DateTime?
+  createdAt      DateTime      @default(now())
+  deletedAt      DateTime?
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id])
+  patientId   String
+  patient     Patient       @relation(fields: [patientId], references: [id])
+  number      String
+  date        DateTime      @default(now())
+  subtotal    Decimal       @db.Decimal(10, 2)
+  gst         Decimal       @db.Decimal(10, 2)
+  total       Decimal       @db.Decimal(10, 2)
+  paidAmount  Decimal       @default(0) @db.Decimal(10, 2)
+  status      InvoiceStatus @default(UNPAID)
+  createdAt   DateTime      @default(now())
+  deletedAt   DateTime?
+
+  lineItems InvoiceLineItem[]
+  payments  Payment[]
+
+  @@unique([tenantId, number])
+}
+
+model InvoiceLineItem {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  description String
+  qty         Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  gstPercent  Decimal @db.Decimal(5, 2) @default(18)
+  lineTotal   Decimal @db.Decimal(10, 2)
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  method    String
+  amount    Decimal  @db.Decimal(10, 2)
+  date      DateTime @default(now())
+}
+
+model Appointment {
+  id         String            @id @default(uuid())
+  tenantId   String
+  tenant     Tenant            @relation(fields: [tenantId], references: [id])
+  branchId   String?
+  branch     Branch?           @relation(fields: [branchId], references: [id])
+  patientId  String
+  patient    Patient           @relation(fields: [patientId], references: [id])
+  doctorId   String
+  doctor     User              @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  datetime   DateTime
+  durationMin Int              @default(45)
+  notes      String?
+  status     AppointmentStatus @default(SCHEDULED)
+  createdAt  DateTime          @default(now())
+  deletedAt  DateTime?
+
+  clinicalNotes ClinicalNote[]
+}
+
+model ClinicalNote {
+  id            String       @id @default(uuid())
+  patientId     String
+  patient       Patient      @relation(fields: [patientId], references: [id])
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  authorId      String
+  author        User         @relation(fields: [authorId], references: [id])
+  note          String
+  date          DateTime     @default(now())
+  deletedAt     DateTime?
+}
+
+model AttendanceRecord {
+  id        String            @id @default(uuid())
+  tenantId  String
+  tenant    Tenant            @relation(fields: [tenantId], references: [id])
+  date      DateTime           @db.Date
+  subject   AttendanceSubject
+  userId    String?
+  user      User?             @relation(fields: [userId], references: [id])
+  patientId String?
+  patient   Patient?          @relation(fields: [patientId], references: [id])
+  status    AttendanceStatus  @default(UNMARKED)
+  createdAt DateTime          @default(now())
+
+  @@unique([tenantId, date, userId])
+  @@unique([tenantId, date, patientId])
+}
+
+model Campaign {
+  id          String       @id @default(uuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  name        String
+  type        CampaignType
+  startDate   DateTime
+  endDate     DateTime
+  cost        Decimal      @db.Decimal(10, 2)
+  leads       Int          @default(0)
+  conversions Int          @default(0)
+  revenue     Decimal      @default(0) @db.Decimal(10, 2)
+  createdAt   DateTime     @default(now())
+  deletedAt   DateTime?
+}
+
+model Referral {
+  id               String       @id @default(uuid())
+  tenantId         String
+  tenant           Tenant       @relation(fields: [tenantId], references: [id])
+  referrerName     String
+  type             ReferralType
+  revenueGenerated Decimal      @db.Decimal(10, 2)
+  date             DateTime     @default(now())
+  deletedAt        DateTime?
+}
+
+model Rating {
+  id        String     @id @default(uuid())
+  tenantId  String
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  doctorId  String
+  doctor    User       @relation("RatingDoctor", fields: [doctorId], references: [id])
+  type      RatingType
+  scores    Json
+  comment   String?
+  date      DateTime   @default(now())
+  deletedAt DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  diff      Json?
+  timestamp DateTime @default(now())
+}

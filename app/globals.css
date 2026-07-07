@@ -3,16 +3,48 @@
 @theme {
   --font-sans: var(--font-figtree);
   --font-display: var(--font-outfit);
+  --color-ink: var(--ink);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-forest-light: var(--forest-light);
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  --color-clay: var(--clay);
+  --color-clay-light: var(--clay-light);
+  --color-sage: var(--sage);
 }
 
 :root {
   --background: #F8FAFC;
   --foreground: #0F172A;
+  --ink: #14231b;
+  --forest: #1f4d3a;
+  --forest-deep: #123024;
+  --forest-light: #2f6b50;
+  --cream: #f6f3ea;
+  --sand: #eae4d4;
+  --clay: #c1653f;
+  --clay-light: #f0d9cd;
+  --sage: #7d9483;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+.pulse-draw {
+  stroke-dasharray: 340;
+  stroke-dashoffset: 340;
+  animation: pulse-draw 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards;
+}
+
+@keyframes pulse-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-draw { animation: none; stroke-dashoffset: 0; }
 }
 
 /* Custom utilities for smooth shadows and transitions */

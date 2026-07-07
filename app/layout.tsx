@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { Figtree, Outfit } from "next/font/google";
+import { Figtree, Outfit, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
-const figtree = Figtree({ 
-  subsets: ["latin"], 
+const figtree = Figtree({
+  subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-figtree",
 });
@@ -14,6 +12,12 @@ const outfit = Outfit({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-outfit",
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-data",
 });
 
 export const metadata: Metadata = {
@@ -39,11 +43,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${figtree.variable} ${outfit.variable}`}>
+    <html lang="en" className={`${figtree.variable} ${outfit.variable} ${plexMono.variable}`}>
       <body className="font-sans bg-[#F8FAFC] text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900">
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        {children}
       </body>
     </html>
   );
