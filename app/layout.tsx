@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Figtree, Lora, IBM_Plex_Mono } from "next/font/google";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -47,6 +48,7 @@ export default function RootLayout({
     <html lang="en" className={`${figtree.variable} ${lora.variable} ${plexMono.variable}`}>
       <body className="font-sans bg-[#FAF9F6] text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900">
         {children}
+        <WhatsAppButton />
       </body>
     </html>
   );
