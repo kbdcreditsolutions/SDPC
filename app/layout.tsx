@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Figtree, Outfit, IBM_Plex_Mono } from "next/font/google";
+import { Figtree, Lora, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -8,10 +8,11 @@ const figtree = Figtree({
   variable: "--font-figtree",
 });
 
-const outfit = Outfit({
+const lora = Lora({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-outfit",
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -43,8 +44,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${figtree.variable} ${outfit.variable} ${plexMono.variable}`}>
-      <body className="font-sans bg-[#F8FAFC] text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900">
+    <html lang="en" className={`${figtree.variable} ${lora.variable} ${plexMono.variable}`}>
+      <body className="font-sans bg-[#FAF9F6] text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900">
         {children}
       </body>
     </html>

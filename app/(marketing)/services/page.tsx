@@ -13,11 +13,13 @@ export default function ServicesPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white pt-36 pb-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
+      <section className="bg-transparent pt-36 pb-24 px-4 relative overflow-hidden">
         <div className="max-w-3xl mx-auto text-center flex flex-col gap-6 relative z-10">
-          <h1 className="text-5xl font-display font-bold">Our Services</h1>
-          <p className="text-teal-100 text-lg leading-relaxed">
+          <span className="inline-block mx-auto px-4 py-1.5 bg-teal-50 border border-teal-100 rounded-full text-xs font-bold uppercase tracking-widest text-teal-700 shadow-sm">
+            Expertise
+          </span>
+          <h1 className="text-5xl lg:text-6xl font-display font-bold text-teal-950 tracking-tight">Our Services</h1>
+          <p className="text-slate-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
             Comprehensive, evidence-based physiotherapy services — each designed
             to address specific conditions and restore your optimal function.
           </p>
@@ -25,7 +27,7 @@ export default function ServicesPage() {
       </section>
 
       {/* Services Grid */}
-      <section className="py-24 px-4 bg-slate-50">
+      <section className="py-32 px-4 bg-slate-50">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((s) => (
@@ -36,7 +38,7 @@ export default function ServicesPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-white border-t border-slate-100 py-24 px-4">
+      <section className="bg-white border-t border-slate-100 py-32 px-4">
         <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-6">
           <h2 className="text-3xl font-display font-bold text-teal-950">
             Not sure which service is right for you?

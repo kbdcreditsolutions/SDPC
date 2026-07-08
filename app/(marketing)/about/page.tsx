@@ -36,18 +36,20 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white pt-36 pb-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
+      <section className="bg-transparent pt-36 pb-24 px-4 relative overflow-hidden">
         <div className="max-w-3xl mx-auto text-center flex flex-col gap-6 relative z-10">
-          <h1 className="text-5xl font-display font-bold">About Sridatri Physio Care</h1>
-          <p className="text-teal-100 text-lg leading-relaxed">
+          <span className="inline-block mx-auto px-4 py-1.5 bg-teal-50 border border-teal-100 rounded-full text-xs font-bold uppercase tracking-widest text-teal-700 shadow-sm">
+            Our Story
+          </span>
+          <h1 className="text-5xl lg:text-6xl font-display font-bold text-teal-950 tracking-tight">About Sridatri Physio Care</h1>
+          <p className="text-slate-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
             Founded on the belief that true healing starts from within.
           </p>
         </div>
       </section>
 
       {/* Story */}
-      <section className="py-24 px-4 bg-white">
+      <section className="py-32 px-4 bg-white">
         <div className="max-w-4xl mx-auto flex flex-col gap-8">
           <h2 className="text-4xl font-display font-bold text-teal-900 text-center mb-4">Our Story</h2>
           <p className="text-slate-600 text-lg leading-relaxed">
@@ -70,7 +72,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="py-24 px-4 bg-slate-50 border-y border-slate-100">
+      <section className="py-32 px-4 bg-slate-50 border-y border-slate-100">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-display font-bold text-teal-900">Our Values</h2>
@@ -93,7 +95,7 @@ export default function AboutPage() {
       </section>
 
       {/* Team */}
-      <section className="bg-white py-24 px-4">
+      <section className="bg-white py-32 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-display font-bold text-teal-900">Meet Our Team</h2>
@@ -119,7 +121,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-teal-900 text-white py-24 px-4 relative overflow-hidden">
+      <section className="bg-teal-900 text-white py-32 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
         <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-8 relative z-10">
           <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight">Start Your Healing Journey Today</h2>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import Logo from "@/components/Logo";
+import Image from "next/image";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -30,17 +30,9 @@ export default function Navbar() {
         }`}
       >
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 leading-tight group">
-            <div className="transform transition-transform group-hover:scale-105">
-              <Logo size={40} />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-display font-bold text-teal-950 tracking-tight">
-                Sridatri Physio Care
-              </span>
-              <span className="text-[10px] text-teal-800/80 font-medium tracking-widest uppercase">
-                Healing from Core
-              </span>
+          <Link href="/" className="flex items-center group">
+            <div className="transform transition-transform group-hover:scale-105 relative h-[42px] w-[200px] sm:w-[240px]">
+              <Image src="/logo-clean.png" alt="Sridatri Physio Care Logo" fill className="object-contain object-left" priority />
             </div>
           </Link>
 

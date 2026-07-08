@@ -17,70 +17,87 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 text-white relative overflow-hidden pt-12"
-        style={{ backgroundImage: "linear-gradient(to bottom right, rgba(19,78,74,0.95), rgba(6,78,59,0.92)), url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1600&q=80')", backgroundSize: "cover", backgroundPosition: "center" }}
-      >
-        <div
-          className="absolute inset-0 pointer-events-none opacity-40"
-          style={{
-            backgroundImage: "radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.25), transparent 25%), radial-gradient(circle at 85% 30%, rgba(20, 184, 166, 0.25), transparent 25%)",
-          }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
-        <div className="max-w-6xl mx-auto px-4 py-28 flex flex-col items-center text-center gap-8 relative z-10">
-          <span className="inline-flex items-center gap-2 px-5 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm font-medium text-teal-50 shadow-lg animate-fade-in-up">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Physiotherapy · Neuro Rehab · Paediatric Wellness · Hyderabad
-          </span>
-          <h1 className="text-5xl md:text-7xl font-display font-bold leading-tight tracking-tight drop-shadow-sm">
-            Healing from the <span className="text-emerald-400 italic">Core</span>
-          </h1>
-          <p className="text-lg md:text-xl text-teal-100/90 max-w-2xl leading-relaxed">
-            Personalized, evidence-based physiotherapy care that targets the root
-            cause — not just the symptoms. Restore movement, relieve pain, and
-            reclaim your life.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-5 mt-4">
-            <Link
-              href="/contact"
-              className="px-8 py-4 bg-white text-teal-900 font-semibold rounded-full hover:bg-teal-50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:-translate-y-0.5"
-            >
-              Book Appointment
-            </Link>
-            <Link
-              href="/services"
-              className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-all duration-300"
-            >
-              Our Services
-            </Link>
-          </div>
+      <section className="bg-transparent pt-32 pb-16 lg:pt-40 lg:pb-24 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+            
+            {/* Text Content */}
+            <div className="flex flex-col items-start text-left gap-8 relative z-10 max-w-2xl">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 border border-teal-100 rounded-full text-xs font-bold uppercase tracking-widest text-teal-700 shadow-sm animate-fade-in-up">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                </span>
+                Physiotherapy · Neuro Rehab · Paediatric
+              </span>
+              
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold leading-[1.1] text-teal-950 tracking-tight">
+                Healing from the <span className="text-teal-700 italic font-medium">Core</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-slate-600 leading-relaxed">
+                Personalized, evidence-based physiotherapy care that targets the root
+                cause — not just the symptoms. Restore movement, relieve pain, and
+                reclaim your life.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto">
+                <Link
+                  href="/contact"
+                  className="px-8 py-4 bg-teal-800 text-white font-semibold rounded-full hover:bg-teal-900 transition-all duration-300 hover:shadow-xl hover:shadow-teal-900/20 hover:-translate-y-1 text-center"
+                >
+                  Book Appointment
+                </Link>
+                <Link
+                  href="/services"
+                  className="px-8 py-4 bg-white border-2 border-teal-100 text-teal-800 font-semibold rounded-full hover:bg-teal-50 hover:border-teal-200 transition-all duration-300 text-center"
+                >
+                  Our Services
+                </Link>
+              </div>
+              
+              {/* Stats */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-6 pt-6 border-t border-slate-200/60 text-slate-600 text-sm font-medium">
+                <span className="flex items-center gap-1.5">
+                  <span className="text-amber-500 text-lg">★</span> 5.0 Google Rating
+                </span>
+                <span className="hidden sm:inline text-slate-300">|</span>
+                <span>16+ Years Experience</span>
+                <span className="hidden sm:inline text-slate-300">|</span>
+                <span>2 Locations in Hyd</span>
+              </div>
+            </div>
 
-          {/* Stats bar */}
-          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-3 mt-8 text-teal-100/80 text-sm font-medium">
-            <span className="flex items-center gap-2">
-              <span className="text-yellow-400 text-lg">★</span> 5.0 Google Rating
-            </span>
-            <span className="hidden sm:inline text-teal-500/50">|</span>
-            <span>42+ Reviews</span>
-            <span className="hidden sm:inline text-teal-500/50">|</span>
-            <span>2 Locations</span>
-            <span className="hidden sm:inline text-teal-500/50">|</span>
-            <span>16+ Years Experience</span>
+            {/* Image Content (Organic Arch) */}
+            <div className="relative lg:ml-auto w-full max-w-lg lg:max-w-none mx-auto">
+              <div className="relative aspect-[4/5] w-full rounded-t-[140px] rounded-b-[40px] overflow-hidden shadow-2xl shadow-teal-900/10 border-8 border-white">
+                <img 
+                  src="/hero-custom.png" 
+                  alt="Physiotherapy session" 
+                  className="w-full h-full object-cover object-center"
+                />
+                {/* Subtle gradient overlay to make image feel softer */}
+                <div className="absolute inset-0 bg-gradient-to-t from-teal-900/20 to-transparent"></div>
+              </div>
+              
+              {/* Floating decorative element */}
+              <div className="absolute -bottom-6 -left-6 bg-white p-5 rounded-3xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce-slow">
+                <div className="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-teal-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Recovery</p>
+                  <p className="text-teal-950 font-semibold">Evidence Based</p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
       {/* Services */}
-      <section className="py-24 px-4 bg-slate-50">
+      <section className="py-32 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-display font-bold text-teal-900">Our Services</h2>

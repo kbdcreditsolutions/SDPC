@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: var(--font-figtree);
-  --font-display: var(--font-outfit);
+  --font-display: var(--font-display);
   --color-ink: var(--ink);
   --color-forest: var(--forest);
   --color-forest-deep: var(--forest-deep);
