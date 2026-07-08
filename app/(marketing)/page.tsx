@@ -23,13 +23,6 @@ export default function HomePage() {
             
             {/* Text Content */}
             <div className="flex flex-col items-start text-left gap-8 relative z-10 max-w-2xl">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 border border-teal-100 rounded-full text-xs font-bold uppercase tracking-widest text-teal-700 shadow-sm animate-fade-in-up">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
-                </span>
-                Physiotherapy · Neuro Rehab · Paediatric
-              </span>
               
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold leading-[1.1] text-teal-950 tracking-tight">
                 Healing from the <span className="text-teal-700 italic font-medium">Core</span>
@@ -58,9 +51,9 @@ export default function HomePage() {
               
               {/* Stats */}
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-6 pt-6 border-t border-slate-200/60 text-slate-600 text-sm font-medium">
-                <span className="flex items-center gap-1.5">
+                <a href="https://www.google.com/search?q=Sridatri+physio+care&oq=sridatri+physio&gs_lcrp=EgZjaHJvbWUqCAgAEEUYJxg7MggIABBFGCcYOzIGCAEQRRg5MgYIAhAjGCcyEQgDEC4YChgLGK8BGMcBGIAEMgsIBBAAGAoYCxiABDIGCAUQRRg8MgYIBhBFGDwyBggHEEUYPdIBCTEwMjg4ajBqN6gCALACAA&sourceid=chrome&ie=UTF-8#lrd=0x3bcb99cef1978d0b:0xb4f762158a9d4a4c,1,,,," target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-teal-700 transition-colors cursor-pointer">
                   <span className="text-amber-500 text-lg">★</span> 5.0 Google Rating
-                </span>
+                </a>
                 <span className="hidden sm:inline text-slate-300">|</span>
                 <span>16+ Years Experience</span>
                 <span className="hidden sm:inline text-slate-300">|</span>
