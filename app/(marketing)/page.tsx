@@ -70,7 +70,7 @@ export default function HomePage() {
 
             {/* Image Content (Organic Arch) */}
             <div className="relative lg:ml-auto w-full max-w-lg lg:max-w-none mx-auto">
-              <div className="relative aspect-[4/5] w-full rounded-t-[140px] rounded-b-[40px] overflow-hidden shadow-2xl shadow-teal-900/10 border-8 border-white">
+              <div className="relative aspect-[4/5] w-full rounded-t-[80px] md:rounded-t-[140px] rounded-b-[30px] md:rounded-b-[40px] overflow-hidden shadow-2xl shadow-teal-900/10 border-4 md:border-8 border-white">
                 <img 
                   src="/hero-custom.png" 
                   alt="Physiotherapy session" 

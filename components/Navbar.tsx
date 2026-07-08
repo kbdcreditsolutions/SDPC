@@ -25,13 +25,13 @@ export default function Navbar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4 pb-2 pointer-events-none">
       <header 
-        className={`w-full max-w-6xl transition-all duration-300 rounded-full pointer-events-auto bg-white/90 backdrop-blur-lg border border-white/20 ${
-          scrolled ? 'py-2 px-6 shadow-lg' : 'py-3 px-6 shadow-md mt-2'
+        className={`w-full max-w-6xl transition-all duration-300 rounded-2xl md:rounded-full pointer-events-auto bg-white border border-slate-100 ${
+          scrolled ? 'py-2 px-4 md:px-6 shadow-lg' : 'py-3 px-4 md:px-6 shadow-md mt-2'
         }`}
       >
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center group">
-            <div className="transform transition-transform group-hover:scale-105 relative h-[42px] w-[200px] sm:w-[240px]">
+            <div className="transform transition-transform group-hover:scale-105 relative h-[36px] w-[160px] md:h-[42px] md:w-[240px]">
               <Image src="/logo-clean.png" alt="Sridatri Physio Care Logo" fill className="object-contain object-left" priority />
             </div>
           </Link>
