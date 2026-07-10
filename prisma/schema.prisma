@@ -246,6 +246,7 @@ model ClinicalNote {
   authorId      String
   author        User         @relation(fields: [authorId], references: [id])
   note          String
+  attachments   Json?
   date          DateTime     @default(now())
   deletedAt     DateTime?
 }

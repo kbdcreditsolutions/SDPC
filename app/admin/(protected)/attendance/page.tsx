@@ -12,7 +12,7 @@ export default function AttendancePage() {
   const [patients, setPatients] = useState<Row[]>([]);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/attendance?date=${date}`);
+    const res = await fetch(`/api/attendance/?date=${date}`);
     const data = await res.json();
     setStaff(data.staff);
     setPatients(data.patients);
@@ -23,7 +23,7 @@ export default function AttendancePage() {
   }, [load]);
 
   async function mark(subject: "STAFF" | "PATIENT", id: string, status: string) {
-    await fetch("/api/attendance", {
+    const res = await fetch("/api/attendance/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(
@@ -32,6 +32,13 @@ export default function AttendancePage() {
           : { date, subject, patientId: id, status }
       ),
     });
+    
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.error || "Failed to mark attendance");
+      return;
+    }
+    
     load();
   }
 

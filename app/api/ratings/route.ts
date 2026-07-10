@@ -11,10 +11,10 @@ export async function GET(req: NextRequest) {
   if (!session) return response!;
   const scope = tenantScope(session);
 
-  const doctorId = req.nextUrl.searchParams.get("doctorId");
+  const doctorId = session.role === "DOCTOR" ? session.userId : req.nextUrl.searchParams.get("doctorId");
 
   const doctors = await prisma.user.findMany({
-    where: { ...scope, role: "DOCTOR" },
+    where: { ...scope, role: "DOCTOR", ...(session.role === "DOCTOR" ? { id: session.userId } : {}) },
     orderBy: { name: "asc" },
   });
 

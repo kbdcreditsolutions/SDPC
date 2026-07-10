@@ -29,7 +29,7 @@ export default function StaffPage() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/staff");
+    const res = await fetch("/api/staff/");
     const data = await res.json();
     setUsers(data.users);
   }, []);
@@ -42,11 +42,18 @@ export default function StaffPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await fetch("/api/staff", {
+      const res = await fetch("/api/staff/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to add staff member");
+        return;
+      }
+      
       setForm({ name: "", email: "", password: "", role: "STAFF", specialty: "" });
       setShowForm(false);
       load();
@@ -56,12 +63,19 @@ export default function StaffPage() {
   }
 
   async function toggleActive(id: string, isActive: boolean) {
-    await fetch(`/api/staff/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !isActive }),
-    });
-    load();
+    try {
+      const res = await fetch(`/api/staff/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to update staff status");
+      }
+    } finally {
+      load();
+    }
   }
 
   return (

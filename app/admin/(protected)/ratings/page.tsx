@@ -40,7 +40,7 @@ export default function RatingsPage() {
   const [detail, setDetail] = useState<any>(null);
 
   useEffect(() => {
-    fetch("/api/ratings")
+    fetch("/api/ratings/")
       .then((r) => r.json())
       .then((d) => {
         setDoctors(d.doctors);
@@ -49,7 +49,7 @@ export default function RatingsPage() {
   }, []);
 
   const loadDetail = useCallback(async (doctorId: string) => {
-    const res = await fetch(`/api/ratings?doctorId=${doctorId}`);
+    const res = await fetch(`/api/ratings/?doctorId=${doctorId}`);
     setDetail(await res.json());
   }, []);
 

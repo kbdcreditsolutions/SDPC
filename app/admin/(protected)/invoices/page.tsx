@@ -33,14 +33,14 @@ export default function InvoicesPage() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/invoices");
+    const res = await fetch("/api/invoices/");
     const data = await res.json();
     setInvoices(data.invoices);
   }, []);
 
   useEffect(() => {
     load();
-    fetch("/api/patients")
+    fetch("/api/patients/")
       .then((r) => r.json())
       .then((d) => setPatients(d.patients));
   }, [load]);
@@ -53,17 +53,36 @@ export default function InvoicesPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await fetch("/api/invoices", {
+      const res = await fetch("/api/invoices/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patientId, lineItems: items }),
       });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to create invoice");
+        return;
+      }
+      
       setShowForm(false);
       setItems([{ description: "Consultation", qty: "1", unitPrice: "800", gstPercent: "18" }]);
+      setPatientId("");
       setPatientId("");
       load();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this invoice?")) return;
+    try {
+      const res = await fetch(`/api/invoices/${id}/`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      load();
+    } catch {
+      alert("Failed to delete invoice");
     }
   }
 
@@ -174,6 +193,7 @@ export default function InvoicesPage() {
               <th className="px-6 py-3">Total</th>
               <th className="px-6 py-3">Balance</th>
               <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -202,6 +222,19 @@ export default function InvoicesPage() {
                   >
                     {inv.status.toLowerCase()}
                   </span>
+                </td>
+                <td className="px-6 py-3 text-right">
+                  <div className="flex justify-end gap-3 text-xs font-medium">
+                    <Link href={`/admin/invoices/${inv.id}`} className="text-ink/50 hover:text-ink">
+                      View
+                    </Link>
+                    <Link href={`/admin/invoices/${inv.id}?edit=true`} className="text-ink/50 hover:text-ink">
+                      Edit
+                    </Link>
+                    <button onClick={() => handleDelete(inv.id)} className="text-clay/70 hover:text-clay">
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

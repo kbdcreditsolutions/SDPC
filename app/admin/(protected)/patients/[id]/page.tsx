@@ -16,6 +16,14 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [tab, setTab] = useState<Tab>("overview");
   const [pkgForm, setPkgForm] = useState({ name: "10 Session Package", totalSessions: "10", price: "8000" });
   const [noteForm, setNoteForm] = useState("");
+  const [noteAttachments, setNoteAttachments] = useState<File[]>([]);
+
+  const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/patients/${id}`);
@@ -51,13 +59,23 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   async function addNote(e: React.FormEvent) {
     e.preventDefault();
-    if (!noteForm.trim()) return;
+    if (!noteForm.trim() && noteAttachments.length === 0) return;
+    
+    const attachments = await Promise.all(
+      noteAttachments.map(async (f) => ({
+        name: f.name,
+        type: f.type,
+        data: await toBase64(f)
+      }))
+    );
+
     await fetch(`/api/patients/${id}/notes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ note: noteForm }),
+      body: JSON.stringify({ note: noteForm, attachments }),
     });
     setNoteForm("");
+    setNoteAttachments([]);
     load();
   }
 
@@ -268,22 +286,46 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 {fmtDate(n.date)} · {n.author.name}
               </p>
               <p className="mt-2 text-sm">{n.note}</p>
+              {n.attachments && n.attachments.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {n.attachments.map((att: any, i: number) => (
+                    att.type.startsWith("image/") ? (
+                      <a key={i} href={att.data} target="_blank" rel="noreferrer">
+                        <img src={att.data} alt={att.name} className="h-24 w-24 object-cover rounded-lg border border-sand hover:opacity-80 transition-opacity" />
+                      </a>
+                    ) : (
+                      <a key={i} href={att.data} download={att.name} className="flex h-24 w-24 flex-col items-center justify-center rounded-lg border border-sand bg-sand/30 p-2 text-center text-xs text-ink/60 hover:text-ink transition-colors">
+                        <svg className="mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span className="truncate w-full">{att.name}</span>
+                      </a>
+                    )
+                  ))}
+                </div>
+              )}
             </Card>
           ))}
           {patient.clinicalNotes.length === 0 && (
             <p className="text-sm text-ink/40">No clinical notes yet.</p>
           )}
           <Card>
-            <form onSubmit={addNote} className="flex gap-3">
-              <input
+            <form onSubmit={addNote} className="space-y-3">
+              <textarea
                 placeholder="Add a clinical note…"
                 value={noteForm}
                 onChange={(e) => setNoteForm(e.target.value)}
-                className="flex-1 rounded-lg border border-sand px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-sand px-3 py-2 text-sm min-h-[80px]"
               />
-              <button className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep">
-                Save
-              </button>
+              <div className="flex items-center justify-between">
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => setNoteAttachments(Array.from(e.target.files || []))}
+                  className="text-xs text-ink/60 file:mr-4 file:rounded-full file:border-0 file:bg-sand file:px-4 file:py-2 file:text-xs file:font-medium hover:file:bg-sand/80"
+                />
+                <button className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep">
+                  Save Note
+                </button>
+              </div>
             </form>
           </Card>
         </div>

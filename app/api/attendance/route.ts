@@ -19,9 +19,9 @@ export async function GET(req: NextRequest) {
   const date = dayRange(dateStr);
 
   const [staff, patients, records] = await Promise.all([
-    prisma.user.findMany({ where: { ...scope, isActive: true, deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.patient.findMany({ where: { ...scope, deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.attendanceRecord.findMany({ where: { ...scope, date } }),
+    prisma.user.findMany({ where: { ...scope, isActive: true, deletedAt: null, ...(session.role === "DOCTOR" ? { id: session.userId } : {}) }, orderBy: { name: "asc" } }),
+    prisma.patient.findMany({ where: { ...scope, deletedAt: null, ...(session.role === "DOCTOR" ? { appointments: { some: { doctorId: session.userId } } } : {}) }, orderBy: { name: "asc" } }),
+    prisma.attendanceRecord.findMany({ where: { ...scope, date, ...(session.role === "DOCTOR" ? { OR: [{ userId: session.userId }, { patient: { appointments: { some: { doctorId: session.userId } } } }] } : {}) } }),
   ]);
 
   type AttRec = (typeof records)[number];

@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
 
   useEffect(() => {
-    fetch("/api/dashboard")
+    fetch("/api/dashboard/")
       .then((r) => r.json())
       .then(setData);
   }, []);

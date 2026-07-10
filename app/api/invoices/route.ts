@@ -44,7 +44,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
+  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF", "DOCTOR"]);
   if (!session) return response!;
 
   const body = await req.json();

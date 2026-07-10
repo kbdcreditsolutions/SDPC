@@ -23,7 +23,7 @@ export default function MarketingPage() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/marketing");
+    const res = await fetch("/api/marketing/");
     setData(await res.json());
   }, []);
 
@@ -35,11 +35,18 @@ export default function MarketingPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await fetch("/api/marketing/campaigns", {
+      const res = await fetch("/api/marketing/campaigns/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to save campaign");
+        return;
+      }
+      
       setShowForm(false);
       setForm({ name: "", type: "CAMPAIGN", startDate: "", endDate: "", cost: "", leads: "", conversions: "", revenue: "" });
       load();

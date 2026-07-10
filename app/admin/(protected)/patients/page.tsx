@@ -35,7 +35,7 @@ export default function PatientsPage() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async (query: string) => {
-    const res = await fetch(`/api/patients${query ? `?q=${encodeURIComponent(query)}` : ""}`);
+    const res = await fetch(`/api/patients/${query ? `?q=${encodeURIComponent(query)}` : ""}`);
     const data = await res.json();
     setPatients(data.patients);
   }, []);
@@ -48,11 +48,18 @@ export default function PatientsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await fetch("/api/patients", {
+      const res = await fetch("/api/patients/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to add patient");
+        return;
+      }
+      
       setForm({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
       setShowForm(false);
       load(q);

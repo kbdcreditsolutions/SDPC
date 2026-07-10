@@ -25,17 +25,17 @@ export default function AppointmentsPage() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/appointments");
+    const res = await fetch("/api/appointments/");
     const data = await res.json();
     setAppointments(data.appointments);
   }, []);
 
   useEffect(() => {
     load();
-    fetch("/api/patients")
+    fetch("/api/patients/")
       .then((r) => r.json())
       .then((d) => setPatients(d.patients));
-    fetch("/api/doctors")
+    fetch("/api/doctors/")
       .then((r) => r.json())
       .then((d) => setDoctors(d.doctors));
   }, [load]);
@@ -44,11 +44,18 @@ export default function AppointmentsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await fetch("/api/appointments", {
+      const res = await fetch("/api/appointments/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to create appointment");
+        return;
+      }
+      
       setForm({ patientId: "", doctorId: "", datetime: "", durationMin: "45", notes: "" });
       setShowForm(false);
       load();
