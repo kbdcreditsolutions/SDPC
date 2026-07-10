@@ -43,6 +43,7 @@ export function Sidebar({
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               className={`rounded-lg px-3 py-2 text-sm transition ${
                 active
                   ? "bg-forest text-cream"

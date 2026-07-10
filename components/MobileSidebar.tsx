@@ -69,6 +69,7 @@ export function MobileSidebar({
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setIsOpen(false)}
                     className={`rounded-lg px-3 py-2 text-sm transition ${
                       active
