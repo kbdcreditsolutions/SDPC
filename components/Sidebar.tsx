@@ -24,7 +24,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-sand bg-white/60 px-4 py-5">
+    <aside className="hidden md:flex h-screen w-60 shrink-0 flex-col border-r border-sand bg-white/60 px-4 py-5">
       <div className="flex items-center gap-2 px-2">
         <PulseMark className="h-8 w-8" />
         <div className="leading-tight">

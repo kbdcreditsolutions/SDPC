@@ -1,33 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
-import { Card, StatCard } from "@/components/Card";
-
-type DashboardData = {
-  todayRevenue: number;
-  totalBilled: number;
-  patientsCount: number;
-  doctorsCount: number;
-  staffCount: number;
-  todayAppointmentsCount: number;
-  upcomingApptsCount: number;
-  outstanding: number;
-  revenueTrend: { date: string; revenue: number }[];
-  leadCounts: Record<string, number>;
-  doctorLeaderboard: { id: string; name: string; specialty: string | null; patients: number; revenue: number }[];
-  revenueByBranch: { name: string; revenue: number }[];
-};
+import { StatCard, Card } from "@/components/Card";
+import { DashboardRevenueChart, DashboardBranchChart } from "@/components/admin/DashboardCharts";
+import { getDashboardData } from "@/lib/queries/dashboard";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
@@ -41,17 +14,11 @@ const LEAD_LABELS: Record<string, string> = {
   INSTAGRAM: "Instagram",
 };
 
-export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-
-  useEffect(() => {
-    fetch("/api/dashboard/")
-      .then((r) => r.json())
-      .then(setData);
-  }, []);
+export default async function DashboardPage() {
+  const data = await getDashboardData();
 
   if (!data) {
-    return <p className="text-sm text-ink/50">Loading dashboard…</p>;
+    return <p className="text-sm text-ink/50">Unable to load dashboard data.</p>;
   }
 
   return (
@@ -91,21 +58,7 @@ export default function DashboardPage() {
           </p>
           <p className="mt-1 font-display text-lg">Revenue trend</p>
           <div className="mt-4 h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.revenueTrend}>
-                <CartesianGrid stroke="var(--sand)" vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(d) => d.slice(5)}
-                  tick={{ fontSize: 11, fill: "var(--sage)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis tick={{ fontSize: 11, fill: "var(--sage)" }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => inr(Number(v))} />
-                <Line type="monotone" dataKey="revenue" stroke="var(--forest)" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+            <DashboardRevenueChart data={data.revenueTrend} />
           </div>
         </Card>
 
@@ -152,15 +105,7 @@ export default function DashboardPage() {
           <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">Branches</p>
           <p className="mt-1 font-display text-lg">Revenue by branch</p>
           <div className="mt-4 h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.revenueByBranch}>
-                <CartesianGrid stroke="var(--sand)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--sage)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--sage)" }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => inr(Number(v))} />
-                <Bar dataKey="revenue" fill="var(--forest)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <DashboardBranchChart data={data.revenueByBranch} />
           </div>
         </Card>
       </div>

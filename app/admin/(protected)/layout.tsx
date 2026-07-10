@@ -14,9 +14,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen bg-cream">
       <Sidebar items={items} userName={session.name} roleLabel={roleLabel(session.role)} />
-      <div className="flex flex-1 flex-col">
-        <TopBar userFirstName={session.name.split(" ")[0]} />
-        <main className="flex-1 overflow-y-auto p-8">{children}</main>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <TopBar
+          userFirstName={session.name.split(" ")[0]}
+          mobileSidebarProps={{
+            items,
+            userName: session.name,
+            roleLabel: roleLabel(session.role),
+          }}
+        />
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
       </div>
     </div>
   );
