@@ -53,32 +53,42 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     branches,
   ] = await Promise.all([
     prisma.payment.findMany({
-      where: { date: { gte: today0, lte: today1 }, invoice: { ...scope } },
+      where: { date: { gte: today0, lte: today1 }, invoice: { ...scope, deletedAt: null } },
     }),
-    prisma.invoice.findMany({ where: scope }),
-    prisma.patient.count({ where: scope }),
-    prisma.user.count({ where: { ...scope, role: "DOCTOR", isActive: true } }),
-    prisma.user.count({ where: { ...scope, role: "STAFF", isActive: true } }),
+    prisma.invoice.findMany({ where: { ...scope, deletedAt: null } }),
+    prisma.patient.count({ where: { ...scope, deletedAt: null } }),
+    prisma.user.count({ where: { ...scope, role: "DOCTOR", isActive: true, deletedAt: null } }),
+    prisma.user.count({ where: { ...scope, role: "STAFF", isActive: true, deletedAt: null } }),
     prisma.appointment.findMany({
-      where: { ...scope, datetime: { gte: today0, lte: today1 } },
+      where: { ...scope, datetime: { gte: today0, lte: today1 }, deletedAt: null },
     }),
     prisma.appointment.count({
-      where: { ...scope, datetime: { gt: now }, status: "SCHEDULED" },
+      where: { ...scope, datetime: { gt: now }, status: "SCHEDULED", deletedAt: null },
     }),
-    prisma.patient.findMany({ where: scope, select: { leadSource: true } }),
+    prisma.patient.findMany({ where: { ...scope, deletedAt: null }, select: { leadSource: true } }),
     prisma.payment.findMany({
-      where: { date: { gte: thirtyDaysAgo }, invoice: { ...scope } },
+      where: { date: { gte: thirtyDaysAgo }, invoice: { ...scope, deletedAt: null } },
       select: { amount: true, date: true },
     }),
     prisma.user.findMany({
-      where: { ...scope, role: "DOCTOR" },
+      where: { ...scope, role: "DOCTOR", deletedAt: null },
       include: {
-        appointments: { select: { patientId: true } },
+        appointments: { 
+          where: { deletedAt: null },
+          select: { patientId: true } 
+        },
       },
     }),
     prisma.branch.findMany({
-      where: scope,
-      include: { patients: { include: { invoices: true } } },
+      where: { ...scope, deletedAt: null },
+      include: { 
+        patients: { 
+          where: { deletedAt: null },
+          include: { 
+            invoices: { where: { deletedAt: null } } 
+          } 
+        } 
+      },
     }),
   ]);
 
