@@ -44,3 +44,41 @@ export async function GET(
     },
   });
 }
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
+  if (!session) return response!;
+  const { id } = await params;
+  
+  const body = await req.json();
+  const updated = await prisma.patient.update({
+    where: { id, tenantId: session.tenantId! },
+    data: {
+      name: body.name,
+      phone: body.phone,
+      reason: body.reason,
+      leadSource: body.leadSource,
+    },
+  });
+
+  return NextResponse.json({ patient: updated });
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { session, response } = await requireSession(["CLINIC_ADMIN"]);
+  if (!session) return response!;
+  const { id } = await params;
+
+  await prisma.patient.update({
+    where: { id, tenantId: session.tenantId! },
+    data: { deletedAt: new Date() },
+  });
+
+  return NextResponse.json({ success: true });
+}

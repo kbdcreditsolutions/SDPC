@@ -31,6 +31,7 @@ export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[] | null>(null);
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
   const [saving, setSaving] = useState(false);
 
@@ -68,6 +69,39 @@ export default function PatientsPage() {
     }
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this patient?")) return;
+    try {
+      const res = await fetch(`/api/patients/${id}/`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      load(q);
+    } catch {
+      alert("Failed to delete patient");
+    }
+  }
+
+  async function handleEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingId) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/patients/${editingId}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
+      setEditingId(null);
+      setForm({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
+      setShowForm(false);
+      load(q);
+    } catch {
+      alert("Failed to update patient");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -76,7 +110,11 @@ export default function PatientsPage() {
           <p className="mt-1 text-sm text-ink/60">{patients?.length ?? 0} records</p>
         </div>
         <button
-          onClick={() => setShowForm((s) => !s)}
+          onClick={() => {
+            setEditingId(null);
+            setForm({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
+            setShowForm((s) => !s);
+          }}
           className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
         >
           + Add Patient
@@ -85,7 +123,7 @@ export default function PatientsPage() {
 
       {showForm && (
         <Card>
-          <form onSubmit={handleAdd} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <form onSubmit={editingId ? handleEdit : handleAdd} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <input
               required
               placeholder="Full name"
@@ -123,11 +161,14 @@ export default function PatientsPage() {
                 disabled={saving}
                 className="rounded-lg bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
               >
-                {saving ? "Saving…" : "Save patient"}
+                {saving ? "Saving…" : editingId ? "Update patient" : "Save patient"}
               </button>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingId(null);
+                }}
                 className="rounded-lg px-5 py-2 text-sm text-ink/60 hover:bg-sand/60"
               >
                 Cancel
@@ -157,6 +198,7 @@ export default function PatientsPage() {
               <th className="px-6 py-3">Lead</th>
               <th className="px-6 py-3">Billed</th>
               <th className="px-6 py-3">Outstanding</th>
+              <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -186,6 +228,29 @@ export default function PatientsPage() {
                   ) : (
                     <span className="text-forest">Cleared</span>
                   )}
+                </td>
+                <td className="px-6 py-3 text-right">
+                  <div className="flex justify-end gap-3 text-xs font-medium">
+                    <button
+                      onClick={() => {
+                        setEditingId(p.id);
+                        setForm({
+                          name: p.name,
+                          phone: p.phone,
+                          reason: p.reason || "",
+                          leadSource: p.leadSource || "WALK_IN",
+                        });
+                        setShowForm(true);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="text-ink/50 hover:text-ink"
+                    >
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(p.id)} className="text-clay/70 hover:text-clay">
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
