@@ -9,6 +9,11 @@ import {
   Home,
   Bike,
   Baby,
+  HeartPulse,
+  Activity,
+  Scissors,
+  Bed,
+  User,
   LucideIcon,
 } from "lucide-react";
 
@@ -22,6 +27,11 @@ const iconMap: Record<string, LucideIcon> = {
   Home,
   Bike,
   Baby,
+  HeartPulse,
+  Activity,
+  Scissors,
+  Bed,
+  User,
 };
 
 interface ServiceCardProps {
