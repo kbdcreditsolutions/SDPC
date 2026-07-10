@@ -57,6 +57,17 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
     load();
   }
 
+  async function handleDeleteInvoice(invId: string) {
+    if (!confirm("Are you sure you want to delete this invoice?")) return;
+    try {
+      const res = await fetch(`/api/invoices/${invId}/`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      load();
+    } catch {
+      alert("Failed to delete invoice");
+    }
+  }
+
   async function addNote(e: React.FormEvent) {
     e.preventDefault();
     if (!noteForm.trim() && noteAttachments.length === 0) return;
@@ -341,6 +352,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 <th className="px-6 py-3">Total</th>
                 <th className="px-6 py-3">Paid</th>
                 <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -355,9 +367,28 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   <td className="px-6 py-3 font-data">{inr(inv.total)}</td>
                   <td className="px-6 py-3 font-data">{inr(inv.paidAmount)}</td>
                   <td className="px-6 py-3">
-                    <span className="rounded-full bg-sand px-2 py-0.5 text-xs">
+                    <span className={`rounded-full px-2 py-0.5 text-xs ${
+                      inv.status === "PAID"
+                        ? "bg-forest/10 text-forest"
+                        : inv.status === "PARTIAL"
+                        ? "bg-clay-light text-clay"
+                        : "bg-sand text-ink/60"
+                    }`}>
                       {inv.status.toLowerCase()}
                     </span>
+                  </td>
+                  <td className="px-6 py-3 text-right">
+                    <div className="flex justify-end gap-3 text-xs font-medium">
+                      <Link href={`/admin/invoices/${inv.id}`} className="text-ink/50 hover:text-ink">
+                        View
+                      </Link>
+                      <Link href={`/admin/invoices/${inv.id}?edit=true`} className="text-ink/50 hover:text-ink">
+                        Edit
+                      </Link>
+                      <button onClick={() => handleDeleteInvoice(inv.id)} className="text-clay/70 hover:text-clay">
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

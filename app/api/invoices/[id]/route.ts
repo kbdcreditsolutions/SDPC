@@ -81,6 +81,9 @@ export async function PUT(
   const gst = items.reduce((s, i) => s + i.gstAmount, 0);
   const total = subtotal + gst;
 
+  const paidAmount = Number(existing.paidAmount);
+  const status = paidAmount >= total ? "PAID" : paidAmount > 0 ? "PARTIAL" : "UNPAID";
+
   // Transaction to update invoice and replace line items
   await prisma.$transaction([
     prisma.invoiceLineItem.deleteMany({ where: { invoiceId: id } }),
@@ -91,6 +94,7 @@ export async function PUT(
         subtotal,
         gst,
         total,
+        status,
         lineItems: {
           create: items.map((i) => ({
             description: i.description,
