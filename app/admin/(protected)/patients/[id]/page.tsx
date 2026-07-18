@@ -118,7 +118,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <div>
               <p className="font-display text-xl">{patient.name}</p>
               <p className="text-sm text-ink/50">
-                {patient.phone} {patient.gender ? `· ${patient.gender}` : ""} · Joined{" "}
+                {patient.phone} {patient.age ? `· ${patient.age}y` : ""} {patient.gender ? `· ${patient.gender}` : ""} · Joined{" "}
                 {fmtDate(patient.createdAt)}
               </p>
               <div className="mt-2 flex gap-2">
@@ -180,6 +180,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <dl className="mt-4 space-y-3 text-sm">
               {[
                 ["Full name", patient.name],
+                ["Age", patient.age ?? "—"],
+                ["Gender", patient.gender ?? "—"],
                 ["Reason for consultation", patient.reason ?? "—"],
                 ["Lead source", patient.leadSource ?? "—"],
                 ["Referral doctor", patient.referralDoctor ?? "—"],

@@ -6,6 +6,10 @@ export type PatientRow = {
   id: string;
   name: string;
   phone: string;
+  age: number | null;
+  gender: string | null;
+  address: string | null;
+  referralDoctor: string | null;
   createdAt: Date;
   reason: string | null;
   leadSource: string | null;
@@ -49,6 +53,10 @@ export async function getPatients(q?: string): Promise<PatientRow[]> {
       id: p.id,
       name: p.name,
       phone: p.phone,
+      age: p.age,
+      gender: p.gender,
+      address: p.address,
+      referralDoctor: p.referralDoctor,
       createdAt: p.createdAt,
       reason: p.reason,
       leadSource: p.leadSource,

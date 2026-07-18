@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { z } from "zod";
+
+const updateSchema = z.object({
+  name: z.string().min(1),
+  phone: z.string().min(1),
+  age: z.union([z.literal(""), z.null(), z.coerce.number().int().min(0).max(150)]).optional(),
+  gender: z.string().optional(),
+  reason: z.string().optional(),
+  leadSource: z
+    .enum(["DIRECT", "REFERRAL", "GOOGLE", "FACEBOOK", "WALK_IN", "WHATSAPP", "INSTAGRAM"])
+    .optional(),
+  referralDoctor: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
+});
 
 export async function GET(
   req: NextRequest,
@@ -54,17 +69,24 @@ export async function PUT(
   const { id } = await params;
   
   const body = await req.json();
-  const updated = await prisma.patient.update({
-    where: { id, tenantId: session.tenantId! },
-    data: {
-      name: body.name,
-      phone: body.phone,
-      reason: body.reason,
-      leadSource: body.leadSource,
-    },
-  });
+  const parsed = updateSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+  }
+  const { age, ...rest } = parsed.data;
 
-  return NextResponse.json({ patient: updated });
+  try {
+    const updated = await prisma.patient.update({
+      where: { id, tenantId: session.tenantId! },
+      data: {
+        ...rest,
+        age: age === "" || age === null || age === undefined ? null : age,
+      },
+    });
+    return NextResponse.json({ patient: updated });
+  } catch {
+    return NextResponse.json({ error: "Failed to update patient" }, { status: 400 });
+  }
 }
 
 export async function DELETE(

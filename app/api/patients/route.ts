@@ -40,6 +40,10 @@ export async function GET(req: NextRequest) {
       id: p.id,
       name: p.name,
       phone: p.phone,
+      age: p.age,
+      gender: p.gender,
+      address: p.address,
+      referralDoctor: p.referralDoctor,
       createdAt: p.createdAt,
       reason: p.reason,
       leadSource: p.leadSource,
@@ -54,6 +58,7 @@ export async function GET(req: NextRequest) {
 const createSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(1),
+  age: z.coerce.number().int().min(0).max(150),
   gender: z.string().optional(),
   reason: z.string().optional(),
   leadSource: z

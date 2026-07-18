@@ -8,6 +8,10 @@ type Patient = {
   id: string;
   name: string;
   phone: string;
+  age: number | null;
+  gender: string | null;
+  address: string | null;
+  referralDoctor: string | null;
   createdAt: string;
   reason: string | null;
   leadSource: string | null;
@@ -32,7 +36,16 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    age: "",
+    gender: "",
+    reason: "",
+    leadSource: "WALK_IN",
+    referralDoctor: "",
+    address: "",
+  });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async (query: string) => {
@@ -59,7 +72,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         return;
       }
       
-      setForm({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
+      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "" });
       setShowForm(false);
       load(q);
     } finally {
@@ -90,7 +103,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
       });
       if (!res.ok) throw new Error();
       setEditingId(null);
-      setForm({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
+      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "" });
       setShowForm(false);
       load(q);
     } catch {
@@ -110,7 +123,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         <button
           onClick={() => {
             setEditingId(null);
-            setForm({ name: "", phone: "", reason: "", leadSource: "WALK_IN" });
+            setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "" });
             setShowForm((s) => !s);
           }}
           className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
@@ -137,6 +150,26 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
             <input
+              required={!editingId}
+              type="number"
+              min={0}
+              max={150}
+              placeholder="Age"
+              value={form.age}
+              onChange={(e) => setForm({ ...form, age: e.target.value })}
+              className="rounded-lg border border-sand px-3 py-2 text-sm"
+            />
+            <select
+              value={form.gender}
+              onChange={(e) => setForm({ ...form, gender: e.target.value })}
+              className="rounded-lg border border-sand px-3 py-2 text-sm"
+            >
+              <option value="">Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <input
               placeholder="Reason for consultation"
               value={form.reason}
               onChange={(e) => setForm({ ...form, reason: e.target.value })}
@@ -153,6 +186,18 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                 </option>
               ))}
             </select>
+            <input
+              placeholder="Referral doctor (optional)"
+              value={form.referralDoctor}
+              onChange={(e) => setForm({ ...form, referralDoctor: e.target.value })}
+              className="rounded-lg border border-sand px-3 py-2 text-sm"
+            />
+            <input
+              placeholder="Address (optional)"
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              className="rounded-lg border border-sand px-3 py-2 text-sm sm:col-span-2 lg:col-span-3"
+            />
             <div className="col-span-full flex gap-3">
               <button
                 type="submit"
@@ -191,6 +236,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
           <thead>
             <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
               <th className="px-6 py-3">Patient</th>
+              <th className="px-6 py-3">Age/Gender</th>
               <th className="px-6 py-3">Joined</th>
               <th className="px-6 py-3">Reason</th>
               <th className="px-6 py-3">Lead</th>
@@ -207,6 +253,9 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                     {p.name}
                   </Link>
                   <div className="text-xs text-ink/50">{p.phone}</div>
+                </td>
+                <td className="px-6 py-3 text-ink/70">
+                  {p.age ?? "—"}{p.gender ? ` · ${p.gender}` : ""}
                 </td>
                 <td className="px-6 py-3 text-ink/70">
                   {new Date(p.createdAt).toLocaleDateString("en-IN", {
@@ -235,8 +284,12 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                         setForm({
                           name: p.name,
                           phone: p.phone,
+                          age: p.age?.toString() || "",
+                          gender: p.gender || "",
                           reason: p.reason || "",
                           leadSource: p.leadSource || "WALK_IN",
+                          referralDoctor: p.referralDoctor || "",
+                          address: p.address || "",
                         });
                         setShowForm(true);
                         window.scrollTo({ top: 0, behavior: "smooth" });

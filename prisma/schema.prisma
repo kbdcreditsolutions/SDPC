@@ -142,6 +142,7 @@ model Patient {
   branch         Branch?    @relation(fields: [branchId], references: [id])
   name           String
   phone          String
+  age            Int?
   gender         String?
   address        String?
   reason         String?
