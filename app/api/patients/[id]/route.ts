@@ -16,6 +16,19 @@ const updateSchema = z.object({
   referralDoctor: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  createdAt: z
+    .union([
+      z.literal(""),
+      z.coerce.date().refine(
+        (d) => {
+          const maxAllowed = new Date();
+          maxAllowed.setUTCDate(maxAllowed.getUTCDate() + 1);
+          return d <= maxAllowed;
+        },
+        { message: "Joined date cannot be in the future" }
+      ),
+    ])
+    .optional(),
 });
 
 export async function GET(
@@ -73,7 +86,7 @@ export async function PUT(
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
-  const { age, ...rest } = parsed.data;
+  const { age, createdAt, ...rest } = parsed.data;
 
   try {
     const updated = await prisma.patient.update({
@@ -81,6 +94,7 @@ export async function PUT(
       data: {
         ...rest,
         age: age === "" || age === null || age === undefined ? null : age,
+        ...(createdAt ? { createdAt } : {}),
       },
     });
     return NextResponse.json({ patient: updated });

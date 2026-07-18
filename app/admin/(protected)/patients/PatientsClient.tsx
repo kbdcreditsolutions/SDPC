@@ -30,13 +30,16 @@ const LEAD_LABELS: Record<string, string> = {
 };
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
-const today = () => new Date().toISOString().slice(0, 10);
+const localDateInput = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const today = () => localDateInput(new Date());
 
 export default function PatientsClient({ initialPatients }: { initialPatients: Patient[] }) {
   const [patients, setPatients] = useState<Patient[]>(initialPatients);
   const [q, setQ] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [originalCreatedAt, setOriginalCreatedAt] = useState("");
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -98,10 +101,16 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
     if (!editingId) return;
     setSaving(true);
     try {
+      const payload = {
+        ...form,
+        // Only send createdAt if the staff member actually changed it —
+        // otherwise every edit would truncate the real timestamp to UTC midnight.
+        createdAt: form.createdAt === originalCreatedAt ? undefined : form.createdAt,
+      };
       const res = await fetch(`/api/patients/${editingId}/`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
       setEditingId(null);
@@ -200,18 +209,16 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="rounded-lg border border-sand px-3 py-2 text-sm sm:col-span-2 lg:col-span-3"
             />
-            {!editingId && (
-              <label className="flex flex-col gap-1 text-xs text-ink/50">
-                Joined date
-                <input
-                  type="date"
-                  max={today()}
-                  value={form.createdAt || today()}
-                  onChange={(e) => setForm({ ...form, createdAt: e.target.value })}
-                  className="rounded-lg border border-sand px-3 py-2 text-sm text-ink"
-                />
-              </label>
-            )}
+            <label className="flex flex-col gap-1 text-xs text-ink/50">
+              Joined date
+              <input
+                type="date"
+                max={today()}
+                value={form.createdAt || today()}
+                onChange={(e) => setForm({ ...form, createdAt: e.target.value })}
+                className="rounded-lg border border-sand px-3 py-2 text-sm text-ink"
+              />
+            </label>
             <div className="col-span-full flex gap-3">
               <button
                 type="submit"
@@ -295,6 +302,8 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                     <button
                       onClick={() => {
                         setEditingId(p.id);
+                        const joinedDate = localDateInput(new Date(p.createdAt));
+                        setOriginalCreatedAt(joinedDate);
                         setForm({
                           name: p.name,
                           phone: p.phone,
@@ -304,7 +313,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                           leadSource: p.leadSource || "WALK_IN",
                           referralDoctor: p.referralDoctor || "",
                           address: p.address || "",
-                          createdAt: p.createdAt.slice(0, 10),
+                          createdAt: joinedDate,
                         });
                         setShowForm(true);
                         window.scrollTo({ top: 0, behavior: "smooth" });
