@@ -5,6 +5,7 @@ export function getNavItems(): NavItem[] {
     { label: "Dashboard", href: "/admin" },
     { label: "Patients", href: "/admin/patients" },
     { label: "Appointments", href: "/admin/appointments" },
+    { label: "Sessions", href: "/admin/sessions" },
     { label: "Billing", href: "/admin/invoices" },
     { label: "Staff & Doctors", href: "/admin/staff" },
     { label: "Attendance", href: "/admin/attendance" },

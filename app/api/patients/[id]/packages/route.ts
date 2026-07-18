@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
+import { tenantScope } from "@/lib/scope";
 import { z } from "zod";
 
 const schema = z.object({
@@ -8,6 +9,25 @@ const schema = z.object({
   totalSessions: z.coerce.number().int().positive(),
   price: z.coerce.number().positive(),
 });
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { session, response } = await requireSession();
+  if (!session) return response!;
+  const { id } = await params;
+  const scope = tenantScope(session);
+
+  const packages = await prisma.package.findMany({
+    where: { patientId: id, ...scope, deletedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json({
+    packages: packages.map((p) => ({ ...p, price: Number(p.price) })),
+  });
+}
 
 export async function POST(
   req: NextRequest,

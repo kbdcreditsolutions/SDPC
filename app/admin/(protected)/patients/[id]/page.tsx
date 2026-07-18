@@ -17,6 +17,16 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [pkgForm, setPkgForm] = useState({ name: "10 Session Package", totalSessions: "10", price: "8000" });
   const [noteForm, setNoteForm] = useState("");
   const [noteAttachments, setNoteAttachments] = useState<File[]>([]);
+  const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([]);
+  const [sessionFormPkg, setSessionFormPkg] = useState<string | null>(null);
+  const [sessionForm, setSessionForm] = useState({ doctorId: "", date: "", notes: "" });
+  const [loggingSession, setLoggingSession] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/doctors/")
+      .then((r) => r.json())
+      .then((d) => setDoctors(d.doctors));
+  }, []);
 
   const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -54,6 +64,39 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     });
+    load();
+  }
+
+  async function logSession(e: React.FormEvent, pkgId: string) {
+    e.preventDefault();
+    setLoggingSession(true);
+    try {
+      const res = await fetch(`/api/sessions/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId: id, packageId: pkgId, ...sessionForm }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to log session");
+        return;
+      }
+      setSessionForm({ doctorId: "", date: "", notes: "" });
+      setSessionFormPkg(null);
+      load();
+    } finally {
+      setLoggingSession(false);
+    }
+  }
+
+  async function undoSession(sessionId: string) {
+    if (!confirm("Undo this session? It will be removed and the package session count restored.")) return;
+    const res = await fetch(`/api/sessions/${sessionId}/`, { method: "DELETE" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err.error || "Failed to undo session");
+      return;
+    }
     load();
   }
 
@@ -238,6 +281,17 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   </p>
                 </div>
                 <div className="flex gap-3 text-xs">
+                  {pkg.status === "ACTIVE" && pkg.usedSessions < pkg.totalSessions && (
+                    <button
+                      onClick={() => {
+                        setSessionFormPkg(sessionFormPkg === pkg.id ? null : pkg.id);
+                        setSessionForm({ doctorId: "", date: "", notes: "" });
+                      }}
+                      className="font-medium text-forest hover:text-forest-deep"
+                    >
+                      + Log session
+                    </button>
+                  )}
                   <button onClick={() => packageAction(pkg.id, pkg.status === "FROZEN" ? "unfreeze" : "freeze")} className="text-ink/60 hover:text-ink">
                     {pkg.status === "FROZEN" ? "Unfreeze" : "Freeze"}
                   </button>
@@ -255,6 +309,68 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   style={{ width: `${Math.min(100, (pkg.usedSessions / pkg.totalSessions) * 100)}%` }}
                 />
               </div>
+
+              {sessionFormPkg === pkg.id && (
+                <form onSubmit={(e) => logSession(e, pkg.id)} className="mt-4 grid grid-cols-1 gap-3 border-t border-sand/60 pt-4 sm:grid-cols-3">
+                  <select
+                    required
+                    value={sessionForm.doctorId}
+                    onChange={(e) => setSessionForm({ ...sessionForm, doctorId: e.target.value })}
+                    className="rounded-lg border border-sand px-3 py-2 text-sm"
+                  >
+                    <option value="">— therapist —</option>
+                    {doctors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="datetime-local"
+                    value={sessionForm.date}
+                    onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })}
+                    className="rounded-lg border border-sand px-3 py-2 text-sm"
+                  />
+                  <input
+                    placeholder="Notes (optional)"
+                    value={sessionForm.notes}
+                    onChange={(e) => setSessionForm({ ...sessionForm, notes: e.target.value })}
+                    className="rounded-lg border border-sand px-3 py-2 text-sm"
+                  />
+                  <div className="col-span-full flex gap-3">
+                    <button
+                      disabled={loggingSession}
+                      className="rounded-lg bg-forest px-4 py-2 text-xs font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+                    >
+                      {loggingSession ? "Saving…" : "Mark session done"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSessionFormPkg(null)}
+                      className="rounded-lg px-4 py-2 text-xs text-ink/60 hover:bg-sand/60"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {pkg.sessions?.length > 0 && (
+                <ul className="mt-4 space-y-2 border-t border-sand/60 pt-4">
+                  {pkg.sessions.map((s: any) => (
+                    <li key={s.id} className="flex items-start justify-between text-xs">
+                      <div>
+                        <span className="font-medium text-ink">{fmtDate(s.date)}</span>
+                        <span className="text-ink/50"> · {s.doctor.name}</span>
+                        {s.notes && <p className="mt-0.5 text-ink/60">{s.notes}</p>}
+                      </div>
+                      <button onClick={() => undoSession(s.id)} className="text-clay/70 hover:text-clay">
+                        Undo
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Card>
           ))}
           <Card>

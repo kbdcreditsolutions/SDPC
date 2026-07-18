@@ -43,7 +43,16 @@ export async function GET(
   const patient = await prisma.patient.findFirst({
     where: { id, ...scope },
     include: {
-      packages: { orderBy: { createdAt: "desc" } },
+      packages: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          sessions: {
+            where: { deletedAt: null },
+            include: { doctor: { select: { id: true, name: true, specialty: true } } },
+            orderBy: { date: "desc" },
+          },
+        },
+      },
       invoices: { orderBy: { date: "desc" } },
       appointments: { include: { doctor: true }, orderBy: { datetime: "desc" } },
       clinicalNotes: { include: { author: true }, orderBy: { date: "desc" } },

@@ -95,6 +95,7 @@ model Tenant {
   ratings      Rating[]
   auditLogs    AuditLog[]
   packages     Package[]
+  packageSessions PackageSession[]
 }
 
 model Branch {
@@ -132,6 +133,7 @@ model User {
   attendance     AttendanceRecord[]
   ratingsGiven   Rating[]           @relation("RatingDoctor")
   auditLogs      AuditLog[]
+  packageSessions PackageSession[] @relation("SessionTherapist")
 }
 
 model Patient {
@@ -157,6 +159,7 @@ model Patient {
   appointments Appointment[]
   clinicalNotes ClinicalNote[]
   attendance   AttendanceRecord[]
+  packageSessions PackageSession[]
 }
 
 model Package {
@@ -174,6 +177,24 @@ model Package {
   endDate        DateTime?
   createdAt      DateTime      @default(now())
   deletedAt      DateTime?
+
+  sessions PackageSession[]
+}
+
+model PackageSession {
+  id        String    @id @default(uuid())
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  packageId String
+  package   Package   @relation(fields: [packageId], references: [id])
+  patientId String
+  patient   Patient   @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    User      @relation("SessionTherapist", fields: [doctorId], references: [id])
+  date      DateTime  @default(now())
+  notes     String?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 }
 
 model Invoice {
