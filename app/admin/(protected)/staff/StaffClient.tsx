@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 type StaffUser = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   role: string;
   specialty: string | null;
   isActive: boolean;
@@ -25,7 +25,14 @@ function initials(name: string) {
 export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[] }) {
   const [users, setUsers] = useState<StaffUser[]>(initialUsers);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "STAFF", specialty: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "STAFF",
+    specialty: "",
+    hasAccess: true,
+  });
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -50,7 +57,7 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
         return;
       }
       
-      setForm({ name: "", email: "", password: "", role: "STAFF", specialty: "" });
+      setForm({ name: "", email: "", password: "", role: "STAFF", specialty: "", hasAccess: true });
       setShowForm(false);
       load();
     } finally {
@@ -99,25 +106,12 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
-            <input
-              required
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
-            />
-            <input
-              required
-              type="password"
-              placeholder="Temp password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
-            />
             <select
               value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
+              onChange={(e) => {
+                const role = e.target.value;
+                setForm({ ...form, role, hasAccess: role === "CLINIC_ADMIN" ? true : form.hasAccess });
+              }}
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             >
               <option value="STAFF">Staff</option>
@@ -131,6 +125,42 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
                 onChange={(e) => setForm({ ...form, specialty: e.target.value })}
                 className="rounded-lg border border-sand px-3 py-2 text-sm"
               />
+            )}
+            <label className="flex items-center gap-2 text-sm text-ink/70">
+              <input
+                type="checkbox"
+                checked={form.hasAccess}
+                disabled={form.role === "CLINIC_ADMIN"}
+                onChange={(e) => setForm({ ...form, hasAccess: e.target.checked })}
+                className="h-4 w-4 rounded border-sand"
+              />
+              Grant dashboard login access
+            </label>
+            {!form.hasAccess && (
+              <p className="col-span-full text-xs text-ink/50">
+                No email or password needed — this just records their name so they can be picked as the
+                therapist when logging a session. They won&apos;t be able to sign in.
+              </p>
+            )}
+            {form.hasAccess && (
+              <>
+                <input
+                  required
+                  type="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="rounded-lg border border-sand px-3 py-2 text-sm"
+                />
+                <input
+                  required
+                  type="password"
+                  placeholder="Temp password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="rounded-lg border border-sand px-3 py-2 text-sm"
+                />
+              </>
             )}
             <div className="col-span-full flex gap-3">
               <button
@@ -170,7 +200,7 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
                       </div>
                       <div>
                         <p className="font-medium">{u.name}</p>
-                        <p className="text-xs text-ink/50">{u.email}</p>
+                        <p className="text-xs text-ink/50">{u.email ?? "No dashboard access"}</p>
                         {u.specialty && <p className="text-xs text-ink/50">{u.specialty}</p>}
                       </div>
                     </div>

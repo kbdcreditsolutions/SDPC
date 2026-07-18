@@ -119,8 +119,8 @@ model User {
   branchId     String?
   branch       Branch?   @relation(fields: [branchId], references: [id])
   name         String
-  email        String    @unique
-  passwordHash String
+  email        String?   @unique
+  passwordHash String?
   role         Role
   specialty    String?
   title        String?
