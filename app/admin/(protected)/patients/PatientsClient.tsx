@@ -30,6 +30,7 @@ const LEAD_LABELS: Record<string, string> = {
 };
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+const today = () => new Date().toISOString().slice(0, 10);
 
 export default function PatientsClient({ initialPatients }: { initialPatients: Patient[] }) {
   const [patients, setPatients] = useState<Patient[]>(initialPatients);
@@ -45,6 +46,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
     leadSource: "WALK_IN",
     referralDoctor: "",
     address: "",
+    createdAt: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -72,7 +74,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         return;
       }
       
-      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "" });
+      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "", createdAt: "" });
       setShowForm(false);
       load(q);
     } finally {
@@ -103,7 +105,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
       });
       if (!res.ok) throw new Error();
       setEditingId(null);
-      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "" });
+      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "", createdAt: "" });
       setShowForm(false);
       load(q);
     } catch {
@@ -123,7 +125,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         <button
           onClick={() => {
             setEditingId(null);
-            setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "" });
+            setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "", createdAt: "" });
             setShowForm((s) => !s);
           }}
           className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
@@ -198,6 +200,18 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="rounded-lg border border-sand px-3 py-2 text-sm sm:col-span-2 lg:col-span-3"
             />
+            {!editingId && (
+              <label className="flex flex-col gap-1 text-xs text-ink/50">
+                Joined date
+                <input
+                  type="date"
+                  max={today()}
+                  value={form.createdAt || today()}
+                  onChange={(e) => setForm({ ...form, createdAt: e.target.value })}
+                  className="rounded-lg border border-sand px-3 py-2 text-sm text-ink"
+                />
+              </label>
+            )}
             <div className="col-span-full flex gap-3">
               <button
                 type="submit"
@@ -290,6 +304,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                           leadSource: p.leadSource || "WALK_IN",
                           referralDoctor: p.referralDoctor || "",
                           address: p.address || "",
+                          createdAt: p.createdAt.slice(0, 10),
                         });
                         setShowForm(true);
                         window.scrollTo({ top: 0, behavior: "smooth" });

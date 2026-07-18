@@ -67,6 +67,20 @@ const createSchema = z.object({
   referralDoctor: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  createdAt: z
+    .union([
+      z.literal(""),
+      z.coerce.date().refine(
+        (d) => {
+          // 1-day grace so timezones ahead of UTC (e.g. IST) can submit "today" near midnight UTC
+          const maxAllowed = new Date();
+          maxAllowed.setUTCDate(maxAllowed.getUTCDate() + 1);
+          return d <= maxAllowed;
+        },
+        { message: "Joined date cannot be in the future" }
+      ),
+    ])
+    .optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -79,8 +93,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
+  const { createdAt, ...rest } = parsed.data;
   const patient = await prisma.patient.create({
-    data: { ...parsed.data, tenantId: session.tenantId! },
+    data: {
+      ...rest,
+      ...(createdAt ? { createdAt } : {}),
+      tenantId: session.tenantId!,
+    },
   });
 
   await prisma.auditLog.create({
