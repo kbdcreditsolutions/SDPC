@@ -207,18 +207,31 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             Lead attribution · {PRESET_LABELS[preset]}
           </p>
           <p className="mt-1 font-display text-lg">Where patients come from</p>
-          <ul className="mt-5 grid grid-cols-2 gap-y-3 text-sm">
-            {Object.entries(data.leadCounts).map(([key, count]) => (
-              <li key={key} className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-forest" />
-                {LEAD_LABELS[key] ?? key}
-                <span className="ml-auto font-data text-ink/60">{count}</span>
-              </li>
-            ))}
-            {Object.keys(data.leadCounts).length === 0 && (
-              <li className="col-span-2 text-ink/40">No new patients in this range.</li>
-            )}
-          </ul>
+          {Object.keys(data.leadCounts).length === 0 ? (
+            <p className="mt-5 text-sm text-ink/40">No new patients in this range.</p>
+          ) : (
+            <ul className="mt-5 space-y-3 text-sm">
+              {(() => {
+                const total = Object.values(data.leadCounts).reduce((s, n) => s + n, 0);
+                return Object.entries(data.leadCounts)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([key, count]) => {
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                    return (
+                      <li key={key}>
+                        <div className="flex items-center justify-between">
+                          <span>{LEAD_LABELS[key] ?? key}</span>
+                          <span className="font-data text-ink/60">{count}</span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-sand">
+                          <div className="h-full rounded-full bg-forest" style={{ width: `${pct}%` }} />
+                        </div>
+                      </li>
+                    );
+                  });
+              })()}
+            </ul>
+          )}
         </Card>
       </div>
 
