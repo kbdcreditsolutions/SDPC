@@ -25,6 +25,12 @@ enum LeadSource {
   WALK_IN
   WHATSAPP
   INSTAGRAM
+  PATIENT_REFERRAL
+  FLYERS
+  HOARDINGS
+  TV_ADS
+  CINEMA_ADS
+  NEWSPAPER_AD
 }
 
 enum PackageStatus {
@@ -153,6 +159,10 @@ model Patient {
   notes          String?
   createdAt      DateTime   @default(now())
   deletedAt      DateTime?
+
+  referredByPatientId String?
+  referredByPatient   Patient?  @relation("PatientReferrals", fields: [referredByPatientId], references: [id])
+  referredPatients    Patient[] @relation("PatientReferrals")
 
   packages     Package[]
   invoices     Invoice[]

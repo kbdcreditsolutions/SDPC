@@ -1,19 +1,22 @@
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import type { SessionPayload } from "@/lib/auth";
+import {
+  istDateKey,
+  istDayBounds,
+  addDaysToKey,
+  fyStartYearFor,
+  financialYearRange,
+  previousFinancialYearRange,
+} from "@/lib/istDate";
 
-function startOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-function endOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
-  return x;
-}
+export { istDateKey, istDayBounds, addDaysToKey, financialYearRange, previousFinancialYearRange };
+
+export type DateRange = { from: Date; to: Date };
 
 export type DashboardData = {
+  // Fixed, always-on figures — not affected by the range filter
   todayRevenue: number;
   totalBilled: number;
   patientsCount: number;
@@ -22,22 +25,35 @@ export type DashboardData = {
   todayAppointmentsCount: number;
   upcomingApptsCount: number;
   outstanding: number;
+  fyRevenue: number;
+  fyNewPatients: number;
+  lastFyRevenue: number;
+  fyLabel: string;
+  // Range-scoped figures — recomputed for whatever range the caller passes
+  range: { from: string; to: string };
+  rangeRevenue: number;
+  rangeNewPatients: number;
   revenueTrend: { date: string; revenue: number }[];
   leadCounts: Record<string, number>;
   doctorLeaderboard: { id: string; name: string; specialty: string | null; patients: number; revenue: number }[];
   revenueByBranch: { name: string; revenue: number }[];
 };
 
-export async function getDashboardData(): Promise<DashboardData | null> {
-  const { session } = await requireSession();
-  if (!session) return null;
-
-  const scope = tenantScope(session);
+/**
+ * `range.from`/`range.to` must already be exact UTC instants marking the
+ * intended IST-calendar-day boundaries (see `istDayBounds`) — this function
+ * does not re-normalize them, to avoid re-introducing server-timezone bugs.
+ */
+async function computeDashboardData(
+  scope: ReturnType<typeof tenantScope>,
+  range: DateRange
+): Promise<DashboardData> {
   const now = new Date();
-  const today0 = startOfDay(now);
-  const today1 = endOfDay(now);
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const { start: today0, end: today1 } = istDayBounds(istDateKey(now));
+  const from = range.from;
+  const to = range.to;
+  const { start: fyStart } = financialYearRange(now);
+  const { start: lastFyStart, end: lastFyEnd } = previousFinancialYearRange(now);
 
   const [
     todayPayments,
@@ -47,8 +63,12 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     staffCount,
     todayAppts,
     upcomingApptsCount,
-    patients,
-    recentPayments,
+    fyPayments,
+    fyNewPatients,
+    lastFyPayments,
+    rangePatients,
+    rangeNewPatients,
+    rangePayments,
     doctors,
     branches,
   ] = await Promise.all([
@@ -65,60 +85,73 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     prisma.appointment.count({
       where: { ...scope, datetime: { gt: now }, status: "SCHEDULED", deletedAt: null },
     }),
-    prisma.patient.findMany({ where: { ...scope, deletedAt: null }, select: { leadSource: true } }),
     prisma.payment.findMany({
-      where: { date: { gte: thirtyDaysAgo }, invoice: { ...scope, deletedAt: null } },
+      where: { date: { gte: fyStart, lte: now }, invoice: { ...scope, deletedAt: null } },
+      select: { amount: true },
+    }),
+    prisma.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: fyStart, lte: now } } }),
+    prisma.payment.findMany({
+      where: { date: { gte: lastFyStart, lte: lastFyEnd }, invoice: { ...scope, deletedAt: null } },
+      select: { amount: true },
+    }),
+    prisma.patient.findMany({
+      where: { ...scope, deletedAt: null, createdAt: { gte: from, lte: to } },
+      select: { leadSource: true },
+    }),
+    prisma.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: from, lte: to } } }),
+    prisma.payment.findMany({
+      where: { date: { gte: from, lte: to }, invoice: { ...scope, deletedAt: null } },
       select: { amount: true, date: true },
     }),
     prisma.user.findMany({
       where: { ...scope, role: "DOCTOR", deletedAt: null },
       include: {
-        appointments: { 
-          where: { deletedAt: null },
-          select: { patientId: true } 
-        },
+        appointments: { where: { deletedAt: null }, select: { patientId: true } },
       },
     }),
     prisma.branch.findMany({
       where: { ...scope, deletedAt: null },
-      include: { 
-        patients: { 
+      include: {
+        patients: {
           where: { deletedAt: null },
-          include: { 
-            invoices: { where: { deletedAt: null } } 
-          } 
-        } 
+          include: {
+            invoices: { where: { deletedAt: null, date: { gte: from, lte: to } } },
+          },
+        },
       },
     }),
   ]);
 
   const todayRevenue = todayPayments.reduce((s, p) => s + Number(p.amount), 0);
   const totalBilled = allInvoices.reduce((s, i) => s + Number(i.total), 0);
-  const outstanding = allInvoices.reduce(
-    (s, i) => s + (Number(i.total) - Number(i.paidAmount)),
-    0
-  );
+  const outstanding = allInvoices.reduce((s, i) => s + (Number(i.total) - Number(i.paidAmount)), 0);
+  const fyRevenue = fyPayments.reduce((s, p) => s + Number(p.amount), 0);
+  const lastFyRevenue = lastFyPayments.reduce((s, p) => s + Number(p.amount), 0);
+  const rangeRevenue = rangePayments.reduce((s, p) => s + Number(p.amount), 0);
 
   const leadCounts: Record<string, number> = {};
-  for (const p of patients) {
+  for (const p of rangePatients) {
     const key = p.leadSource ?? "DIRECT";
     leadCounts[key] = (leadCounts[key] ?? 0) + 1;
   }
 
   const trendMap: Record<string, number> = {};
-  for (const p of recentPayments) {
-    const key = p.date.toISOString().slice(0, 10);
+  for (const p of rangePayments) {
+    const key = istDateKey(p.date);
     trendMap[key] = (trendMap[key] ?? 0) + Number(p.amount);
   }
   const revenueTrend = Object.entries(trendMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, revenue]) => ({ date, revenue }));
 
-  const invoicesByPatient = new Map<string, number>();
+  // Invoices dated within the selected range, attributed to whichever doctor
+  // has ever seen that patient (matches the pre-existing leaderboard logic).
+  const rangeInvoicesByPatient = new Map<string, number>();
   for (const inv of allInvoices) {
-    invoicesByPatient.set(
+    if (inv.date < from || inv.date > to) continue;
+    rangeInvoicesByPatient.set(
       inv.patientId,
-      (invoicesByPatient.get(inv.patientId) ?? 0) + Number(inv.total)
+      (rangeInvoicesByPatient.get(inv.patientId) ?? 0) + Number(inv.total)
     );
   }
 
@@ -126,7 +159,7 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     .map((d) => {
       const patientIds = new Set<string>(d.appointments.map((a) => a.patientId as string));
       const revenue = [...patientIds].reduce(
-        (s: number, pid: string) => s + (invoicesByPatient.get(pid) ?? 0),
+        (s: number, pid: string) => s + (rangeInvoicesByPatient.get(pid) ?? 0),
         0
       );
       return { id: d.id, name: d.name, specialty: d.specialty, patients: patientIds.size, revenue };
@@ -150,9 +183,41 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     todayAppointmentsCount: todayAppts.length,
     upcomingApptsCount,
     outstanding,
+    fyRevenue,
+    fyNewPatients,
+    lastFyRevenue,
+    fyLabel: `FY ${fyStartYearFor(now)}-${String((fyStartYearFor(now) + 1) % 100).padStart(2, "0")}`,
+    range: { from: from.toISOString(), to: to.toISOString() },
+    rangeRevenue,
+    rangeNewPatients,
     revenueTrend,
     leadCounts,
     doctorLeaderboard,
     revenueByBranch,
   };
+}
+
+export async function getDashboardData(range?: DateRange): Promise<DashboardData | null> {
+  const { session } = await requireSession();
+  if (!session) return null;
+
+  const scope = tenantScope(session);
+  const now = new Date();
+  const todayKey = istDateKey(now);
+  const defaultFromKey = addDaysToKey(todayKey, -30);
+
+  const defaultRange: DateRange = {
+    from: istDayBounds(defaultFromKey).start,
+    to: istDayBounds(todayKey).end,
+  };
+
+  return computeDashboardData(scope, range ?? defaultRange);
+}
+
+export async function getDashboardDataForSession(
+  session: SessionPayload,
+  range: DateRange
+): Promise<DashboardData> {
+  const scope = tenantScope(session);
+  return computeDashboardData(scope, range);
 }

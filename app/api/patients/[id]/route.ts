@@ -4,32 +4,38 @@ import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { z } from "zod";
 
-const updateSchema = z.object({
-  name: z.string().min(1),
-  phone: z.string().min(1),
-  age: z.union([z.literal(""), z.null(), z.coerce.number().int().min(0).max(150)]).optional(),
-  gender: z.string().optional(),
-  reason: z.string().optional(),
-  leadSource: z
-    .enum(["DIRECT", "REFERRAL", "GOOGLE", "FACEBOOK", "WALK_IN", "WHATSAPP", "INSTAGRAM"])
-    .optional(),
-  referralDoctor: z.string().optional(),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-  createdAt: z
-    .union([
-      z.literal(""),
-      z.coerce.date().refine(
-        (d) => {
-          const maxAllowed = new Date();
-          maxAllowed.setUTCDate(maxAllowed.getUTCDate() + 1);
-          return d <= maxAllowed;
-        },
-        { message: "Joined date cannot be in the future" }
-      ),
-    ])
-    .optional(),
-});
+const updateSchema = z
+  .object({
+    name: z.string().min(1),
+    phone: z.string().min(1),
+    age: z.union([z.literal(""), z.null(), z.coerce.number().int().min(0).max(150)]).optional(),
+    gender: z.string().optional(),
+    reason: z.string().optional(),
+    leadSource: z
+      .enum(["DIRECT", "REFERRAL", "GOOGLE", "FACEBOOK", "WALK_IN", "WHATSAPP", "INSTAGRAM", "PATIENT_REFERRAL", "FLYERS", "HOARDINGS", "TV_ADS", "CINEMA_ADS", "NEWSPAPER_AD"])
+      .optional(),
+    referralDoctor: z.string().optional(),
+    referredByPatientId: z.union([z.literal(""), z.string()]).optional(),
+    address: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z
+      .union([
+        z.literal(""),
+        z.coerce.date().refine(
+          (d) => {
+            const maxAllowed = new Date();
+            maxAllowed.setUTCDate(maxAllowed.getUTCDate() + 1);
+            return d <= maxAllowed;
+          },
+          { message: "Joined date cannot be in the future" }
+        ),
+      ])
+      .optional(),
+  })
+  .refine((data) => data.leadSource !== "PATIENT_REFERRAL" || !!data.referredByPatientId, {
+    message: "Select which existing patient referred them",
+    path: ["referredByPatientId"],
+  });
 
 export async function GET(
   req: NextRequest,
@@ -56,6 +62,8 @@ export async function GET(
       invoices: { orderBy: { date: "desc" } },
       appointments: { include: { doctor: true }, orderBy: { datetime: "desc" } },
       clinicalNotes: { include: { author: true }, orderBy: { date: "desc" } },
+      referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
+      referredPatients: { where: { deletedAt: null }, select: { id: true, name: true, phone: true, createdAt: true } },
     },
   });
 
@@ -75,6 +83,14 @@ export async function GET(
         total: Number(i.total),
         paidAmount: Number(i.paidAmount),
       })),
+      referredByPatient:
+        patient.referredByPatient && !patient.referredByPatient.deletedAt
+          ? {
+              id: patient.referredByPatient.id,
+              name: patient.referredByPatient.name,
+              phone: patient.referredByPatient.phone,
+            }
+          : null,
       billed,
       paid,
       outstanding: billed - paid,
@@ -89,19 +105,35 @@ export async function PUT(
   const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
   const { id } = await params;
-  
+  const scope = tenantScope(session);
+
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
-  const { age, createdAt, ...rest } = parsed.data;
+  const { age, createdAt, referredByPatientId, ...rest } = parsed.data;
+
+  if (referredByPatientId) {
+    if (referredByPatientId === id) {
+      return NextResponse.json({ error: "A patient cannot refer themselves" }, { status: 400 });
+    }
+    const referrer = await prisma.patient.findFirst({
+      where: { id: referredByPatientId, ...scope, deletedAt: null },
+    });
+    if (!referrer) {
+      return NextResponse.json({ error: "Referring patient not found" }, { status: 400 });
+    }
+  }
 
   try {
     const updated = await prisma.patient.update({
       where: { id, tenantId: session.tenantId! },
       data: {
         ...rest,
+        ...(referredByPatientId !== undefined
+          ? { referredByPatientId: referredByPatientId || null }
+          : {}),
         age: age === "" || age === null || age === undefined ? null : age,
         ...(createdAt ? { createdAt } : {}),
       },

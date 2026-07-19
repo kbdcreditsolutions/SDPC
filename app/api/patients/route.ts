@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
     },
     include: {
       invoices: { where: { deletedAt: null } },
+      referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -44,6 +45,11 @@ export async function GET(req: NextRequest) {
       gender: p.gender,
       address: p.address,
       referralDoctor: p.referralDoctor,
+      referredByPatientId: p.referredByPatientId,
+      referredByPatient:
+        p.referredByPatient && !p.referredByPatient.deletedAt
+          ? { id: p.referredByPatient.id, name: p.referredByPatient.name, phone: p.referredByPatient.phone }
+          : null,
       createdAt: p.createdAt,
       reason: p.reason,
       leadSource: p.leadSource,
@@ -55,37 +61,44 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ patients: rows });
 }
 
-const createSchema = z.object({
-  name: z.string().min(1),
-  phone: z.string().min(1),
-  age: z.coerce.number().int().min(0).max(150),
-  gender: z.string().optional(),
-  reason: z.string().optional(),
-  leadSource: z
-    .enum(["DIRECT", "REFERRAL", "GOOGLE", "FACEBOOK", "WALK_IN", "WHATSAPP", "INSTAGRAM"])
-    .optional(),
-  referralDoctor: z.string().optional(),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-  createdAt: z
-    .union([
-      z.literal(""),
-      z.coerce.date().refine(
-        (d) => {
-          // 1-day grace so timezones ahead of UTC (e.g. IST) can submit "today" near midnight UTC
-          const maxAllowed = new Date();
-          maxAllowed.setUTCDate(maxAllowed.getUTCDate() + 1);
-          return d <= maxAllowed;
-        },
-        { message: "Joined date cannot be in the future" }
-      ),
-    ])
-    .optional(),
-});
+const createSchema = z
+  .object({
+    name: z.string().min(1),
+    phone: z.string().min(1),
+    age: z.coerce.number().int().min(0).max(150),
+    gender: z.string().optional(),
+    reason: z.string().optional(),
+    leadSource: z
+      .enum(["DIRECT", "REFERRAL", "GOOGLE", "FACEBOOK", "WALK_IN", "WHATSAPP", "INSTAGRAM", "PATIENT_REFERRAL", "FLYERS", "HOARDINGS", "TV_ADS", "CINEMA_ADS", "NEWSPAPER_AD"])
+      .optional(),
+    referralDoctor: z.string().optional(),
+    referredByPatientId: z.string().optional(),
+    address: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z
+      .union([
+        z.literal(""),
+        z.coerce.date().refine(
+          (d) => {
+            // 1-day grace so timezones ahead of UTC (e.g. IST) can submit "today" near midnight UTC
+            const maxAllowed = new Date();
+            maxAllowed.setUTCDate(maxAllowed.getUTCDate() + 1);
+            return d <= maxAllowed;
+          },
+          { message: "Joined date cannot be in the future" }
+        ),
+      ])
+      .optional(),
+  })
+  .refine((data) => data.leadSource !== "PATIENT_REFERRAL" || !!data.referredByPatientId, {
+    message: "Select which existing patient referred them",
+    path: ["referredByPatientId"],
+  });
 
 export async function POST(req: NextRequest) {
   const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
+  const scope = tenantScope(session);
 
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
@@ -93,11 +106,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
-  const { createdAt, ...rest } = parsed.data;
+  const { createdAt, referredByPatientId, ...rest } = parsed.data;
+
+  if (referredByPatientId) {
+    const referrer = await prisma.patient.findFirst({
+      where: { id: referredByPatientId, ...scope, deletedAt: null },
+    });
+    if (!referrer) {
+      return NextResponse.json({ error: "Referring patient not found" }, { status: 400 });
+    }
+  }
+
   const patient = await prisma.patient.create({
     data: {
       ...rest,
       ...(createdAt ? { createdAt } : {}),
+      ...(referredByPatientId ? { referredByPatientId } : {}),
       tenantId: session.tenantId!,
     },
   });

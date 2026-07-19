@@ -8,6 +8,22 @@ const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 
+const LEAD_LABELS: Record<string, string> = {
+  DIRECT: "Direct",
+  REFERRAL: "Doctor Referral",
+  GOOGLE: "Google",
+  FACEBOOK: "Facebook",
+  WALK_IN: "Walk-In",
+  WHATSAPP: "WhatsApp",
+  INSTAGRAM: "Instagram",
+  PATIENT_REFERRAL: "Friend/Family Referral",
+  FLYERS: "Flyers",
+  HOARDINGS: "Hoardings",
+  TV_ADS: "TV Ads",
+  CINEMA_ADS: "Cinema Theatre Ads",
+  NEWSPAPER_AD: "Newspaper Ad",
+};
+
 type Tab = "overview" | "packages" | "notes" | "invoices" | "appointments";
 
 export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -167,7 +183,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               <div className="mt-2 flex gap-2">
                 {patient.leadSource && (
                   <span className="rounded-full bg-sand px-2.5 py-0.5 text-xs">
-                    {patient.leadSource}
+                    {LEAD_LABELS[patient.leadSource] ?? patient.leadSource}
                   </span>
                 )}
                 {patient.reason && (
@@ -177,6 +193,14 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   <span className="rounded-full bg-clay-light px-2.5 py-0.5 text-xs text-clay">
                     Ref: {patient.referralDoctor}
                   </span>
+                )}
+                {patient.referredByPatient && (
+                  <Link
+                    href={`/admin/patients/${patient.referredByPatient.id}`}
+                    className="rounded-full bg-clay-light px-2.5 py-0.5 text-xs text-clay hover:underline"
+                  >
+                    Referred by: {patient.referredByPatient.name}
+                  </Link>
                 )}
               </div>
             </div>
@@ -226,12 +250,26 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 ["Age", patient.age ?? "—"],
                 ["Gender", patient.gender ?? "—"],
                 ["Reason for consultation", patient.reason ?? "—"],
-                ["Lead source", patient.leadSource ?? "—"],
+                ["Lead source", patient.leadSource ? LEAD_LABELS[patient.leadSource] ?? patient.leadSource : "—"],
                 ["Referral doctor", patient.referralDoctor ?? "—"],
+                [
+                  "Referred by",
+                  patient.referredByPatient ? (
+                    <Link
+                      key="referred-by-link"
+                      href={`/admin/patients/${patient.referredByPatient.id}`}
+                      className="text-forest hover:underline"
+                    >
+                      {patient.referredByPatient.name} ({patient.referredByPatient.phone})
+                    </Link>
+                  ) : (
+                    "—"
+                  ),
+                ],
                 ["Address", patient.address ?? "—"],
                 ["Notes", patient.notes ?? "—"],
               ].map(([label, value]) => (
-                <div key={label} className="flex justify-between border-b border-sand/60 pb-2">
+                <div key={label as string} className="flex justify-between border-b border-sand/60 pb-2">
                   <dt className="text-ink/50">{label}</dt>
                   <dd>{value}</dd>
                 </div>
@@ -258,6 +296,23 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               ))}
               {patient.appointments.length === 0 && <p className="text-ink/40">No activity yet.</p>}
             </ul>
+            {patient.referredPatients?.length > 0 && (
+              <>
+                <p className="mt-6 font-data text-[10px] uppercase tracking-widest text-ink/40">
+                  Referred {patient.referredPatients.length} patient{patient.referredPatients.length === 1 ? "" : "s"}
+                </p>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {patient.referredPatients.map((r: any) => (
+                    <li key={r.id}>
+                      <Link href={`/admin/patients/${r.id}`} className="hover:text-forest">
+                        {r.name}
+                      </Link>
+                      <span className="text-xs text-ink/50"> · {fmtDate(r.createdAt)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </Card>
         </div>
       )}

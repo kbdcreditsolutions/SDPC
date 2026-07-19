@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
 
+type PatientRef = { id: string; name: string; phone: string };
+
 type Patient = {
   id: string;
   name: string;
@@ -12,6 +14,8 @@ type Patient = {
   gender: string | null;
   address: string | null;
   referralDoctor: string | null;
+  referredByPatientId: string | null;
+  referredByPatient: PatientRef | null;
   createdAt: string;
   reason: string | null;
   leadSource: string | null;
@@ -19,14 +23,29 @@ type Patient = {
   outstanding: number;
 };
 
-const LEAD_LABELS: Record<string, string> = {
+// Order matches what the clinic asked to see in the dropdown
+const LEAD_OPTIONS: { value: string; label: string }[] = [
+  { value: "FLYERS", label: "Flyers" },
+  { value: "INSTAGRAM", label: "Instagram" },
+  { value: "GOOGLE", label: "Google" },
+  { value: "WALK_IN", label: "Walk-In" },
+  { value: "PATIENT_REFERRAL", label: "Friend/Family Referral" },
+  { value: "FACEBOOK", label: "Facebook" },
+  { value: "HOARDINGS", label: "Hoardings" },
+  { value: "TV_ADS", label: "TV Ads" },
+  { value: "CINEMA_ADS", label: "Cinema Theatre Ads" },
+  { value: "NEWSPAPER_AD", label: "Newspaper Ad" },
+];
+// Older values not offered in the dropdown anymore, but existing patient
+// records may still carry them — keep them displayable and editable.
+const LEGACY_LEAD_LABELS: Record<string, string> = {
   DIRECT: "Direct",
-  REFERRAL: "Referral",
-  GOOGLE: "Google",
-  FACEBOOK: "Facebook",
-  WALK_IN: "Walk-in",
+  REFERRAL: "Doctor Referral",
   WHATSAPP: "WhatsApp",
-  INSTAGRAM: "Instagram",
+};
+const LEAD_LABELS: Record<string, string> = {
+  ...LEGACY_LEAD_LABELS,
+  ...Object.fromEntries(LEAD_OPTIONS.map((o) => [o.value, o.label])),
 };
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
@@ -48,10 +67,50 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
     reason: "",
     leadSource: "WALK_IN",
     referralDoctor: "",
+    referredByPatientId: "",
     address: "",
     createdAt: "",
   });
   const [saving, setSaving] = useState(false);
+  const [referrerQuery, setReferrerQuery] = useState("");
+  const [referrerResults, setReferrerResults] = useState<PatientRef[]>([]);
+  const [referrerOpen, setReferrerOpen] = useState(false);
+
+  useEffect(() => {
+    if (form.leadSource !== "PATIENT_REFERRAL" || form.referredByPatientId || referrerQuery.trim().length < 2) {
+      setReferrerResults([]);
+      return;
+    }
+    const t = setTimeout(() => {
+      fetch(`/api/patients/?q=${encodeURIComponent(referrerQuery.trim())}`)
+        .then((r) => r.json())
+        .then((d) => {
+          const results: PatientRef[] = (d.patients ?? [])
+            .filter((p: Patient) => p.id !== editingId)
+            .map((p: Patient) => ({ id: p.id, name: p.name, phone: p.phone }));
+          setReferrerResults(results);
+        });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [referrerQuery, form.leadSource, form.referredByPatientId, editingId]);
+
+  function resetForm() {
+    setForm({
+      name: "",
+      phone: "",
+      age: "",
+      gender: "",
+      reason: "",
+      leadSource: "WALK_IN",
+      referralDoctor: "",
+      referredByPatientId: "",
+      address: "",
+      createdAt: "",
+    });
+    setReferrerQuery("");
+    setReferrerResults([]);
+    setReferrerOpen(false);
+  }
 
   const load = useCallback(async (query: string) => {
     const res = await fetch(`/api/patients/${query ? `?q=${encodeURIComponent(query)}` : ""}`);
@@ -77,7 +136,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         return;
       }
       
-      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "", createdAt: "" });
+      resetForm();
       setShowForm(false);
       load(q);
     } finally {
@@ -112,9 +171,13 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to update patient");
+        return;
+      }
       setEditingId(null);
-      setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "", createdAt: "" });
+      resetForm();
       setShowForm(false);
       load(q);
     } catch {
@@ -134,7 +197,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         <button
           onClick={() => {
             setEditingId(null);
-            setForm({ name: "", phone: "", age: "", gender: "", reason: "", leadSource: "WALK_IN", referralDoctor: "", address: "", createdAt: "" });
+            resetForm();
             setShowForm((s) => !s);
           }}
           className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
@@ -188,15 +251,64 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
             />
             <select
               value={form.leadSource}
-              onChange={(e) => setForm({ ...form, leadSource: e.target.value })}
+              onChange={(e) => {
+                const leadSource = e.target.value;
+                setForm({ ...form, leadSource, referredByPatientId: "" });
+                setReferrerQuery("");
+              }}
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             >
-              {Object.entries(LEAD_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
+              {LEAD_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
                 </option>
               ))}
+              {form.leadSource && LEGACY_LEAD_LABELS[form.leadSource] && (
+                <option value={form.leadSource}>{LEGACY_LEAD_LABELS[form.leadSource]}</option>
+              )}
             </select>
+            {form.leadSource === "PATIENT_REFERRAL" && (
+              <div className="relative">
+                <input
+                  required
+                  placeholder="Referring patient — name or phone"
+                  value={referrerQuery}
+                  onChange={(e) => {
+                    setReferrerQuery(e.target.value);
+                    setForm({ ...form, referredByPatientId: "" });
+                    setReferrerOpen(true);
+                  }}
+                  onFocus={() => setReferrerOpen(true)}
+                  onBlur={() => setTimeout(() => setReferrerOpen(false), 150)}
+                  className="w-full rounded-lg border border-sand px-3 py-2 text-sm"
+                />
+                {form.referredByPatientId && (
+                  <p className="mt-1 text-xs text-forest">Linked ✓</p>
+                )}
+                {!form.referredByPatientId && referrerQuery.trim().length >= 2 && (
+                  <p className="mt-1 text-xs text-clay">Select a match below to link them.</p>
+                )}
+                {referrerOpen && referrerResults.length > 0 && (
+                  <ul className="absolute z-10 mt-1 w-full rounded-lg border border-sand bg-white shadow-lg">
+                    {referrerResults.map((r) => (
+                      <li key={r.id}>
+                        <button
+                          type="button"
+                          onMouseDown={() => {
+                            setForm({ ...form, referredByPatientId: r.id });
+                            setReferrerQuery(`${r.name} (${r.phone})`);
+                            setReferrerOpen(false);
+                          }}
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-sand/40"
+                        >
+                          {r.name} <span className="text-ink/50">{r.phone}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
             <input
               placeholder="Referral doctor (optional)"
               value={form.referralDoctor}
@@ -312,9 +424,15 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                           reason: p.reason || "",
                           leadSource: p.leadSource || "WALK_IN",
                           referralDoctor: p.referralDoctor || "",
+                          referredByPatientId: p.referredByPatientId || "",
                           address: p.address || "",
                           createdAt: joinedDate,
                         });
+                        setReferrerQuery(
+                          p.referredByPatient ? `${p.referredByPatient.name} (${p.referredByPatient.phone})` : ""
+                        );
+                        setReferrerResults([]);
+                        setReferrerOpen(false);
                         setShowForm(true);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}

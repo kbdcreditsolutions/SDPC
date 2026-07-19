@@ -10,6 +10,8 @@ export type PatientRow = {
   gender: string | null;
   address: string | null;
   referralDoctor: string | null;
+  referredByPatientId: string | null;
+  referredByPatient: { id: string; name: string; phone: string } | null;
   createdAt: Date;
   reason: string | null;
   leadSource: string | null;
@@ -39,6 +41,7 @@ export async function getPatients(q?: string): Promise<PatientRow[]> {
     },
     include: {
       invoices: { where: { deletedAt: null } },
+      referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -57,6 +60,11 @@ export async function getPatients(q?: string): Promise<PatientRow[]> {
       gender: p.gender,
       address: p.address,
       referralDoctor: p.referralDoctor,
+      referredByPatientId: p.referredByPatientId,
+      referredByPatient:
+        p.referredByPatient && !p.referredByPatient.deletedAt
+          ? { id: p.referredByPatient.id, name: p.referredByPatient.name, phone: p.referredByPatient.phone }
+          : null,
       createdAt: p.createdAt,
       reason: p.reason,
       leadSource: p.leadSource,
