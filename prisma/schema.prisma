@@ -89,6 +89,7 @@ model Tenant {
   address    String?
   createdAt  DateTime @default(now())
   deletedAt  DateTime?
+  nextPatientNumber Int @default(1)
 
   branches     Branch[]
   users        User[]
@@ -148,6 +149,7 @@ model Patient {
   tenant         Tenant     @relation(fields: [tenantId], references: [id])
   branchId       String?
   branch         Branch?    @relation(fields: [branchId], references: [id])
+  pid            String?
   name           String
   phone          String
   age            Int?
@@ -170,6 +172,8 @@ model Patient {
   clinicalNotes ClinicalNote[]
   attendance   AttendanceRecord[]
   packageSessions PackageSession[]
+
+  @@unique([tenantId, pid])
 }
 
 model Package {

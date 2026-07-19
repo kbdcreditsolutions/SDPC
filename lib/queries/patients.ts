@@ -4,6 +4,7 @@ import { tenantScope } from "@/lib/scope";
 
 export type PatientRow = {
   id: string;
+  pid: string | null;
   name: string;
   phone: string;
   age: number | null;
@@ -54,6 +55,7 @@ export async function getPatients(q?: string): Promise<PatientRow[]> {
     );
     return {
       id: p.id,
+      pid: p.pid,
       name: p.name,
       phone: p.phone,
       age: p.age,

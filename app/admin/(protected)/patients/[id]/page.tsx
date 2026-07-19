@@ -175,7 +175,14 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 .toUpperCase()}
             </div>
             <div>
-              <p className="font-display text-xl">{patient.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-display text-xl">{patient.name}</p>
+                {patient.pid && (
+                  <span className="rounded-full bg-forest/10 px-2 py-0.5 font-data text-xs text-forest">
+                    {patient.pid}
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-ink/50">
                 {patient.phone} {patient.age ? `· ${patient.age}y` : ""} {patient.gender ? `· ${patient.gender}` : ""} · Joined{" "}
                 {fmtDate(patient.createdAt)}
@@ -246,6 +253,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             </p>
             <dl className="mt-4 space-y-3 text-sm">
               {[
+                ["Patient ID", patient.pid ?? "—"],
                 ["Full name", patient.name],
                 ["Age", patient.age ?? "—"],
                 ["Gender", patient.gender ?? "—"],

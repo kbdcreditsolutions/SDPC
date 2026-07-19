@@ -1,7 +1,9 @@
+import type { Role } from "@/lib/auth";
+
 export type NavItem = { label: string; href: string };
 
-export function getNavItems(): NavItem[] {
-  return [
+export function getNavItems(role?: Role): NavItem[] {
+  const items: NavItem[] = [
     { label: "Dashboard", href: "/admin" },
     { label: "Patients", href: "/admin/patients" },
     { label: "Appointments", href: "/admin/appointments" },
@@ -12,4 +14,10 @@ export function getNavItems(): NavItem[] {
     { label: "Marketing", href: "/admin/marketing" },
     { label: "Doctor Ratings", href: "/admin/ratings" },
   ];
+
+  // Overall sales/revenue overview is admin-only — staff don't get it.
+  if (role === "STAFF") {
+    return items.filter((i) => i.href !== "/admin");
+  }
+  return items;
 }

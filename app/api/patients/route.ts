@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
             OR: [
               { name: { contains: q, mode: "insensitive" } },
               { phone: { contains: q } },
+              { pid: { contains: q, mode: "insensitive" } },
             ],
           }
         : {}),
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
     );
     return {
       id: p.id,
+      pid: p.pid,
       name: p.name,
       phone: p.phone,
       age: p.age,
@@ -117,23 +119,36 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const patient = await prisma.patient.create({
-    data: {
-      ...rest,
-      ...(createdAt ? { createdAt } : {}),
-      ...(referredByPatientId ? { referredByPatientId } : {}),
-      tenantId: session.tenantId!,
-    },
-  });
+  const patient = await prisma.$transaction(async (tx) => {
+    // Atomic counter: Prisma serializes concurrent UPDATEs to the same row,
+    // so two simultaneous patient creations can never be assigned the same PID.
+    const tenant = await tx.tenant.update({
+      where: { id: session.tenantId! },
+      data: { nextPatientNumber: { increment: 1 } },
+    });
+    const pid = `PID-${String(tenant.nextPatientNumber - 1).padStart(5, "0")}`;
 
-  await prisma.auditLog.create({
-    data: {
-      tenantId: session.tenantId,
-      actorId: session.userId,
-      action: "CREATE",
-      entity: "Patient",
-      entityId: patient.id,
-    },
+    const created = await tx.patient.create({
+      data: {
+        ...rest,
+        pid,
+        ...(createdAt ? { createdAt } : {}),
+        ...(referredByPatientId ? { referredByPatientId } : {}),
+        tenantId: session.tenantId!,
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        tenantId: session.tenantId,
+        actorId: session.userId,
+        action: "CREATE",
+        entity: "Patient",
+        entityId: created.id,
+      },
+    });
+
+    return created;
   });
 
   return NextResponse.json({ patient });

@@ -8,6 +8,7 @@ type PatientRef = { id: string; name: string; phone: string };
 
 type Patient = {
   id: string;
+  pid: string | null;
   name: string;
   phone: string;
   age: number | null;
@@ -355,7 +356,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
       )}
 
       <input
-        placeholder="Search by name, phone, email…"
+        placeholder="Search by name, phone, PID…"
         value={q}
         onChange={(e) => {
           setQ(e.target.value);
@@ -385,7 +386,10 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                   <Link href={`/admin/patients/${p.id}`} className="font-medium hover:text-forest">
                     {p.name}
                   </Link>
-                  <div className="text-xs text-ink/50">{p.phone}</div>
+                  <div className="text-xs text-ink/50">
+                    {p.phone}
+                    {p.pid ? ` · ${p.pid}` : ""}
+                  </div>
                 </td>
                 <td className="px-6 py-3 text-ink/70">
                   {p.age ?? "—"}{p.gender ? ` · ${p.gender}` : ""}

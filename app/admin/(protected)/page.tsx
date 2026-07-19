@@ -1,7 +1,12 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { getDashboardData } from "@/lib/queries/dashboard";
 import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
+  const session = await getSession();
+  if (session?.role === "STAFF") redirect("/admin/patients");
+
   const data = await getDashboardData();
 
   if (!data) {

@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getSession();
   if (!session) redirect("/admin/login");
 
-  const items = getNavItems();
+  const items = getNavItems(session.role);
 
   return (
     <div className="flex min-h-screen bg-cream">

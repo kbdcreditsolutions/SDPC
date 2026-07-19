@@ -5,7 +5,7 @@ import { getDashboardDataForSession, istDateKey, istDayBounds, addDaysToKey } fr
 const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(req: NextRequest) {
-  const { session, response } = await requireSession();
+  const { session, response } = await requireSession(["CLINIC_ADMIN", "DOCTOR"]);
   if (!session) return response!;
 
   const fromParam = req.nextUrl.searchParams.get("from");
