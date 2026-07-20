@@ -102,7 +102,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/70 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/65 hover:text-ink transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -119,7 +119,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <Link href="/" className="mt-8 inline-block text-xs text-ink/50 hover:text-ink">
+          <Link href="/" className="mt-8 inline-block text-xs text-ink/70 hover:text-ink">
             ← Back to website
           </Link>
         </div>

@@ -182,11 +182,11 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
               <Card key={a.id} className="w-72">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-ink/50">
+                    <p className="text-xs text-ink/70">
                       {new Date(a.datetime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                     <p className="mt-1 font-medium">{a.patient.name}</p>
-                    <p className="text-xs text-ink/50">
+                    <p className="text-xs text-ink/70">
                       {a.doctor.name} · {a.doctor.specialty ?? "—"}
                     </p>
                   </div>
@@ -199,7 +199,7 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
           </div>
         </div>
       ))}
-      {appointments?.length === 0 && <p className="text-sm text-ink/40">No appointments yet.</p>}
+      {appointments?.length === 0 && <p className="text-sm text-ink/65">No appointments yet.</p>}
     </div>
   );
 }

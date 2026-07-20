@@ -99,14 +99,14 @@ export default function InvoiceDetailPage({
     }
   }
 
-  if (!invoice) return <p className="text-sm text-ink/50">Loading…</p>;
+  if (!invoice) return <p className="text-sm text-ink/70">Loading…</p>;
 
   const balance = invoice.total - invoice.paidAmount;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between print:hidden">
-        <Link href="/admin/invoices" className="text-sm text-ink/50 hover:text-ink">
+        <Link href="/admin/invoices" className="text-sm text-ink/70 hover:text-ink">
           ← All invoices
         </Link>
         <div className="flex gap-2">
@@ -215,29 +215,29 @@ export default function InvoiceDetailPage({
       <div className="rounded-2xl border border-sand bg-white p-8">
         <div className="flex items-start justify-between">
           <div>
-            <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+            <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
               Tax invoice
             </p>
             <p className="mt-1 font-display text-2xl">{invoice.number}</p>
-            <p className="mt-1 text-sm text-ink/50">Issued {fmtDate(invoice.date)}</p>
+            <p className="mt-1 text-sm text-ink/70">Issued {fmtDate(invoice.date)}</p>
           </div>
           <div className="text-right text-sm">
             <p className="font-display">{invoice.tenant.name}</p>
-            <p className="text-ink/50">{invoice.tenant.address}</p>
+            <p className="text-ink/70">{invoice.tenant.address}</p>
             {invoice.tenant.gstNumber && (
-              <p className="text-ink/50">GSTIN: {invoice.tenant.gstNumber}</p>
+              <p className="text-ink/70">GSTIN: {invoice.tenant.gstNumber}</p>
             )}
           </div>
         </div>
 
         <div className="mt-8 flex items-start justify-between">
           <div>
-            <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+            <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
               Billed to
             </p>
             <p className="mt-1 font-medium">{invoice.patient.name}</p>
-            <p className="text-sm text-ink/50">{invoice.patient.phone}</p>
-            <p className="text-sm text-ink/50">{invoice.patient.address}</p>
+            <p className="text-sm text-ink/70">{invoice.patient.phone}</p>
+            <p className="text-sm text-ink/70">{invoice.patient.address}</p>
           </div>
           <span
             className={`rounded-full px-3 py-1 text-xs uppercase ${
@@ -254,7 +254,7 @@ export default function InvoiceDetailPage({
 
         <table className="mt-8 w-full text-sm">
           <thead>
-            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
               <th className="py-2">Description</th>
               <th className="py-2">Qty</th>
               <th className="py-2">Unit</th>
@@ -277,11 +277,11 @@ export default function InvoiceDetailPage({
 
         <div className="mt-6 ml-auto max-w-xs space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-ink/50">Subtotal</span>
+            <span className="text-ink/70">Subtotal</span>
             <span className="font-data">{inr(invoice.subtotal)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-ink/50">GST</span>
+            <span className="text-ink/70">GST</span>
             <span className="font-data">{inr(invoice.gst)}</span>
           </div>
           <div className="flex justify-between border-t border-sand pt-1 font-medium">
@@ -289,7 +289,7 @@ export default function InvoiceDetailPage({
             <span className="font-data text-lg">{inr(invoice.total)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-ink/50">Paid</span>
+            <span className="text-ink/70">Paid</span>
             <span className="font-data">{inr(invoice.paidAmount)}</span>
           </div>
           <div className="flex justify-between font-medium">
@@ -300,7 +300,7 @@ export default function InvoiceDetailPage({
 
         {invoice.payments.length > 0 && (
           <div className="mt-8">
-            <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+            <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
               Payments received
             </p>
             <table className="mt-2 w-full text-sm">
@@ -308,7 +308,7 @@ export default function InvoiceDetailPage({
                 {invoice.payments.map((p: any) => (
                   <tr key={p.id} className="border-b border-sand/60">
                     <td className="py-2">{p.method}</td>
-                    <td className="py-2 text-ink/50">{fmtDate(p.date)}</td>
+                    <td className="py-2 text-ink/70">{fmtDate(p.date)}</td>
                     <td className="py-2 text-right font-data">{inr(p.amount)}</td>
                   </tr>
                 ))}

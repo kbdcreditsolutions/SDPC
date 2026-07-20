@@ -63,7 +63,7 @@ export default function AttendanceClient({ initialData }: { initialData: { date:
             key={t}
             onClick={() => setTab(t)}
             className={`-mb-px border-b-2 pb-3 capitalize ${
-              tab === t ? "border-forest text-forest" : "border-transparent text-ink/50"
+              tab === t ? "border-forest text-forest" : "border-transparent text-ink/70"
             }`}
           >
             {t}
@@ -74,7 +74,7 @@ export default function AttendanceClient({ initialData }: { initialData: { date:
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
               <th className="px-6 py-3">{tab === "staff" ? "Team member" : "Patient"}</th>
               {tab === "staff" && <th className="px-6 py-3">Role</th>}
               <th className="px-6 py-3">Status</th>
@@ -92,7 +92,7 @@ export default function AttendanceClient({ initialData }: { initialData: { date:
                       r.status === "PRESENT"
                         ? "bg-forest/10 text-forest"
                         : r.status === "UNMARKED"
-                        ? "bg-sand text-ink/50"
+                        ? "bg-sand text-ink/70"
                         : "bg-clay-light text-clay"
                     }`}
                   >

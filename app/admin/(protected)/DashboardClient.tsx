@@ -8,6 +8,14 @@ import { istDateKey, addDaysToKey, istMonthStartKey, fyStartYearFor } from "@/li
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
+// No trend badge when there's no prior-period baseline to compare against
+// (e.g. previous period had ₹0) — a "+∞%" badge is meaningless to a clinic owner.
+function periodTrend(current: number, previous: number): { value: string; isPositive: boolean } | undefined {
+  if (previous <= 0) return undefined;
+  const pct = Math.round(((current - previous) / previous) * 100);
+  return { value: `${pct >= 0 ? "+" : ""}${pct}%`, isPositive: pct >= 0 };
+}
+
 const LEAD_LABELS: Record<string, string> = {
   DIRECT: "Direct",
   REFERRAL: "Doctor Referral",
@@ -117,7 +125,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
                 onChange={(e) => setCustomFrom(e.target.value)}
                 className="rounded-lg border border-sand bg-white px-3 py-2 text-sm"
               />
-              <span className="text-sm text-ink/40">to</span>
+              <span className="text-sm text-ink/65">to</span>
               <input
                 type="date"
                 value={customTo}
@@ -135,7 +143,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
               </button>
             </>
           )}
-          {loading && <span className="text-xs text-ink/40">Loading…</span>}
+          {loading && <span className="text-xs text-ink/65">Loading…</span>}
         </div>
       </div>
 
@@ -144,6 +152,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
           label="Today's revenue"
           value={inr(data.todayRevenue)}
           sub={`Total ${inr(data.totalBilled)}`}
+          trend={periodTrend(data.todayRevenue, data.yesterdayRevenue)}
         />
         <StatCard
           label="Patients"
@@ -166,13 +175,8 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         <StatCard
           label={`${data.fyLabel} revenue (YTD)`}
           value={inr(data.fyRevenue)}
-          sub={
-            data.lastFyRevenue > 0
-              ? `${data.fyRevenue >= data.lastFyRevenue ? "+" : ""}${Math.round(
-                  ((data.fyRevenue - data.lastFyRevenue) / data.lastFyRevenue) * 100
-                )}% vs last FY`
-              : "No data for last FY"
-          }
+          sub={data.lastFyRevenue > 0 ? "vs last FY" : "No data for last FY"}
+          trend={periodTrend(data.fyRevenue, data.lastFyRevenue)}
         />
         <StatCard
           label={`${data.fyLabel} new patients`}
@@ -182,18 +186,20 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         <StatCard
           label="Selected range revenue"
           value={inr(data.rangeRevenue)}
-          sub={PRESET_LABELS[preset]}
+          sub={`vs previous ${PRESET_LABELS[preset].toLowerCase()}`}
+          trend={periodTrend(data.rangeRevenue, data.previousRangeRevenue)}
         />
         <StatCard
           label="Selected range new patients"
           value={String(data.rangeNewPatients)}
-          sub={PRESET_LABELS[preset]}
+          sub={`vs previous ${PRESET_LABELS[preset].toLowerCase()}`}
+          trend={periodTrend(data.rangeNewPatients, data.previousRangeNewPatients)}
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+          <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
             {PRESET_LABELS[preset]}
           </p>
           <p className="mt-1 font-display text-lg">Revenue trend</p>
@@ -203,12 +209,12 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         </Card>
 
         <Card>
-          <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+          <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
             Lead attribution · {PRESET_LABELS[preset]}
           </p>
           <p className="mt-1 font-display text-lg">Where patients come from</p>
           {Object.keys(data.leadCounts).length === 0 ? (
-            <p className="mt-5 text-sm text-ink/40">No new patients in this range.</p>
+            <p className="mt-5 text-sm text-ink/65">No new patients in this range.</p>
           ) : (
             <ul className="mt-5 space-y-3 text-sm">
               {(() => {
@@ -237,7 +243,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+          <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
             Doctors · {PRESET_LABELS[preset]}
           </p>
           <p className="mt-1 font-display text-lg">Performance leaderboard</p>
@@ -245,10 +251,10 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             {data.doctorLeaderboard.map((d, i) => (
               <li key={d.id} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-3">
-                  <span className="font-data text-ink/40">{i + 1}</span>
+                  <span className="font-data text-ink/65">{i + 1}</span>
                   <div>
                     <div className="font-medium">{d.name}</div>
-                    <div className="text-xs text-ink/50">
+                    <div className="text-xs text-ink/70">
                       {d.specialty ?? "—"} · {d.patients} patients
                     </div>
                   </div>
@@ -260,7 +266,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         </Card>
 
         <Card>
-          <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+          <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
             Branches · {PRESET_LABELS[preset]}
           </p>
           <p className="mt-1 font-display text-lg">Revenue by branch</p>

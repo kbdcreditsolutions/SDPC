@@ -230,13 +230,13 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
               <Card key={s.id} className="w-80">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-ink/50">
+                    <p className="text-xs text-ink/70">
                       {new Date(s.date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                     <Link href={`/admin/patients/${s.patient.id}`} className="mt-1 font-medium hover:text-forest">
                       {s.patient.name}
                     </Link>
-                    <p className="text-xs text-ink/50">
+                    <p className="text-xs text-ink/70">
                       {s.doctor.name} · {s.doctor.specialty ?? "—"}
                     </p>
                   </div>
@@ -245,7 +245,7 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
                   </button>
                 </div>
                 <div className="mt-3">
-                  <div className="flex items-center justify-between text-xs text-ink/50">
+                  <div className="flex items-center justify-between text-xs text-ink/70">
                     <span>{s.package.name}</span>
                     <span>
                       {s.package.usedSessions}/{s.package.totalSessions}
@@ -266,7 +266,7 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
           </div>
         </div>
       ))}
-      {sessions?.length === 0 && <p className="text-sm text-ink/40">No sessions logged yet.</p>}
+      {sessions?.length === 0 && <p className="text-sm text-ink/65">No sessions logged yet.</p>}
     </div>
   );
 }

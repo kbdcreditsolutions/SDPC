@@ -95,7 +95,7 @@ export function MobileSidebar({
                 </div>
                 <div className="leading-tight">
                   <div className="text-sm font-medium">{userName}</div>
-                  <div className="text-xs text-ink/50">{roleLabel}</div>
+                  <div className="text-xs text-ink/70">{roleLabel}</div>
                 </div>
               </div>
               <button

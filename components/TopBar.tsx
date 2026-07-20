@@ -23,7 +23,7 @@ export function TopBar({
           Welcome back, <span className="font-medium text-ink">{userFirstName}</span>
         </p>
       </div>
-      <p className="font-data text-xs text-ink/40">{today}</p>
+      <p className="font-data text-xs text-ink/65">{today}</p>
     </div>
   );
 }

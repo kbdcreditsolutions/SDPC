@@ -183,7 +183,7 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
               <th className="px-6 py-3">Invoice #</th>
               <th className="px-6 py-3">Patient</th>
               <th className="px-6 py-3">Date</th>
@@ -224,10 +224,10 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
                 </td>
                 <td className="px-6 py-3 text-right">
                   <div className="flex justify-end gap-3 text-xs font-medium">
-                    <Link href={`/admin/invoices/${inv.id}`} className="text-ink/50 hover:text-ink">
+                    <Link href={`/admin/invoices/${inv.id}`} className="text-ink/70 hover:text-ink">
                       View
                     </Link>
-                    <Link href={`/admin/invoices/${inv.id}?edit=true`} className="text-ink/50 hover:text-ink">
+                    <Link href={`/admin/invoices/${inv.id}?edit=true`} className="text-ink/70 hover:text-ink">
                       Edit
                     </Link>
                     <button onClick={() => handleDelete(inv.id)} className="text-clay/70 hover:text-clay">

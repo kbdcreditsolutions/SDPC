@@ -315,7 +315,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                           }}
                           className="block w-full px-3 py-2 text-left text-sm hover:bg-sand/40"
                         >
-                          {r.name} <span className="text-ink/50">{r.phone}</span>
+                          {r.name} <span className="text-ink/70">{r.phone}</span>
                         </button>
                       </li>
                     ))}
@@ -347,7 +347,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="rounded-lg border border-sand px-3 py-2 text-sm sm:col-span-2 lg:col-span-3"
             />
-            <label className="flex flex-col gap-1 text-xs text-ink/50">
+            <label className="flex flex-col gap-1 text-xs text-ink/70">
               Joined date
               <input
                 type="date"
@@ -393,7 +393,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+            <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
               <th className="px-6 py-3">Patient</th>
               <th className="px-6 py-3">Age/Gender</th>
               <th className="px-6 py-3">Joined</th>
@@ -412,7 +412,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                   <Link href={`/admin/patients/${p.id}`} className="font-medium hover:text-forest">
                     {p.name}
                   </Link>
-                  <div className="text-xs text-ink/50">
+                  <div className="text-xs text-ink/70">
                     {p.phone}
                     {p.pid ? ` · ${p.pid}` : ""}
                   </div>
@@ -468,7 +468,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                         setShowForm(true);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className="text-ink/50 hover:text-ink"
+                      className="text-ink/70 hover:text-ink"
                     >
                       Edit
                     </button>

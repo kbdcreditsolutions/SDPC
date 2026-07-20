@@ -59,7 +59,7 @@ export default function RatingsClient({ initialData }: { initialData: any }) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
         <Card className="h-fit p-2">
-          <p className="px-3 py-2 font-data text-[10px] uppercase tracking-widest text-ink/40">
+          <p className="px-3 py-2 font-data text-[10px] uppercase tracking-widest text-ink/65">
             Doctors
           </p>
           {data.doctors.map((d: any) => (
@@ -71,7 +71,7 @@ export default function RatingsClient({ initialData }: { initialData: any }) {
               }`}
             >
               <div className="font-medium">{d.name}</div>
-              <div className={`text-xs ${selected === d.id ? "text-cream/70" : "text-ink/50"}`}>
+              <div className={`text-xs ${selected === d.id ? "text-cream/70" : "text-ink/70"}`}>
                 {d.specialty ?? "—"}
               </div>
             </button>
@@ -81,9 +81,9 @@ export default function RatingsClient({ initialData }: { initialData: any }) {
         {data.detail && currentDoctor && (
           <div className="space-y-6">
             <div>
-              <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">Now viewing</p>
+              <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">Now viewing</p>
               <p className="font-display text-xl">{currentDoctor.name}</p>
-              <p className="text-sm text-ink/50">{currentDoctor.specialty}</p>
+              <p className="text-sm text-ink/70">{currentDoctor.specialty}</p>
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -118,7 +118,7 @@ export default function RatingsClient({ initialData }: { initialData: any }) {
                       >
                         {r.type === "PATIENT" ? "Patient" : "Dept Head"}
                       </span>
-                      <span className="text-xs text-ink/40">{fmtDate(r.date)}</span>
+                      <span className="text-xs text-ink/65">{fmtDate(r.date)}</span>
                     </div>
                     <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink/60">
                       {Object.entries(r.scores).map(([k, v]) => (

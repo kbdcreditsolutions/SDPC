@@ -52,7 +52,7 @@ export default function MarketingClient({ initialData }: { initialData: any }) {
     }
   }
 
-  if (!data) return <p className="text-sm text-ink/50">Loading…</p>;
+  if (!data) return <p className="text-sm text-ink/70">Loading…</p>;
 
   return (
     <div className="space-y-8">
@@ -107,7 +107,7 @@ export default function MarketingClient({ initialData }: { initialData: any }) {
         <Card className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
                 <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Period</th>
@@ -151,7 +151,7 @@ export default function MarketingClient({ initialData }: { initialData: any }) {
         <Card className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
                 <th className="px-6 py-3">Referrer</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Revenue generated</th>

@@ -33,6 +33,9 @@ export type DashboardData = {
   range: { from: string; to: string };
   rangeRevenue: number;
   rangeNewPatients: number;
+  yesterdayRevenue: number;
+  previousRangeRevenue: number;
+  previousRangeNewPatients: number;
   revenueTrend: { date: string; revenue: number }[];
   leadCounts: Record<string, number>;
   doctorLeaderboard: { id: string; name: string; specialty: string | null; patients: number; revenue: number }[];
@@ -49,9 +52,14 @@ async function computeDashboardData(
   range: DateRange
 ): Promise<DashboardData> {
   const now = new Date();
-  const { start: today0, end: today1 } = istDayBounds(istDateKey(now));
+  const todayKey = istDateKey(now);
+  const { start: today0, end: today1 } = istDayBounds(todayKey);
+  const { start: yesterday0, end: yesterday1 } = istDayBounds(addDaysToKey(todayKey, -1));
   const from = range.from;
   const to = range.to;
+  // Same-length window immediately preceding the selected range, for period-over-period trend.
+  const prevTo = new Date(from.getTime());
+  const prevFrom = new Date(from.getTime() - (to.getTime() - from.getTime()));
   const { start: fyStart } = financialYearRange(now);
   const { start: lastFyStart, end: lastFyEnd } = previousFinancialYearRange(now);
 
@@ -71,6 +79,9 @@ async function computeDashboardData(
     rangePayments,
     doctors,
     branches,
+    yesterdayPayments,
+    previousRangePayments,
+    previousRangeNewPatients,
   ] = await Promise.all([
     prisma.payment.findMany({
       where: { date: { gte: today0, lte: today1 }, invoice: { ...scope, deletedAt: null } },
@@ -120,6 +131,15 @@ async function computeDashboardData(
         },
       },
     }),
+    prisma.payment.findMany({
+      where: { date: { gte: yesterday0, lte: yesterday1 }, invoice: { ...scope, deletedAt: null } },
+      select: { amount: true },
+    }),
+    prisma.payment.findMany({
+      where: { date: { gte: prevFrom, lt: prevTo }, invoice: { ...scope, deletedAt: null } },
+      select: { amount: true },
+    }),
+    prisma.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: prevFrom, lt: prevTo } } }),
   ]);
 
   const todayRevenue = todayPayments.reduce((s, p) => s + Number(p.amount), 0);
@@ -128,6 +148,8 @@ async function computeDashboardData(
   const fyRevenue = fyPayments.reduce((s, p) => s + Number(p.amount), 0);
   const lastFyRevenue = lastFyPayments.reduce((s, p) => s + Number(p.amount), 0);
   const rangeRevenue = rangePayments.reduce((s, p) => s + Number(p.amount), 0);
+  const yesterdayRevenue = yesterdayPayments.reduce((s, p) => s + Number(p.amount), 0);
+  const previousRangeRevenue = previousRangePayments.reduce((s, p) => s + Number(p.amount), 0);
 
   const leadCounts: Record<string, number> = {};
   for (const p of rangePatients) {
@@ -166,13 +188,15 @@ async function computeDashboardData(
     })
     .sort((a, b) => b.revenue - a.revenue);
 
-  const revenueByBranch = branches.map((b) => ({
-    name: b.name,
-    revenue: b.patients.reduce(
-      (s: number, p) => s + p.invoices.reduce((si: number, i) => si + Number(i.total), 0),
-      0
-    ),
-  }));
+  const revenueByBranch = branches
+    .map((b) => ({
+      name: b.name,
+      revenue: b.patients.reduce(
+        (s: number, p) => s + p.invoices.reduce((si: number, i) => si + Number(i.total), 0),
+        0
+      ),
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
 
   return {
     todayRevenue,
@@ -190,6 +214,9 @@ async function computeDashboardData(
     range: { from: from.toISOString(), to: to.toISOString() },
     rangeRevenue,
     rangeNewPatients,
+    yesterdayRevenue,
+    previousRangeRevenue,
+    previousRangeNewPatients,
     revenueTrend,
     leadCounts,
     doctorLeaderboard,

@@ -28,7 +28,7 @@ export function StatCard({
   return (
     <Card>
       <div className="flex items-center justify-between">
-        <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">{label}</p>
+        <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">{label}</p>
         {trend && (
           <span
             className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -41,7 +41,7 @@ export function StatCard({
         )}
       </div>
       <p className="mt-2 font-display text-3xl">{value}</p>
-      {sub && <p className="mt-1 text-xs text-ink/50">{sub}</p>}
+      {sub && <p className="mt-1 text-xs text-ink/70">{sub}</p>}
     </Card>
   );
 }

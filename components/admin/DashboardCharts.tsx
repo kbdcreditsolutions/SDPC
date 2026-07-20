@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   CartesianGrid,
+  LabelList,
 } from "recharts";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
@@ -42,7 +43,14 @@ export function DashboardBranchChart({ data }: { data: { name: string; revenue: 
         <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--sage)" }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 11, fill: "var(--sage)" }} axisLine={false} tickLine={false} />
         <Tooltip formatter={(v) => inr(Number(v))} />
-        <Bar dataKey="revenue" fill="var(--forest)" radius={[6, 6, 0, 0]} />
+        <Bar dataKey="revenue" fill="var(--forest)" radius={[6, 6, 0, 0]}>
+          <LabelList
+            dataKey="revenue"
+            position="top"
+            formatter={(v: React.ReactNode) => inr(Number(v))}
+            style={{ fontSize: 11, fill: "var(--ink)" }}
+          />
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );

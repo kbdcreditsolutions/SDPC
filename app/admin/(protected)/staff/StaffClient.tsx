@@ -137,7 +137,7 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
               Grant dashboard login access
             </label>
             {!form.hasAccess && (
-              <p className="col-span-full text-xs text-ink/50">
+              <p className="col-span-full text-xs text-ink/70">
                 No email or password needed — this just records their name so they can be picked as the
                 therapist when logging a session. They won&apos;t be able to sign in.
               </p>
@@ -200,13 +200,13 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
                       </div>
                       <div>
                         <p className="font-medium">{u.name}</p>
-                        <p className="text-xs text-ink/50">{u.email ?? "No dashboard access"}</p>
-                        {u.specialty && <p className="text-xs text-ink/50">{u.specialty}</p>}
+                        <p className="text-xs text-ink/70">{u.email ?? "No dashboard access"}</p>
+                        {u.specialty && <p className="text-xs text-ink/70">{u.specialty}</p>}
                       </div>
                     </div>
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs ${
-                        u.isActive ? "bg-forest/10 text-forest" : "bg-sand text-ink/50"
+                        u.isActive ? "bg-forest/10 text-forest" : "bg-sand text-ink/70"
                       }`}
                     >
                       {u.isActive ? "active" : "inactive"}
@@ -214,7 +214,7 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
                   </div>
                   <button
                     onClick={() => toggleActive(u.id, u.isActive)}
-                    className="mt-3 text-xs text-ink/50 hover:text-ink"
+                    className="mt-3 text-xs text-ink/70 hover:text-ink"
                   >
                     {u.isActive ? "Deactivate" : "Activate"}
                   </button>

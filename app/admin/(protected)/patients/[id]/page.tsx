@@ -61,7 +61,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
     load();
   }, [load]);
 
-  if (!patient) return <p className="text-sm text-ink/50">Loading…</p>;
+  if (!patient) return <p className="text-sm text-ink/70">Loading…</p>;
 
   async function addPackage(e: React.FormEvent) {
     e.preventDefault();
@@ -159,7 +159,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-6">
-      <Link href="/app/patients" className="text-sm text-ink/50 hover:text-ink">
+      <Link href="/app/patients" className="text-sm text-ink/70 hover:text-ink">
         ← All patients
       </Link>
 
@@ -183,7 +183,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   </span>
                 )}
               </div>
-              <p className="text-sm text-ink/50">
+              <p className="text-sm text-ink/70">
                 {patient.phone} {patient.age ? `· ${patient.age}y` : ""} {patient.gender ? `· ${patient.gender}` : ""} · Joined{" "}
                 {fmtDate(patient.createdAt)}
               </p>
@@ -214,15 +214,15 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           </div>
           <div className="flex gap-6 text-right">
             <div>
-              <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">Billed</p>
+              <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">Billed</p>
               <p className="font-display text-lg">{inr(patient.billed)}</p>
             </div>
             <div>
-              <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">Paid</p>
+              <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">Paid</p>
               <p className="font-display text-lg text-forest">{inr(patient.paid)}</p>
             </div>
             <div>
-              <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+              <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
                 Outstanding
               </p>
               <p className="font-display text-lg text-clay">{inr(patient.outstanding)}</p>
@@ -237,7 +237,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`-mb-px border-b-2 pb-3 ${
-              tab === t.key ? "border-forest text-forest" : "border-transparent text-ink/50"
+              tab === t.key ? "border-forest text-forest" : "border-transparent text-ink/70"
             }`}
           >
             {t.label}
@@ -248,7 +248,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       {tab === "overview" && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card>
-            <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+            <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
               Patient information
             </p>
             <dl className="mt-4 space-y-3 text-sm">
@@ -278,14 +278,14 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 ["Notes", patient.notes ?? "—"],
               ].map(([label, value]) => (
                 <div key={label as string} className="flex justify-between border-b border-sand/60 pb-2">
-                  <dt className="text-ink/50">{label}</dt>
+                  <dt className="text-ink/70">{label}</dt>
                   <dd>{value}</dd>
                 </div>
               ))}
             </dl>
           </Card>
           <Card>
-            <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">
+            <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">
               Recent activity
             </p>
             <ul className="mt-4 space-y-3 text-sm">
@@ -293,7 +293,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 <li key={a.id} className="flex items-center justify-between border-b border-sand/60 pb-2">
                   <div>
                     <div>Session with {a.doctor.name}</div>
-                    <div className="text-xs text-ink/50">
+                    <div className="text-xs text-ink/70">
                       {new Date(a.datetime).toLocaleString("en-IN")}
                     </div>
                   </div>
@@ -302,11 +302,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   </span>
                 </li>
               ))}
-              {patient.appointments.length === 0 && <p className="text-ink/40">No activity yet.</p>}
+              {patient.appointments.length === 0 && <p className="text-ink/65">No activity yet.</p>}
             </ul>
             {patient.referredPatients?.length > 0 && (
               <>
-                <p className="mt-6 font-data text-[10px] uppercase tracking-widest text-ink/40">
+                <p className="mt-6 font-data text-[10px] uppercase tracking-widest text-ink/65">
                   Referred {patient.referredPatients.length} patient{patient.referredPatients.length === 1 ? "" : "s"}
                 </p>
                 <ul className="mt-3 space-y-2 text-sm">
@@ -315,7 +315,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                       <Link href={`/admin/patients/${r.id}`} className="hover:text-forest">
                         {r.name}
                       </Link>
-                      <span className="text-xs text-ink/50"> · {fmtDate(r.createdAt)}</span>
+                      <span className="text-xs text-ink/70"> · {fmtDate(r.createdAt)}</span>
                     </li>
                   ))}
                 </ul>
@@ -337,7 +337,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                       {pkg.status.toLowerCase()}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-ink/50">
+                  <p className="mt-1 text-xs text-ink/70">
                     {pkg.usedSessions}/{pkg.totalSessions} sessions used ·{" "}
                     {fmtDate(pkg.startDate)}
                     {pkg.endDate ? ` – ${fmtDate(pkg.endDate)}` : ""} · Total {inr(pkg.price)}
@@ -424,7 +424,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     <li key={s.id} className="flex items-start justify-between text-xs">
                       <div>
                         <span className="font-medium text-ink">{fmtDate(s.date)}</span>
-                        <span className="text-ink/50"> · {s.doctor.name}</span>
+                        <span className="text-ink/70"> · {s.doctor.name}</span>
                         {s.notes && <p className="mt-0.5 text-ink/60">{s.notes}</p>}
                       </div>
                       <button onClick={() => undoSession(s.id)} className="text-clay/70 hover:text-clay">
@@ -437,8 +437,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             </Card>
           ))}
           <Card>
-            <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">New package</p>
-            <p className="mt-1 text-xs text-ink/40">Full amount is invoiced and marked paid immediately.</p>
+            <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">New package</p>
+            <p className="mt-1 text-xs text-ink/65">Full amount is invoiced and marked paid immediately.</p>
             <form onSubmit={addPackage} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-5">
               <input
                 required
@@ -486,7 +486,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         <div className="space-y-4">
           {patient.clinicalNotes.map((n: any) => (
             <Card key={n.id}>
-              <p className="text-xs text-ink/50">
+              <p className="text-xs text-ink/70">
                 {fmtDate(n.date)} · {n.author.name}
               </p>
               <p className="mt-2 text-sm">{n.note}</p>
@@ -509,7 +509,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             </Card>
           ))}
           {patient.clinicalNotes.length === 0 && (
-            <p className="text-sm text-ink/40">No clinical notes yet.</p>
+            <p className="text-sm text-ink/65">No clinical notes yet.</p>
           )}
           <Card>
             <form onSubmit={addNote} className="space-y-3">
@@ -539,7 +539,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         <Card className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
                 <th className="px-6 py-3">Invoice #</th>
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Total</th>
@@ -572,10 +572,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   </td>
                   <td className="px-6 py-3 text-right">
                     <div className="flex justify-end gap-3 text-xs font-medium">
-                      <Link href={`/admin/invoices/${inv.id}`} className="text-ink/50 hover:text-ink">
+                      <Link href={`/admin/invoices/${inv.id}`} className="text-ink/70 hover:text-ink">
                         View
                       </Link>
-                      <Link href={`/admin/invoices/${inv.id}?edit=true`} className="text-ink/50 hover:text-ink">
+                      <Link href={`/admin/invoices/${inv.id}?edit=true`} className="text-ink/70 hover:text-ink">
                         Edit
                       </Link>
                       <button onClick={() => handleDeleteInvoice(inv.id)} className="text-clay/70 hover:text-clay">
@@ -594,7 +594,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         <Card className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/40">
+              <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Doctor</th>
                 <th className="px-6 py-3">Status</th>
