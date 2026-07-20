@@ -60,7 +60,7 @@ export async function GET(
           },
         },
       },
-      invoices: { orderBy: { date: "desc" } },
+      invoices: { where: { deletedAt: null }, orderBy: { date: "desc" } },
       appointments: { include: { doctor: true }, orderBy: { datetime: "desc" } },
       clinicalNotes: { include: { author: true }, orderBy: { date: "desc" } },
       referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
