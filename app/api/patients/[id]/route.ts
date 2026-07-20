@@ -51,6 +51,7 @@ export async function GET(
     where: { id, ...scope },
     include: {
       packages: {
+        where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
         include: {
           sessions: {
@@ -61,8 +62,8 @@ export async function GET(
         },
       },
       invoices: { where: { deletedAt: null }, orderBy: { date: "desc" } },
-      appointments: { include: { doctor: true }, orderBy: { datetime: "desc" } },
-      clinicalNotes: { include: { author: true }, orderBy: { date: "desc" } },
+      appointments: { where: { deletedAt: null }, include: { doctor: true }, orderBy: { datetime: "desc" } },
+      clinicalNotes: { where: { deletedAt: null }, include: { author: true }, orderBy: { date: "desc" } },
       referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
       referredPatients: { where: { deletedAt: null }, select: { id: true, name: true, phone: true, createdAt: true } },
     },
