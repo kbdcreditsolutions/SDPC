@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     include: {
       invoices: { where: { deletedAt: null } },
       referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
+      branch: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -55,6 +56,8 @@ export async function GET(req: NextRequest) {
       createdAt: p.createdAt,
       reason: p.reason,
       leadSource: p.leadSource,
+      branchId: p.branchId,
+      branch: p.branch,
       billed,
       outstanding,
     };
@@ -75,6 +78,7 @@ const createSchema = z
       .optional(),
     referralDoctor: z.string().optional(),
     referredByPatientId: z.string().optional(),
+    branchId: z.union([z.literal(""), z.string()]).optional(),
     address: z.string().optional(),
     notes: z.string().optional(),
     createdAt: z
@@ -108,7 +112,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
-  const { age, createdAt, referredByPatientId, ...rest } = parsed.data;
+  const { age, createdAt, referredByPatientId, branchId, ...rest } = parsed.data;
 
   if (referredByPatientId) {
     const referrer = await prisma.patient.findFirst({
@@ -116,6 +120,13 @@ export async function POST(req: NextRequest) {
     });
     if (!referrer) {
       return NextResponse.json({ error: "Referring patient not found" }, { status: 400 });
+    }
+  }
+
+  if (branchId) {
+    const branch = await prisma.branch.findFirst({ where: { id: branchId, ...scope, deletedAt: null } });
+    if (!branch) {
+      return NextResponse.json({ error: "Branch not found" }, { status: 400 });
     }
   }
 
@@ -133,6 +144,7 @@ export async function POST(req: NextRequest) {
         ...rest,
         pid,
         age: age === "" || age === null || age === undefined ? null : age,
+        branchId: branchId || null,
         ...(createdAt ? { createdAt } : {}),
         ...(referredByPatientId ? { referredByPatientId } : {}),
         tenantId: session.tenantId!,

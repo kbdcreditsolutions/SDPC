@@ -20,9 +20,13 @@ type Patient = {
   createdAt: string;
   reason: string | null;
   leadSource: string | null;
+  branchId: string | null;
+  branch: { id: string; name: string } | null;
   billed: number;
   outstanding: number;
 };
+
+type Branch = { id: string; name: string };
 
 // Order matches what the clinic asked to see in the dropdown
 const LEAD_OPTIONS: { value: string; label: string }[] = [
@@ -69,6 +73,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
     leadSource: "WALK_IN",
     referralDoctor: "",
     referredByPatientId: "",
+    branchId: "",
     address: "",
     createdAt: "",
   });
@@ -76,6 +81,13 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
   const [referrerQuery, setReferrerQuery] = useState("");
   const [referrerResults, setReferrerResults] = useState<PatientRef[]>([]);
   const [referrerOpen, setReferrerOpen] = useState(false);
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  useEffect(() => {
+    fetch("/api/branches/")
+      .then((r) => r.json())
+      .then((d) => setBranches(d.branches ?? []));
+  }, []);
 
   useEffect(() => {
     if (form.leadSource !== "PATIENT_REFERRAL" || form.referredByPatientId || referrerQuery.trim().length < 2) {
@@ -105,6 +117,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
       leadSource: "WALK_IN",
       referralDoctor: "",
       referredByPatientId: "",
+      branchId: "",
       address: "",
       createdAt: "",
     });
@@ -316,6 +329,18 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               onChange={(e) => setForm({ ...form, referralDoctor: e.target.value })}
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
+            <select
+              value={form.branchId}
+              onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+              className="rounded-lg border border-sand px-3 py-2 text-sm"
+            >
+              <option value="">Branch</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
             <input
               placeholder="Address (optional)"
               value={form.address}
@@ -373,6 +398,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               <th className="px-6 py-3">Age/Gender</th>
               <th className="px-6 py-3">Joined</th>
               <th className="px-6 py-3">Reason</th>
+              <th className="px-6 py-3">Branch</th>
               <th className="px-6 py-3">Lead</th>
               <th className="px-6 py-3">Billed</th>
               <th className="px-6 py-3">Outstanding</th>
@@ -402,6 +428,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                   })}
                 </td>
                 <td className="px-6 py-3 text-ink/70">{p.reason ?? "—"}</td>
+                <td className="px-6 py-3 text-ink/70">{p.branch?.name ?? "—"}</td>
                 <td className="px-6 py-3 text-ink/70">
                   {p.leadSource ? LEAD_LABELS[p.leadSource] : "—"}
                 </td>
@@ -429,6 +456,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                           leadSource: p.leadSource || "WALK_IN",
                           referralDoctor: p.referralDoctor || "",
                           referredByPatientId: p.referredByPatientId || "",
+                          branchId: p.branchId || "",
                           address: p.address || "",
                           createdAt: joinedDate,
                         });

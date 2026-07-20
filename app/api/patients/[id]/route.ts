@@ -16,6 +16,7 @@ const updateSchema = z
       .optional(),
     referralDoctor: z.string().optional(),
     referredByPatientId: z.union([z.literal(""), z.string()]).optional(),
+    branchId: z.union([z.literal(""), z.string()]).optional(),
     address: z.string().optional(),
     notes: z.string().optional(),
     createdAt: z
@@ -112,7 +113,7 @@ export async function PUT(
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
-  const { age, createdAt, referredByPatientId, ...rest } = parsed.data;
+  const { age, createdAt, referredByPatientId, branchId, ...rest } = parsed.data;
 
   if (referredByPatientId) {
     if (referredByPatientId === id) {
@@ -126,6 +127,13 @@ export async function PUT(
     }
   }
 
+  if (branchId) {
+    const branch = await prisma.branch.findFirst({ where: { id: branchId, ...scope, deletedAt: null } });
+    if (!branch) {
+      return NextResponse.json({ error: "Branch not found" }, { status: 400 });
+    }
+  }
+
   try {
     const updated = await prisma.patient.update({
       where: { id, tenantId: session.tenantId! },
@@ -134,6 +142,7 @@ export async function PUT(
         ...(referredByPatientId !== undefined
           ? { referredByPatientId: referredByPatientId || null }
           : {}),
+        ...(branchId !== undefined ? { branchId: branchId || null } : {}),
         age: age === "" || age === null || age === undefined ? null : age,
         ...(createdAt ? { createdAt } : {}),
       },
