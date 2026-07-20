@@ -192,6 +192,9 @@ model Package {
   createdAt      DateTime      @default(now())
   deletedAt      DateTime?
 
+  invoiceId String?  @unique
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
   sessions PackageSession[]
 }
 
@@ -229,6 +232,7 @@ model Invoice {
 
   lineItems InvoiceLineItem[]
   payments  Payment[]
+  package   Package?
 
   @@unique([tenantId, number])
 }

@@ -30,7 +30,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const [patient, setPatient] = useState<any>(null);
   const [tab, setTab] = useState<Tab>("overview");
-  const [pkgForm, setPkgForm] = useState({ name: "10 Session Package", totalSessions: "10", price: "8000" });
+  const [pkgForm, setPkgForm] = useState({ name: "10 Session Package", totalSessions: "10", price: "8000", paymentMode: "Cash" });
   const [noteForm, setNoteForm] = useState("");
   const [noteAttachments, setNoteAttachments] = useState<File[]>([]);
   const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([]);
@@ -70,7 +70,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pkgForm),
     });
-    setPkgForm({ name: "", totalSessions: "", price: "" });
+    setPkgForm({ name: "", totalSessions: "", price: "", paymentMode: "Cash" });
     load();
   }
 
@@ -438,7 +438,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           ))}
           <Card>
             <p className="font-data text-[10px] uppercase tracking-widest text-ink/40">New package</p>
-            <form onSubmit={addPackage} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+            <p className="mt-1 text-xs text-ink/40">Full amount is invoiced and marked paid immediately.</p>
+            <form onSubmit={addPackage} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-5">
               <input
                 required
                 placeholder="Package name"
@@ -462,6 +463,17 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })}
                 className="rounded-lg border border-sand px-3 py-2 text-sm"
               />
+              <select
+                required
+                value={pkgForm.paymentMode}
+                onChange={(e) => setPkgForm({ ...pkgForm, paymentMode: e.target.value })}
+                className="rounded-lg border border-sand px-3 py-2 text-sm"
+              >
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Card">Card</option>
+                <option value="Netbanking">Netbanking</option>
+              </select>
               <button className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep">
                 Add
               </button>

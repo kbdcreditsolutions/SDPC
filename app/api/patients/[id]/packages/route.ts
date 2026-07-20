@@ -8,6 +8,7 @@ const schema = z.object({
   name: z.string().min(1),
   totalSessions: z.coerce.number().int().positive(),
   price: z.coerce.number().positive(),
+  paymentMode: z.enum(["Cash", "UPI", "Card", "Netbanking"]),
 });
 
 export async function GET(
@@ -41,14 +42,51 @@ export async function POST(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const pkg = await prisma.package.create({
-    data: {
-      tenantId: session.tenantId!,
-      patientId: id,
-      name: parsed.data.name,
-      totalSessions: parsed.data.totalSessions,
-      price: parsed.data.price,
-    },
+  const patient = await prisma.patient.findFirst({
+    where: { id, tenantId: session.tenantId!, deletedAt: null },
+  });
+  if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const pkg = await prisma.$transaction(async (tx) => {
+    const year = new Date().getFullYear();
+    const count = await tx.invoice.count({ where: { tenantId: session.tenantId! } });
+    const number = `INV-${year}-${String(count + 1).padStart(5, "0")}`;
+
+    const invoice = await tx.invoice.create({
+      data: {
+        tenantId: session.tenantId!,
+        patientId: id,
+        number,
+        subtotal: parsed.data.price,
+        gst: 0,
+        total: parsed.data.price,
+        paidAmount: parsed.data.price,
+        status: "PAID",
+        lineItems: {
+          create: [{
+            description: `Package: ${parsed.data.name} (${parsed.data.totalSessions} sessions)`,
+            qty: 1,
+            unitPrice: parsed.data.price,
+            gstPercent: 0,
+            lineTotal: parsed.data.price,
+          }],
+        },
+        payments: {
+          create: [{ method: parsed.data.paymentMode, amount: parsed.data.price }],
+        },
+      },
+    });
+
+    return tx.package.create({
+      data: {
+        tenantId: session.tenantId!,
+        patientId: id,
+        name: parsed.data.name,
+        totalSessions: parsed.data.totalSessions,
+        price: parsed.data.price,
+        invoiceId: invoice.id,
+      },
+    });
   });
 
   return NextResponse.json({ package: { ...pkg, price: Number(pkg.price) } });

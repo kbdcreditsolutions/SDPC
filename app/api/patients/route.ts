@@ -67,7 +67,7 @@ const createSchema = z
   .object({
     name: z.string().min(1),
     phone: z.string().min(1),
-    age: z.coerce.number().int().min(0).max(150),
+    age: z.union([z.literal(""), z.null(), z.coerce.number().int().min(0).max(150)]).optional(),
     gender: z.string().optional(),
     reason: z.string().optional(),
     leadSource: z
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
-  const { createdAt, referredByPatientId, ...rest } = parsed.data;
+  const { age, createdAt, referredByPatientId, ...rest } = parsed.data;
 
   if (referredByPatientId) {
     const referrer = await prisma.patient.findFirst({
@@ -132,6 +132,7 @@ export async function POST(req: NextRequest) {
       data: {
         ...rest,
         pid,
+        age: age === "" || age === null || age === undefined ? null : age,
         ...(createdAt ? { createdAt } : {}),
         ...(referredByPatientId ? { referredByPatientId } : {}),
         tenantId: session.tenantId!,
