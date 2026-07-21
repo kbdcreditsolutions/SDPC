@@ -37,6 +37,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [sessionFormPkg, setSessionFormPkg] = useState<string | null>(null);
   const [sessionForm, setSessionForm] = useState({ doctorId: "", date: "", notes: "" });
   const [loggingSession, setLoggingSession] = useState(false);
+  const [editingPkgId, setEditingPkgId] = useState<string | null>(null);
+  const [pkgEditForm, setPkgEditForm] = useState({ name: "", totalSessions: "", price: "" });
+  const [savingPkgEdit, setSavingPkgEdit] = useState(false);
+  const [deletePkgTarget, setDeletePkgTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deletingPkg, setDeletingPkg] = useState(false);
 
   useEffect(() => {
     fetch("/api/doctors/")
@@ -81,6 +86,49 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       body: JSON.stringify({ action }),
     });
     load();
+  }
+
+  function startEditPkg(pkg: any) {
+    setEditingPkgId(pkg.id);
+    setPkgEditForm({ name: pkg.name, totalSessions: String(pkg.totalSessions), price: String(pkg.price) });
+  }
+
+  async function savePkgEdit(e: React.FormEvent, pkgId: string) {
+    e.preventDefault();
+    setSavingPkgEdit(true);
+    try {
+      const res = await fetch(`/api/patients/${id}/packages/${pkgId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "edit", ...pkgEditForm }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to update package");
+        return;
+      }
+      setEditingPkgId(null);
+      load();
+    } finally {
+      setSavingPkgEdit(false);
+    }
+  }
+
+  async function confirmDeletePkg() {
+    if (!deletePkgTarget) return;
+    setDeletingPkg(true);
+    try {
+      const res = await fetch(`/api/patients/${id}/packages/${deletePkgTarget.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to delete package");
+        return;
+      }
+      setDeletePkgTarget(null);
+      load();
+    } finally {
+      setDeletingPkg(false);
+    }
   }
 
   async function logSession(e: React.FormEvent, pkgId: string) {
@@ -355,14 +403,24 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                       + Log session
                     </button>
                   )}
-                  <button onClick={() => packageAction(pkg.id, pkg.status === "FROZEN" ? "unfreeze" : "freeze")} className="text-ink/60 hover:text-ink">
-                    {pkg.status === "FROZEN" ? "Unfreeze" : "Freeze"}
-                  </button>
-                  <button onClick={() => packageAction(pkg.id, "extend")} className="text-ink/60 hover:text-ink">
-                    Extend
-                  </button>
-                  <button onClick={() => packageAction(pkg.id, "refund")} className="text-clay hover:text-clay/80">
-                    Refund
+                  {pkg.status !== "REFUNDED" && (
+                    <>
+                      <button onClick={() => packageAction(pkg.id, pkg.status === "FROZEN" ? "unfreeze" : "freeze")} className="text-ink/60 hover:text-ink">
+                        {pkg.status === "FROZEN" ? "Unfreeze" : "Freeze"}
+                      </button>
+                      <button onClick={() => packageAction(pkg.id, "extend")} className="text-ink/60 hover:text-ink">
+                        Extend
+                      </button>
+                      <button onClick={() => packageAction(pkg.id, "refund")} className="text-clay hover:text-clay/80">
+                        Refund
+                      </button>
+                      <button onClick={() => startEditPkg(pkg)} className="text-ink/60 hover:text-ink">
+                        Edit
+                      </button>
+                    </>
+                  )}
+                  <button onClick={() => setDeletePkgTarget({ id: pkg.id, name: pkg.name })} className="text-clay/70 hover:text-clay">
+                    Delete
                   </button>
                 </div>
               </div>
@@ -372,6 +430,51 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   style={{ width: `${Math.min(100, (pkg.usedSessions / pkg.totalSessions) * 100)}%` }}
                 />
               </div>
+
+              {editingPkgId === pkg.id && (
+                <form onSubmit={(e) => savePkgEdit(e, pkg.id)} className="mt-4 grid grid-cols-1 gap-3 border-t border-sand/60 pt-4 sm:grid-cols-3">
+                  <input
+                    required
+                    placeholder="Package name"
+                    value={pkgEditForm.name}
+                    onChange={(e) => setPkgEditForm({ ...pkgEditForm, name: e.target.value })}
+                    className="rounded-lg border border-sand px-3 py-2 text-sm"
+                  />
+                  <input
+                    required
+                    type="number"
+                    min={1}
+                    placeholder="Total sessions"
+                    value={pkgEditForm.totalSessions}
+                    onChange={(e) => setPkgEditForm({ ...pkgEditForm, totalSessions: e.target.value })}
+                    className="rounded-lg border border-sand px-3 py-2 text-sm"
+                  />
+                  <input
+                    required
+                    type="number"
+                    min={1}
+                    placeholder="Price"
+                    value={pkgEditForm.price}
+                    onChange={(e) => setPkgEditForm({ ...pkgEditForm, price: e.target.value })}
+                    className="rounded-lg border border-sand px-3 py-2 text-sm"
+                  />
+                  <div className="col-span-full flex gap-3">
+                    <button
+                      disabled={savingPkgEdit}
+                      className="rounded-lg bg-forest px-4 py-2 text-xs font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+                    >
+                      {savingPkgEdit ? "Saving…" : "Save changes"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingPkgId(null)}
+                      className="rounded-lg px-4 py-2 text-xs text-ink/60 hover:bg-sand/60"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
 
               {sessionFormPkg === pkg.id && (
                 <form onSubmit={(e) => logSession(e, pkg.id)} className="mt-4 grid grid-cols-1 gap-3 border-t border-sand/60 pt-4 sm:grid-cols-3">
@@ -617,6 +720,36 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             </tbody>
           </table>
         </Card>
+      )}
+
+      {deletePkgTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
+          <Card className="w-full max-w-sm">
+            <h2 className="font-display text-lg">Delete package?</h2>
+            <p className="mt-2 text-sm text-ink/70">
+              This will remove <span className="font-medium text-ink">{deletePkgTarget.name}</span> and its invoice
+              from this patient&apos;s totals. This can&apos;t be undone from here.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletePkgTarget(null)}
+                disabled={deletingPkg}
+                className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePkg}
+                disabled={deletingPkg}
+                className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
+              >
+                {deletingPkg ? "Deleting…" : "Delete package"}
+              </button>
+            </div>
+          </Card>
+        </div>
       )}
     </div>
   );
