@@ -238,7 +238,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
             <input
-              required={!editingId}
+              required
               type="number"
               min={0}
               max={150}
@@ -248,16 +248,18 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
             <select
+              required
               value={form.gender}
               onChange={(e) => setForm({ ...form, gender: e.target.value })}
               className="rounded-lg border border-sand px-3 py-2 text-sm"
             >
-              <option value="">Gender</option>
+              <option value="" disabled>Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
             <input
+              required
               placeholder="Reason for consultation"
               value={form.reason}
               onChange={(e) => setForm({ ...form, reason: e.target.value })}
@@ -342,7 +344,8 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               ))}
             </select>
             <input
-              placeholder="Address (optional)"
+              required
+              placeholder="Address"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="rounded-lg border border-sand px-3 py-2 text-sm sm:col-span-2 lg:col-span-3"

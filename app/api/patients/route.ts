@@ -70,16 +70,19 @@ const createSchema = z
   .object({
     name: z.string().min(1),
     phone: z.string().min(1),
-    age: z.union([z.literal(""), z.null(), z.coerce.number().int().min(0).max(150)]).optional(),
-    gender: z.string().optional(),
-    reason: z.string().optional(),
+    age: z.preprocess(
+      (v) => (typeof v === "string" && v.trim() === "") || v === null ? undefined : v,
+      z.coerce.number().int().min(0).max(150)
+    ),
+    gender: z.string().min(1),
+    reason: z.string().min(1),
     leadSource: z
       .enum(["DIRECT", "REFERRAL", "GOOGLE", "FACEBOOK", "WALK_IN", "WHATSAPP", "INSTAGRAM", "PATIENT_REFERRAL", "FLYERS", "HOARDINGS", "TV_ADS", "CINEMA_ADS", "NEWSPAPER_AD"])
       .optional(),
     referralDoctor: z.string().optional(),
     referredByPatientId: z.string().optional(),
     branchId: z.union([z.literal(""), z.string()]).optional(),
-    address: z.string().optional(),
+    address: z.string().min(1),
     notes: z.string().optional(),
     createdAt: z
       .union([
@@ -143,7 +146,7 @@ export async function POST(req: NextRequest) {
       data: {
         ...rest,
         pid,
-        age: age === "" || age === null || age === undefined ? null : age,
+        age,
         branchId: branchId || null,
         ...(createdAt ? { createdAt } : {}),
         ...(referredByPatientId ? { referredByPatientId } : {}),

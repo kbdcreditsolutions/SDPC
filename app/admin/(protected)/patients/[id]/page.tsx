@@ -159,7 +159,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-6">
-      <Link href="/app/patients" className="text-sm text-ink/70 hover:text-ink">
+      <Link href="/admin/patients" className="text-sm text-ink/70 hover:text-ink">
         ← All patients
       </Link>
 
