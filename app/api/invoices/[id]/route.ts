@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
 export async function GET(
@@ -85,9 +86,9 @@ export async function PUT(
   const status = paidAmount >= total ? "PAID" : paidAmount > 0 ? "PARTIAL" : "UNPAID";
 
   // Transaction to update invoice and replace line items
-  await prisma.$transaction([
-    prisma.invoiceLineItem.deleteMany({ where: { invoiceId: id } }),
-    prisma.invoice.update({
+  await prisma.$transaction(async (tx) => {
+    await tx.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
+    await tx.invoice.update({
       where: { id },
       data: {
         patientId: parsed.data.patientId,
@@ -105,8 +106,19 @@ export async function PUT(
           })),
         },
       },
-    }),
-  ]);
+    });
+    await logAudit(tx, {
+      tenantId: session.tenantId,
+      actorId: session.userId,
+      action: "UPDATE",
+      entity: "Invoice",
+      entityId: id,
+      diff: {
+        before: { total: Number(existing.total), subtotal: Number(existing.subtotal), patientId: existing.patientId },
+        after: { total, subtotal, patientId: parsed.data.patientId },
+      },
+    });
+  });
 
   return NextResponse.json({ success: true });
 }
@@ -123,9 +135,19 @@ export async function DELETE(
   const existing = await prisma.invoice.findFirst({ where: { id, ...scope } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await prisma.invoice.update({
-    where: { id },
-    data: { deletedAt: new Date() },
+  await prisma.$transaction(async (tx) => {
+    await tx.invoice.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+    await logAudit(tx, {
+      tenantId: session.tenantId,
+      actorId: session.userId,
+      action: "DELETE",
+      entity: "Invoice",
+      entityId: id,
+      diff: { number: existing.number, total: Number(existing.total) },
+    });
   });
 
   return NextResponse.json({ success: true });

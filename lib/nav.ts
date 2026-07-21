@@ -13,11 +13,14 @@ export function getNavItems(role?: Role): NavItem[] {
     { label: "Attendance", href: "/admin/attendance" },
     { label: "Marketing", href: "/admin/marketing" },
     { label: "Doctor Ratings", href: "/admin/ratings" },
+    { label: "Activity Log", href: "/admin/activity" },
   ];
 
   // Overall sales/revenue overview is admin-only — staff don't get it.
-  if (role === "STAFF") {
-    return items.filter((i) => i.href !== "/admin");
-  }
-  return items;
+  // Activity log (who added/edited/deleted what) is CLINIC_ADMIN/SUPER_ADMIN only.
+  return items.filter((i) => {
+    if (i.href === "/admin" && role === "STAFF") return false;
+    if (i.href === "/admin/activity" && role !== "CLINIC_ADMIN" && role !== "SUPER_ADMIN") return false;
+    return true;
+  });
 }

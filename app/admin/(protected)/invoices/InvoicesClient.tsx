@@ -59,16 +59,17 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
       });
       
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         alert(err.error || "Failed to create invoice");
         return;
       }
-      
+
       setShowForm(false);
       setItems([{ description: "Consultation", qty: "1", unitPrice: "800", gstPercent: "18" }]);
       setPatientId("");
-      setPatientId("");
       load();
+    } catch {
+      alert("Failed to create invoice — check your connection and try again.");
     } finally {
       setSaving(false);
     }
