@@ -78,6 +78,8 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
     createdAt: "",
   });
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [referrerQuery, setReferrerQuery] = useState("");
   const [referrerResults, setReferrerResults] = useState<PatientRef[]>([]);
   const [referrerOpen, setReferrerOpen] = useState(false);
@@ -158,14 +160,26 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this patient?")) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/patients/${id}/`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      load(q);
+      const res = await fetch(`/api/patients/${deleteTarget.id}/`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to delete patient");
+        return;
+      }
+      setDeleteTarget(null);
+      try {
+        await load(q);
+      } catch {
+        alert("Patient deleted, but the list failed to refresh — reload the page.");
+      }
     } catch {
       alert("Failed to delete patient");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -475,7 +489,10 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                     >
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(p.id)} className="text-clay/70 hover:text-clay">
+                    <button
+                      onClick={() => setDeleteTarget({ id: p.id, name: p.name })}
+                      className="text-clay/70 hover:text-clay"
+                    >
                       Delete
                     </button>
                   </div>
@@ -485,6 +502,36 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
           </tbody>
         </table>
       </Card>
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
+          <Card className="w-full max-w-sm">
+            <h2 className="font-display text-lg">Delete patient?</h2>
+            <p className="mt-2 text-sm text-ink/70">
+              This will remove <span className="font-medium text-ink">{deleteTarget.name}</span> from the patient
+              list. This can&apos;t be undone from here.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Delete patient"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

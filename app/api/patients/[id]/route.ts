@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
@@ -165,10 +166,17 @@ export async function DELETE(
   if (!session) return response!;
   const { id } = await params;
 
-  await prisma.patient.update({
-    where: { id, tenantId: session.tenantId! },
-    data: { deletedAt: new Date() },
-  });
+  try {
+    await prisma.patient.update({
+      where: { id, tenantId: session.tenantId! },
+      data: { deletedAt: new Date() },
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {
+      return NextResponse.json({ error: "Patient not found" }, { status: 404 });
+    }
+    return NextResponse.json({ error: "Failed to delete patient" }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }
