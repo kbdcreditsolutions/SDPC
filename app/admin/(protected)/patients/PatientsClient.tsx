@@ -145,16 +145,21 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      
+
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         alert(err.error || "Failed to add patient");
         return;
       }
-      
+
       resetForm();
       setShowForm(false);
-      load(q);
+      // Clear any active search filter — otherwise the newly added patient can fail
+      // to match it and silently appear to not have saved.
+      setQ("");
+      load("");
+    } catch {
+      alert("Failed to add patient — check your connection and try again.");
     } finally {
       setSaving(false);
     }

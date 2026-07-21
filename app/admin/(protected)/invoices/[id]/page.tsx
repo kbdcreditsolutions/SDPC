@@ -26,6 +26,7 @@ export default function InvoiceDetailPage({
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(search.edit === "true");
   const [saving, setSaving] = useState(false);
+  const [payingPayment, setPayingPayment] = useState(false);
   const [patients, setPatients] = useState<{ id: string; name: string }[]>([]);
   const [patientId, setPatientId] = useState("");
   const [items, setItems] = useState<any[]>([]);
@@ -52,13 +53,25 @@ export default function InvoiceDetailPage({
 
   async function recordPayment(e: React.FormEvent) {
     e.preventDefault();
-    await fetch(`/api/invoices/${id}/pay/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ method: payMethod, amount: Number(payAmount) }),
-    });
-    setPayAmount("");
-    load();
+    setPayingPayment(true);
+    try {
+      const res = await fetch(`/api/invoices/${id}/pay/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ method: payMethod, amount: Number(payAmount) }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to record payment");
+        return;
+      }
+      setPayAmount("");
+      await load();
+    } catch {
+      alert("Failed to record payment — check your connection and try again.");
+    } finally {
+      setPayingPayment(false);
+    }
   }
 
   async function deleteInvoice() {
@@ -343,8 +356,11 @@ export default function InvoiceDetailPage({
               className="mt-1 w-32 rounded-lg border border-sand px-3 py-2 text-sm"
             />
           </div>
-          <button className="rounded-lg bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep">
-            Record payment
+          <button
+            disabled={payingPayment}
+            className="rounded-lg bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+          >
+            {payingPayment ? "Recording…" : "Record payment"}
           </button>
         </form>
       )}

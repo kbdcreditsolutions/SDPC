@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
 const updateSchema = z
@@ -140,17 +141,34 @@ export async function PUT(
   }
 
   try {
-    const updated = await prisma.patient.update({
-      where: { id, tenantId: session.tenantId! },
-      data: {
-        ...rest,
-        ...(referredByPatientId !== undefined
-          ? { referredByPatientId: referredByPatientId || null }
-          : {}),
-        ...(branchId !== undefined ? { branchId: branchId || null } : {}),
-        age,
-        ...(createdAt ? { createdAt } : {}),
-      },
+    const updated = await prisma.$transaction(async (tx) => {
+      const before = await tx.patient.findFirst({ where: { id, tenantId: session.tenantId! } });
+      const result = await tx.patient.update({
+        where: { id, tenantId: session.tenantId! },
+        data: {
+          ...rest,
+          ...(referredByPatientId !== undefined
+            ? { referredByPatientId: referredByPatientId || null }
+            : {}),
+          ...(branchId !== undefined ? { branchId: branchId || null } : {}),
+          age,
+          ...(createdAt ? { createdAt } : {}),
+        },
+      });
+      const changedFields = before
+        ? Object.keys(result).filter(
+            (k) => JSON.stringify((before as Record<string, unknown>)[k]) !== JSON.stringify((result as Record<string, unknown>)[k])
+          )
+        : [];
+      await logAudit(tx, {
+        tenantId: session.tenantId,
+        actorId: session.userId,
+        action: "UPDATE",
+        entity: "Patient",
+        entityId: result.id,
+        diff: { name: result.name, pid: result.pid, changedFields },
+      });
+      return result;
     });
     return NextResponse.json({ patient: updated });
   } catch {
@@ -167,9 +185,19 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    await prisma.patient.update({
-      where: { id, tenantId: session.tenantId! },
-      data: { deletedAt: new Date() },
+    await prisma.$transaction(async (tx) => {
+      const deleted = await tx.patient.update({
+        where: { id, tenantId: session.tenantId! },
+        data: { deletedAt: new Date() },
+      });
+      await logAudit(tx, {
+        tenantId: session.tenantId,
+        actorId: session.userId,
+        action: "DELETE",
+        entity: "Patient",
+        entityId: deleted.id,
+        diff: { name: deleted.name, phone: deleted.phone, pid: deleted.pid },
+      });
     });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {

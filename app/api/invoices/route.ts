@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
 export async function GET() {
@@ -64,25 +65,36 @@ export async function POST(req: NextRequest) {
   const count = await prisma.invoice.count({ where: { tenantId: session.tenantId! } });
   const number = `INV-${year}-${String(count + 1).padStart(5, "0")}`;
 
-  const invoice = await prisma.invoice.create({
-    data: {
-      tenantId: session.tenantId!,
-      patientId: parsed.data.patientId,
-      number,
-      subtotal,
-      gst,
-      total,
-      status: "UNPAID",
-      lineItems: {
-        create: items.map((i) => ({
-          description: i.description,
-          qty: i.qty,
-          unitPrice: i.unitPrice,
-          gstPercent: i.gstPercent,
-          lineTotal: i.lineTotal,
-        })),
+  const invoice = await prisma.$transaction(async (tx) => {
+    const created = await tx.invoice.create({
+      data: {
+        tenantId: session.tenantId!,
+        patientId: parsed.data.patientId,
+        number,
+        subtotal,
+        gst,
+        total,
+        status: "UNPAID",
+        lineItems: {
+          create: items.map((i) => ({
+            description: i.description,
+            qty: i.qty,
+            unitPrice: i.unitPrice,
+            gstPercent: i.gstPercent,
+            lineTotal: i.lineTotal,
+          })),
+        },
       },
-    },
+    });
+    await logAudit(tx, {
+      tenantId: session.tenantId,
+      actorId: session.userId,
+      action: "CREATE",
+      entity: "Invoice",
+      entityId: created.id,
+      diff: { number: created.number, total: Number(created.total), patientId: created.patientId },
+    });
+    return created;
   });
 
   return NextResponse.json({ invoice });

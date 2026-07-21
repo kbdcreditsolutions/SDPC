@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
 export async function GET(req: NextRequest) {
@@ -154,14 +155,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await tx.auditLog.create({
-      data: {
-        tenantId: session.tenantId,
-        actorId: session.userId,
-        action: "CREATE",
-        entity: "Patient",
-        entityId: created.id,
-      },
+    await logAudit(tx, {
+      tenantId: session.tenantId,
+      actorId: session.userId,
+      action: "CREATE",
+      entity: "Patient",
+      entityId: created.id,
+      diff: { name: created.name, phone: created.phone, pid: created.pid },
     });
 
     return created;

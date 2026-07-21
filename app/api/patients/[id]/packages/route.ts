@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
 const schema = z.object({
@@ -77,7 +78,7 @@ export async function POST(
       },
     });
 
-    return tx.package.create({
+    const created = await tx.package.create({
       data: {
         tenantId: session.tenantId!,
         patientId: id,
@@ -87,6 +88,17 @@ export async function POST(
         invoiceId: invoice.id,
       },
     });
+
+    await logAudit(tx, {
+      tenantId: session.tenantId,
+      actorId: session.userId,
+      action: "CREATE",
+      entity: "Package",
+      entityId: created.id,
+      diff: { name: created.name, price: Number(created.price), totalSessions: created.totalSessions, invoiceId: invoice.id },
+    });
+
+    return created;
   });
 
   return NextResponse.json({ package: { ...pkg, price: Number(pkg.price) } });
