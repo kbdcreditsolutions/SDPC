@@ -34,6 +34,12 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
+  const [patient, doctor] = await Promise.all([
+    prisma.patient.findFirst({ where: { id: parsed.data.patientId, tenantId: session.tenantId!, deletedAt: null } }),
+    prisma.user.findFirst({ where: { id: parsed.data.doctorId, tenantId: session.tenantId!, deletedAt: null } }),
+  ]);
+  if (!patient || !doctor) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const appt = await prisma.appointment.create({
     data: {
       tenantId: session.tenantId!,

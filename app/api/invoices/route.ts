@@ -52,6 +52,11 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
+  const patient = await prisma.patient.findFirst({
+    where: { id: parsed.data.patientId, tenantId: session.tenantId!, deletedAt: null },
+  });
+  if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const items = parsed.data.lineItems.map((li) => {
     const base = li.qty * li.unitPrice;
     const gst = base * (li.gstPercent / 100);

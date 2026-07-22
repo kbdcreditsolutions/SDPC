@@ -26,6 +26,11 @@ export async function POST(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
+  const patient = await prisma.patient.findFirst({
+    where: { id, tenantId: session.tenantId!, deletedAt: null },
+  });
+  if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const note = await prisma.clinicalNote.create({
     data: { patientId: id, authorId: session.userId, note: parsed.data.note, attachments: parsed.data.attachments || [] },
     include: { author: true },

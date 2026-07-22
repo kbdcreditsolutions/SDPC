@@ -73,6 +73,11 @@ export async function PUT(
   const existing = await prisma.invoice.findFirst({ where: { id, ...scope } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const patient = await prisma.patient.findFirst({
+    where: { id: parsed.data.patientId, tenantId: session.tenantId!, deletedAt: null },
+  });
+  if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   const items = parsed.data.lineItems.map((li) => {
     const base = li.qty * li.unitPrice;
     const gst = base * (li.gstPercent / 100);
