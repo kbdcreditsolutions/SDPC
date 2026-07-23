@@ -24,6 +24,7 @@ type Patient = {
   branch: { id: string; name: string } | null;
   billed: number;
   outstanding: number;
+  hasPackage: boolean;
 };
 
 type Branch = { id: string; name: string };
@@ -84,6 +85,8 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
   const [referrerResults, setReferrerResults] = useState<PatientRef[]>([]);
   const [referrerOpen, setReferrerOpen] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [duplicateWarning, setDuplicateWarning] = useState<{ id: string; pid: string | null; name: string; phone: string } | null>(null);
+  const [missingPackageOnly, setMissingPackageOnly] = useState(false);
 
   useEffect(() => {
     fetch("/api/branches/")
@@ -136,22 +139,31 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
 
   // Removed initial load in useEffect since we have initial data from server
 
-  async function handleAdd(e: React.FormEvent) {
+  function handleAdd(e: React.FormEvent) {
     e.preventDefault();
+    submitAdd(false);
+  }
+
+  async function submitAdd(confirmDuplicate: boolean) {
     setSaving(true);
     try {
       const res = await fetch("/api/patients/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, confirmDuplicate }),
       });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        if (res.status === 409 && err.duplicate) {
+          setDuplicateWarning(err.duplicate);
+          return;
+        }
         alert(err.error || "Failed to add patient");
         return;
       }
 
+      setDuplicateWarning(null);
       resetForm();
       setShowForm(false);
       // Clear any active search filter — otherwise the newly added patient can fail
@@ -402,15 +414,25 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         </Card>
       )}
 
-      <input
-        placeholder="Search by name, phone, PID…"
-        value={q}
-        onChange={(e) => {
-          setQ(e.target.value);
-          load(e.target.value);
-        }}
-        className="w-full max-w-md rounded-lg border border-sand bg-white px-4 py-2.5 text-sm outline-none focus:border-forest"
-      />
+      <div className="flex flex-wrap items-center gap-4">
+        <input
+          placeholder="Search by name, phone, PID…"
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            load(e.target.value);
+          }}
+          className="w-full max-w-md rounded-lg border border-sand bg-white px-4 py-2.5 text-sm outline-none focus:border-forest"
+        />
+        <label className="flex items-center gap-2 text-sm text-ink/70">
+          <input
+            type="checkbox"
+            checked={missingPackageOnly}
+            onChange={(e) => setMissingPackageOnly(e.target.checked)}
+          />
+          Missing package only
+        </label>
+      </div>
 
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
@@ -419,6 +441,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               <th className="px-6 py-3">Patient</th>
               <th className="px-6 py-3">Age/Gender</th>
               <th className="px-6 py-3">Joined</th>
+              <th className="px-6 py-3">Package</th>
               <th className="px-6 py-3">Reason</th>
               <th className="px-6 py-3">Branch</th>
               <th className="px-6 py-3">Lead</th>
@@ -428,7 +451,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
             </tr>
           </thead>
           <tbody>
-            {patients?.map((p) => (
+            {patients?.filter((p) => !missingPackageOnly || !p.hasPackage).map((p) => (
               <tr key={p.id} className="border-b border-sand/60 last:border-0 hover:bg-sand/20">
                 <td className="px-6 py-3">
                   <Link href={`/admin/patients/${p.id}`} className="font-medium hover:text-forest">
@@ -448,6 +471,13 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                     month: "short",
                     year: "numeric",
                   })}
+                </td>
+                <td className="px-6 py-3">
+                  {p.hasPackage ? (
+                    <span className="text-forest">Added</span>
+                  ) : (
+                    <span className="rounded-full bg-clay/10 px-2 py-0.5 text-xs font-medium text-clay">Missing</span>
+                  )}
                 </td>
                 <td className="px-6 py-3 text-ink/70">{p.reason ?? "—"}</td>
                 <td className="px-6 py-3 text-ink/70">{p.branch?.name ?? "—"}</td>
@@ -532,6 +562,38 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                 className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
               >
                 {deleting ? "Deleting…" : "Delete patient"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {duplicateWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
+          <Card className="w-full max-w-sm">
+            <h2 className="font-display text-lg">Possible duplicate patient</h2>
+            <p className="mt-2 text-sm text-ink/70">
+              A patient named <span className="font-medium text-ink">{duplicateWarning.name}</span> with phone{" "}
+              <span className="font-medium text-ink">{duplicateWarning.phone}</span> already exists
+              {duplicateWarning.pid ? ` (${duplicateWarning.pid})` : ""}. Create a new patient anyway, or use the
+              existing record instead?
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDuplicateWarning(null)}
+                disabled={saving}
+                className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => submitAdd(true)}
+                disabled={saving}
+                className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
+              >
+                {saving ? "Creating…" : "Create anyway"}
               </button>
             </div>
           </Card>

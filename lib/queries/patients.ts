@@ -20,16 +20,17 @@ export type PatientRow = {
   branch: { id: string; name: string } | null;
   billed: number;
   outstanding: number;
+  hasPackage: boolean;
 };
 
 export async function getPatients(q?: string): Promise<PatientRow[]> {
-  const { session } = await requireSession();
+  const { session, db } = await requireSession();
   if (!session) return [];
 
   const scope = tenantScope(session);
   const query = q?.trim();
 
-  const patients = await prisma.patient.findMany({
+  const patients = await db!.patient.findMany({
     where: {
       ...scope,
       deletedAt: null,
@@ -44,6 +45,7 @@ export async function getPatients(q?: string): Promise<PatientRow[]> {
     },
     include: {
       invoices: { where: { deletedAt: null } },
+      packages: { where: { deletedAt: null }, select: { id: true } },
       referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
       branch: { select: { id: true, name: true } },
     },
@@ -77,6 +79,7 @@ export async function getPatients(q?: string): Promise<PatientRow[]> {
       branch: p.branch,
       billed,
       outstanding,
+      hasPackage: p.packages.length > 0,
     };
   });
 }

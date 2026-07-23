@@ -3,16 +3,17 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
 
 export async function GET(req: NextRequest) {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
 
   const q = req.nextUrl.searchParams.get("q")?.trim();
   const scope = tenantScope(session);
 
-  const patients = await prisma.patient.findMany({
+  const patients = await db!.patient.findMany({
     where: {
       ...scope,
       deletedAt: null,
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
     },
     include: {
       invoices: { where: { deletedAt: null } },
+      packages: { where: { deletedAt: null }, select: { id: true } },
       referredByPatient: { select: { id: true, name: true, phone: true, deletedAt: true } },
       branch: { select: { id: true, name: true } },
     },
@@ -61,6 +63,7 @@ export async function GET(req: NextRequest) {
       branch: p.branch,
       billed,
       outstanding,
+      hasPackage: p.packages.length > 0,
     };
   });
 
@@ -69,8 +72,8 @@ export async function GET(req: NextRequest) {
 
 const createSchema = z
   .object({
-    name: z.string().min(1),
-    phone: z.string().min(1),
+    name: z.string().min(1).trim(),
+    phone: z.string().min(1).trim(),
     age: z.preprocess(
       (v) => (typeof v === "string" && v.trim() === "") || v === null ? undefined : v,
       z.coerce.number().int().min(0).max(150)
@@ -85,6 +88,7 @@ const createSchema = z
     branchId: z.union([z.literal(""), z.string()]).optional(),
     address: z.string().min(1),
     notes: z.string().optional(),
+    confirmDuplicate: z.boolean().optional(),
     createdAt: z
       .union([
         z.literal(""),
@@ -106,7 +110,7 @@ const createSchema = z
   });
 
 export async function POST(req: NextRequest) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
   const scope = tenantScope(session);
 
@@ -116,10 +120,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
-  const { age, createdAt, referredByPatientId, branchId, ...rest } = parsed.data;
+  const { age, createdAt, referredByPatientId, branchId, confirmDuplicate, ...rest } = parsed.data;
+
+  if (!confirmDuplicate) {
+    const duplicate = await db!.patient.findFirst({
+      where: {
+        ...scope,
+        deletedAt: null,
+        phone: rest.phone,
+        name: { equals: rest.name, mode: "insensitive" },
+      },
+      select: { id: true, pid: true, name: true, phone: true },
+    });
+    if (duplicate) {
+      return NextResponse.json({ error: "duplicate", duplicate }, { status: 409 });
+    }
+  }
 
   if (referredByPatientId) {
-    const referrer = await prisma.patient.findFirst({
+    const referrer = await db!.patient.findFirst({
       where: { id: referredByPatientId, ...scope, deletedAt: null },
     });
     if (!referrer) {
@@ -128,13 +147,14 @@ export async function POST(req: NextRequest) {
   }
 
   if (branchId) {
-    const branch = await prisma.branch.findFirst({ where: { id: branchId, ...scope, deletedAt: null } });
+    const branch = await db!.branch.findFirst({ where: { id: branchId, ...scope, deletedAt: null } });
     if (!branch) {
       return NextResponse.json({ error: "Branch not found" }, { status: 400 });
     }
   }
 
   const patient = await prisma.$transaction(async (tx) => {
+    await setTenantContext(tx, session.tenantId!);
     // Atomic counter: Prisma serializes concurrent UPDATEs to the same row,
     // so two simultaneous patient creations can never be assigned the same PID.
     const tenant = await tx.tenant.update({
