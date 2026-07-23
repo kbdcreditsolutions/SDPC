@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/guard";
 import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
+import { zodErrorMessage } from "@/lib/zodError";
 const schema = z.object({
   method: z.enum(["Cash", "UPI", "Card", "Netbanking"]),
   amount: z.coerce.number().positive(),
@@ -19,7 +20,7 @@ export async function POST(
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
   if (!session.tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

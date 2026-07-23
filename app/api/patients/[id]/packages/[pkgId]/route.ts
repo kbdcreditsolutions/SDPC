@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/guard";
 import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
+import { zodErrorMessage } from "@/lib/zodError";
 const schema = z.object({
   action: z.enum(["freeze", "unfreeze", "extend", "refund", "edit"]),
   extendDays: z.coerce.number().int().positive().optional(),
@@ -23,7 +24,7 @@ export async function PATCH(
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
   const pkg = await prisma.package.findFirst({ where: { id: pkgId, tenantId: session.tenantId! } });
   if (!pkg) return NextResponse.json({ error: "Not found" }, { status: 404 });

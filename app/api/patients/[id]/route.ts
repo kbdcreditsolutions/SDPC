@@ -6,10 +6,11 @@ import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
+import { zodErrorMessage } from "@/lib/zodError";
 const updateSchema = z
   .object({
-    name: z.string().min(1),
-    phone: z.string().min(1),
+    name: z.string().min(1).trim(),
+    phone: z.string().min(1).trim(),
     age: z.preprocess(
       (v) => (typeof v === "string" && v.trim() === "") || v === null ? undefined : v,
       z.coerce.number().int().min(0).max(150)
@@ -37,10 +38,6 @@ const updateSchema = z
         ),
       ])
       .optional(),
-  })
-  .refine((data) => data.leadSource !== "PATIENT_REFERRAL" || !!data.referredByPatientId, {
-    message: "Select which existing patient referred them",
-    path: ["referredByPatientId"],
   });
 
 export async function GET(
@@ -117,7 +114,7 @@ export async function PUT(
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+    return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
   }
   const { age, createdAt, referredByPatientId, branchId, ...rest } = parsed.data;
 

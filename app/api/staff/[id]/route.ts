@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { z } from "zod";
+import { zodErrorMessage } from "@/lib/zodError";
 
 const schema = z.object({ isActive: z.boolean() });
 
@@ -15,7 +16,7 @@ export async function PATCH(
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
   const user = await prisma.user.findFirst({ where: { id, tenantId: session.tenantId! } });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });

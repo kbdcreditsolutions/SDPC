@@ -317,8 +317,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
             {form.leadSource === "PATIENT_REFERRAL" && (
               <div className="relative">
                 <input
-                  required
-                  placeholder="Referring patient — name or phone"
+                  placeholder="Referring patient — name or phone (optional)"
                   value={referrerQuery}
                   onChange={(e) => {
                     setReferrerQuery(e.target.value);
@@ -333,7 +332,9 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                   <p className="mt-1 text-xs text-forest">Linked ✓</p>
                 )}
                 {!form.referredByPatientId && referrerQuery.trim().length >= 2 && (
-                  <p className="mt-1 text-xs text-clay">Select a match below to link them.</p>
+                  <p className="mt-1 text-xs text-ink/60">
+                    No match in records — that&apos;s fine, you can still save. Pick a result below only if this person is an existing patient.
+                  </p>
                 )}
                 {referrerOpen && referrerResults.length > 0 && (
                   <ul className="absolute z-10 mt-1 w-full rounded-lg border border-sand bg-white shadow-lg">

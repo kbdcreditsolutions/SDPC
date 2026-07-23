@@ -5,6 +5,7 @@ import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
 import { z } from "zod";
 
+import { zodErrorMessage } from "@/lib/zodError";
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -68,7 +69,7 @@ export async function PUT(
   }
 
   const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
   const existing = await prisma.invoice.findFirst({ where: { id, ...scope } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });

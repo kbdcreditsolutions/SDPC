@@ -5,6 +5,7 @@ import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
 import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
+import { zodErrorMessage } from "@/lib/zodError";
 
 export async function GET(req: NextRequest) {
   const { session, response, db } = await requireSession();
@@ -103,10 +104,6 @@ const createSchema = z
         ),
       ])
       .optional(),
-  })
-  .refine((data) => data.leadSource !== "PATIENT_REFERRAL" || !!data.referredByPatientId, {
-    message: "Select which existing patient referred them",
-    path: ["referredByPatientId"],
   });
 
 export async function POST(req: NextRequest) {
@@ -117,7 +114,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+    return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
   }
 
   const { age, createdAt, referredByPatientId, branchId, confirmDuplicate, ...rest } = parsed.data;
