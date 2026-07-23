@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
+import { DateTimePicker } from "@/components/DateTimePicker";
 
 type PackageSession = {
   id: string;
@@ -13,7 +14,7 @@ type PackageSession = {
   package: { id: string; name: string; totalSessions: number; usedSessions: number };
 };
 
-type PatientOption = { id: string; name: string };
+type PatientOption = { id: string; name: string; phone: string };
 type DoctorOption = { id: string; name: string };
 type PackageOption = {
   id: string;
@@ -34,11 +35,24 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ patientId: "", packageId: "", doctorId: "", date: "", notes: "" });
   const [saving, setSaving] = useState(false);
+  const [patientQuery, setPatientQuery] = useState("");
+  const [patientOpen, setPatientOpen] = useState(false);
+  const patientBoxRef = useRef<HTMLDivElement>(null);
+  const [showPkgForm, setShowPkgForm] = useState(false);
+  const [pkgForm, setPkgForm] = useState({ name: "10 Session Package", totalSessions: "10", price: "8000", paymentMode: "Cash" });
+  const [savingPkg, setSavingPkg] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/sessions/");
     const data = await res.json();
     setSessions(data.sessions);
+  }, []);
+
+  const loadPatientPackages = useCallback(async (patientId: string) => {
+    const res = await fetch(`/api/patients/${patientId}/packages/`);
+    const data = await res.json();
+    setPatientPackages(data.packages ?? []);
+    return data.packages ?? [];
   }, []);
 
   useEffect(() => {
@@ -55,10 +69,19 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
       setPatientPackages([]);
       return;
     }
-    fetch(`/api/patients/${form.patientId}/packages/`)
-      .then((r) => r.json())
-      .then((d) => setPatientPackages(d.packages ?? []));
-  }, [form.patientId]);
+    loadPatientPackages(form.patientId);
+  }, [form.patientId, loadPatientPackages]);
+
+  useEffect(() => {
+    if (!patientOpen) return;
+    function onClickOutside(e: MouseEvent) {
+      if (patientBoxRef.current && !patientBoxRef.current.contains(e.target as Node)) {
+        setPatientOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [patientOpen]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -77,11 +100,39 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
       }
 
       setForm({ patientId: "", packageId: "", doctorId: "", date: "", notes: "" });
+      setPatientQuery("");
       setPatientPackages([]);
+      setShowPkgForm(false);
       setShowForm(false);
       load();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function addPackageInline() {
+    if (!form.patientId) return;
+    setSavingPkg(true);
+    try {
+      const res = await fetch(`/api/patients/${form.patientId}/packages/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pkgForm),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to add package");
+        return;
+      }
+      const created = await res.json();
+      await loadPatientPackages(form.patientId);
+      setForm((f) => ({ ...f, packageId: created.package?.id ?? f.packageId }));
+      setPkgForm({ name: "10 Session Package", totalSessions: "10", price: "8000", paymentMode: "Cash" });
+      setShowPkgForm(false);
+    } catch {
+      alert("Failed to add package — check your connection and try again.");
+    } finally {
+      setSavingPkg(false);
     }
   }
 
@@ -125,21 +176,66 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
       {showForm && (
         <Card>
           <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
+            <div className="relative" ref={patientBoxRef}>
               <label className="text-xs text-ink/60">Patient*</label>
-              <select
-                required
-                value={form.patientId}
-                onChange={(e) => setForm({ ...form, patientId: e.target.value, packageId: "" })}
-                className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm"
-              >
-                <option value="">— select —</option>
-                {patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              {form.patientId ? (
+                <div className="mt-1 flex items-center justify-between rounded-lg border border-sand bg-sand/20 px-3 py-2 text-sm">
+                  <span>{patients.find((p) => p.id === form.patientId)?.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm({ ...form, patientId: "", packageId: "" });
+                      setPatientQuery("");
+                      setShowPkgForm(false);
+                    }}
+                    className="text-xs text-ink/50 hover:text-clay"
+                  >
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <input
+                  required
+                  placeholder="Search by name or phone…"
+                  value={patientQuery}
+                  onChange={(e) => {
+                    setPatientQuery(e.target.value);
+                    setPatientOpen(true);
+                  }}
+                  onFocus={() => setPatientOpen(true)}
+                  className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm"
+                />
+              )}
+              {patientOpen && !form.patientId && patientQuery.trim().length > 0 && (
+                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-sand bg-white shadow-lg">
+                  {patients
+                    .filter((p) => {
+                      const q = patientQuery.trim().toLowerCase();
+                      return p.name.toLowerCase().includes(q) || p.phone?.includes(q);
+                    })
+                    .slice(0, 20)
+                    .map((p) => (
+                      <li key={p.id}>
+                        <button
+                          type="button"
+                          onMouseDown={() => {
+                            setForm({ ...form, patientId: p.id, packageId: "" });
+                            setPatientQuery("");
+                            setPatientOpen(false);
+                            setShowPkgForm(false);
+                          }}
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-sand/40"
+                        >
+                          {p.name} <span className="text-ink/60">{p.phone}</span>
+                        </button>
+                      </li>
+                    ))}
+                  {patients.filter((p) => {
+                    const q = patientQuery.trim().toLowerCase();
+                    return p.name.toLowerCase().includes(q) || p.phone?.includes(q);
+                  }).length === 0 && <li className="px-3 py-2 text-sm text-ink/50">No matches</li>}
+                </ul>
+              )}
             </div>
             <div>
               <label className="text-xs text-ink/60">Package*</label>
@@ -162,8 +258,76 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
                   </option>
                 ))}
               </select>
-              {form.patientId && patientPackages.length === 0 && (
-                <p className="mt-1 text-xs text-clay">No packages for this patient yet.</p>
+              {form.patientId && patientPackages.length === 0 && !showPkgForm && (
+                <p className="mt-1 text-xs text-clay">
+                  No packages for this patient yet.{" "}
+                  <button
+                    type="button"
+                    onClick={() => setShowPkgForm(true)}
+                    className="font-medium text-forest hover:underline"
+                  >
+                    + New package
+                  </button>
+                </p>
+              )}
+              {form.patientId && showPkgForm && (
+                <div className="mt-2 rounded-lg border border-sand bg-sand/20 p-3">
+                  <p className="text-[10px] uppercase tracking-widest text-ink/60">New package</p>
+                  <p className="mt-1 text-xs text-ink/60">Full amount is invoiced and marked paid immediately.</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <input
+                      required
+                      placeholder="Package name"
+                      value={pkgForm.name}
+                      onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })}
+                      className="col-span-2 rounded-lg border border-sand px-2 py-1.5 text-sm"
+                    />
+                    <input
+                      required
+                      type="number"
+                      placeholder="Sessions"
+                      value={pkgForm.totalSessions}
+                      onChange={(e) => setPkgForm({ ...pkgForm, totalSessions: e.target.value })}
+                      className="rounded-lg border border-sand px-2 py-1.5 text-sm"
+                    />
+                    <input
+                      required
+                      type="number"
+                      placeholder="Price"
+                      value={pkgForm.price}
+                      onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })}
+                      className="rounded-lg border border-sand px-2 py-1.5 text-sm"
+                    />
+                    <select
+                      required
+                      value={pkgForm.paymentMode}
+                      onChange={(e) => setPkgForm({ ...pkgForm, paymentMode: e.target.value })}
+                      className="rounded-lg border border-sand px-2 py-1.5 text-sm"
+                    >
+                      <option value="Cash">Cash</option>
+                      <option value="UPI">UPI</option>
+                      <option value="Card">Card</option>
+                      <option value="Netbanking">Netbanking</option>
+                    </select>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled={savingPkg}
+                        onClick={addPackageInline}
+                        className="flex-1 rounded-lg bg-forest px-3 py-1.5 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+                      >
+                        {savingPkg ? "Adding…" : "Add"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowPkgForm(false)}
+                        className="rounded-lg px-3 py-1.5 text-sm text-ink/60 hover:bg-sand/60"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
             <div>
@@ -184,12 +348,9 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
             </div>
             <div>
               <label className="text-xs text-ink/60">Date &amp; Time</label>
-              <input
-                type="datetime-local"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm"
-              />
+              <div className="mt-1">
+                <DateTimePicker value={form.date} onChange={(date) => setForm({ ...form, date })} />
+              </div>
             </div>
             <div className="col-span-full">
               <label className="text-xs text-ink/60">Session notes</label>
