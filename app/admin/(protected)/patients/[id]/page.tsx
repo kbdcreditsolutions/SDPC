@@ -42,6 +42,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [savingPkgEdit, setSavingPkgEdit] = useState(false);
   const [deletePkgTarget, setDeletePkgTarget] = useState<{ id: string; name: string } | null>(null);
   const [deletingPkg, setDeletingPkg] = useState(false);
+  const [confirmExtraPkg, setConfirmExtraPkg] = useState(false);
+  const [savingPkg, setSavingPkg] = useState(false);
 
   useEffect(() => {
     fetch("/api/doctors/")
@@ -68,15 +70,34 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
   if (!patient) return <p className="text-sm text-ink/70">Loading…</p>;
 
-  async function addPackage(e: React.FormEvent) {
-    e.preventDefault();
-    await fetch(`/api/patients/${id}/packages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pkgForm),
-    });
-    setPkgForm({ name: "", totalSessions: "", price: "", paymentMode: "Cash" });
-    load();
+  async function addPackage(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (savingPkg) return;
+    const hasActivePackage = patient.packages.some((p: any) => p.status === "ACTIVE");
+    if (hasActivePackage && !confirmExtraPkg) {
+      setConfirmExtraPkg(true);
+      return;
+    }
+    setSavingPkg(true);
+    try {
+      const res = await fetch(`/api/patients/${id}/packages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pkgForm),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to add package");
+        return;
+      }
+      setPkgForm({ name: "", totalSessions: "", price: "", paymentMode: "Cash" });
+      setConfirmExtraPkg(false);
+      load();
+    } catch {
+      alert("Failed to add package — check your connection and try again.");
+    } finally {
+      setSavingPkg(false);
+    }
   }
 
   async function packageAction(pkgId: string, action: string) {
@@ -577,8 +598,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 <option value="Card">Card</option>
                 <option value="Netbanking">Netbanking</option>
               </select>
-              <button className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep">
-                Add
+              <button
+                disabled={savingPkg}
+                className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+              >
+                {savingPkg ? "Adding…" : "Add"}
               </button>
             </form>
           </Card>
@@ -746,6 +770,49 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
               >
                 {deletingPkg ? "Deleting…" : "Delete package"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {confirmExtraPkg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
+          <Card className="w-full max-w-sm">
+            <h2 className="font-display text-lg">Add another package?</h2>
+            <p className="mt-2 text-sm text-ink/70">
+              This patient already has{" "}
+              <span className="font-medium text-ink">
+                {patient.packages.filter((p: any) => p.status === "ACTIVE").length} active package(s)
+              </span>{" "}
+              totalling{" "}
+              <span className="font-medium text-ink">
+                {inr(
+                  patient.packages
+                    .filter((p: any) => p.status === "ACTIVE")
+                    .reduce((s: number, p: any) => s + Number(p.price), 0)
+                )}
+              </span>
+              . If they just need more sessions on the existing package, use{" "}
+              <span className="font-medium text-ink">Extend</span> instead — this creates a brand new
+              package and invoice.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmExtraPkg(false)}
+                disabled={savingPkg}
+                className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => addPackage()}
+                disabled={savingPkg}
+                className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
+              >
+                {savingPkg ? "Adding…" : "Create anyway"}
               </button>
             </div>
           </Card>
