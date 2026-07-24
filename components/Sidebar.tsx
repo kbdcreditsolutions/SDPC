@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { PulseMark } from "@/components/PulseMark";
+import { ChangePasswordButton } from "@/components/ChangePasswordButton";
 import { NavItem } from "@/lib/nav";
 
 export function Sidebar({
@@ -71,9 +72,10 @@ export function Sidebar({
             <div className="text-xs text-ink/70">{roleLabel}</div>
           </div>
         </div>
+        <ChangePasswordButton className="mt-3 w-full rounded-lg px-3 py-2 text-left text-sm text-ink/60 hover:bg-sand/60 hover:text-ink" />
         <button
           onClick={signOut}
-          className="mt-3 w-full rounded-lg px-3 py-2 text-left text-sm text-ink/60 hover:bg-sand/60 hover:text-ink"
+          className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-ink/60 hover:bg-sand/60 hover:text-ink"
         >
           Sign out
         </button>
