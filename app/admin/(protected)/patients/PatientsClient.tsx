@@ -201,6 +201,30 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
     }
   }
 
+  function startEdit(p: Patient) {
+    setEditingId(p.id);
+    const joinedDate = localDateInput(new Date(p.createdAt));
+    setOriginalCreatedAt(joinedDate);
+    setForm({
+      name: p.name,
+      phone: p.phone,
+      age: p.age?.toString() || "",
+      gender: p.gender || "",
+      reason: p.reason || "",
+      leadSource: p.leadSource || "WALK_IN",
+      referralDoctor: p.referralDoctor || "",
+      referredByPatientId: p.referredByPatientId || "",
+      branchId: p.branchId || "",
+      address: p.address || "",
+      createdAt: joinedDate,
+    });
+    setReferrerQuery(p.referredByPatient ? `${p.referredByPatient.name} (${p.referredByPatient.phone})` : "");
+    setReferrerResults([]);
+    setReferrerOpen(false);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleEdit(e: React.FormEvent) {
     e.preventDefault();
     if (!editingId) return;
@@ -430,7 +454,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
         </label>
       </div>
 
-      <Card className="overflow-x-auto p-0">
+      <Card className="hidden overflow-x-auto p-0 md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-sand text-left text-[10px] uppercase tracking-widest text-ink/65">
@@ -490,34 +514,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                 </td>
                 <td className="px-6 py-3 text-right">
                   <div className="flex justify-end gap-3 text-xs font-medium">
-                    <button
-                      onClick={() => {
-                        setEditingId(p.id);
-                        const joinedDate = localDateInput(new Date(p.createdAt));
-                        setOriginalCreatedAt(joinedDate);
-                        setForm({
-                          name: p.name,
-                          phone: p.phone,
-                          age: p.age?.toString() || "",
-                          gender: p.gender || "",
-                          reason: p.reason || "",
-                          leadSource: p.leadSource || "WALK_IN",
-                          referralDoctor: p.referralDoctor || "",
-                          referredByPatientId: p.referredByPatientId || "",
-                          branchId: p.branchId || "",
-                          address: p.address || "",
-                          createdAt: joinedDate,
-                        });
-                        setReferrerQuery(
-                          p.referredByPatient ? `${p.referredByPatient.name} (${p.referredByPatient.phone})` : ""
-                        );
-                        setReferrerResults([]);
-                        setReferrerOpen(false);
-                        setShowForm(true);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="text-ink/70 hover:text-ink"
-                    >
+                    <button onClick={() => startEdit(p)} className="text-ink/70 hover:text-ink">
                       Edit
                     </button>
                     <button
@@ -530,9 +527,100 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                 </td>
               </tr>
             ))}
+            {patients?.filter((p) => !missingPackageOnly || !p.hasPackage).length === 0 && (
+              <tr>
+                <td colSpan={10} className="px-6 py-6 text-center text-sm text-ink/65">
+                  No patients found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </Card>
+
+      <div className="space-y-3 md:hidden">
+        {patients?.filter((p) => !missingPackageOnly || !p.hasPackage).map((p) => (
+          <Card key={p.id} className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Link href={`/admin/patients/${p.id}`} className="font-medium hover:text-forest">
+                  {p.name}
+                </Link>
+                <div className="text-xs text-ink/70">
+                  {p.phone}
+                  {p.pid ? ` · ${p.pid}` : ""}
+                </div>
+              </div>
+              {p.hasPackage ? (
+                <span className="shrink-0 text-xs text-forest">Added</span>
+              ) : (
+                <span className="shrink-0 rounded-full bg-clay/10 px-2 py-0.5 text-xs font-medium text-clay">
+                  Missing
+                </span>
+              )}
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              <div>
+                <dt className="text-ink/50">Age/Gender</dt>
+                <dd className="text-ink/80">
+                  {p.age ?? "—"}
+                  {p.gender ? ` · ${p.gender}` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-ink/50">Joined</dt>
+                <dd className="text-ink/80">
+                  {new Date(p.createdAt).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-ink/50">Branch</dt>
+                <dd className="text-ink/80">{p.branch?.name ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-ink/50">Lead</dt>
+                <dd className="text-ink/80">{p.leadSource ? LEAD_LABELS[p.leadSource] : "—"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-ink/50">Reason</dt>
+                <dd className="text-ink/80">{p.reason ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-ink/50">Billed</dt>
+                <dd className="font-data text-ink/80">{inr(p.billed)}</dd>
+              </div>
+              <div>
+                <dt className="text-ink/50">Outstanding</dt>
+                <dd className="font-data">
+                  {p.outstanding > 0 ? (
+                    <span className="text-clay">{inr(p.outstanding)}</span>
+                  ) : (
+                    <span className="text-forest">Cleared</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
+            <div className="mt-3 flex gap-4 border-t border-sand/60 pt-3 text-xs font-medium">
+              <button onClick={() => startEdit(p)} className="text-ink/70 hover:text-ink">
+                Edit
+              </button>
+              <button
+                onClick={() => setDeleteTarget({ id: p.id, name: p.name })}
+                className="text-clay/70 hover:text-clay"
+              >
+                Delete
+              </button>
+            </div>
+          </Card>
+        ))}
+        {patients?.filter((p) => !missingPackageOnly || !p.hasPackage).length === 0 && (
+          <p className="text-sm text-ink/65">No patients found.</p>
+        )}
+      </div>
 
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
