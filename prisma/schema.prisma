@@ -206,8 +206,8 @@ model PackageSession {
   package   Package   @relation(fields: [packageId], references: [id])
   patientId String
   patient   Patient   @relation(fields: [patientId], references: [id])
-  doctorId  String
-  doctor    User      @relation("SessionTherapist", fields: [doctorId], references: [id])
+  doctorId  String?
+  doctor    User?     @relation("SessionTherapist", fields: [doctorId], references: [id])
   date      DateTime  @default(now())
   notes     String?
   createdAt DateTime  @default(now())

@@ -10,7 +10,7 @@ type PackageSession = {
   date: string;
   notes: string | null;
   patient: { id: string; name: string };
-  doctor: { id: string; name: string; specialty: string | null };
+  doctor: { id: string; name: string; specialty: string | null } | null;
   package: { id: string; name: string; totalSessions: number; usedSessions: number };
 };
 
@@ -41,6 +41,23 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
   const [showPkgForm, setShowPkgForm] = useState(false);
   const [pkgForm, setPkgForm] = useState({ name: "10 Session Package", totalSessions: "10", price: "8000", paymentMode: "Cash" });
   const [savingPkg, setSavingPkg] = useState(false);
+
+  const [showBulkForm, setShowBulkForm] = useState(false);
+  const [bulkForm, setBulkForm] = useState({
+    patientId: "",
+    packageId: "",
+    count: "1",
+    includeDate: false,
+    date: "",
+    includeDoctor: false,
+    doctorId: "",
+    notes: "",
+  });
+  const [bulkPackages, setBulkPackages] = useState<PackageOption[]>([]);
+  const [bulkPatientQuery, setBulkPatientQuery] = useState("");
+  const [bulkPatientOpen, setBulkPatientOpen] = useState(false);
+  const bulkPatientBoxRef = useRef<HTMLDivElement>(null);
+  const [savingBulk, setSavingBulk] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/sessions/");
@@ -83,6 +100,27 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [patientOpen]);
 
+  useEffect(() => {
+    if (!bulkForm.patientId) {
+      setBulkPackages([]);
+      return;
+    }
+    fetch(`/api/patients/${bulkForm.patientId}/packages/`)
+      .then((r) => r.json())
+      .then((d) => setBulkPackages(d.packages ?? []));
+  }, [bulkForm.patientId]);
+
+  useEffect(() => {
+    if (!bulkPatientOpen) return;
+    function onClickOutside(e: MouseEvent) {
+      if (bulkPatientBoxRef.current && !bulkPatientBoxRef.current.contains(e.target as Node)) {
+        setBulkPatientOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [bulkPatientOpen]);
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -107,6 +145,48 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
       load();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleBulkCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingBulk(true);
+    try {
+      const res = await fetch("/api/sessions/bulk/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId: bulkForm.patientId,
+          packageId: bulkForm.packageId,
+          count: bulkForm.count,
+          date: bulkForm.includeDate ? bulkForm.date : "",
+          doctorId: bulkForm.includeDoctor ? bulkForm.doctorId : undefined,
+          notes: bulkForm.notes,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to log sessions");
+        return;
+      }
+
+      setBulkForm({
+        patientId: "",
+        packageId: "",
+        count: "1",
+        includeDate: false,
+        date: "",
+        includeDoctor: false,
+        doctorId: "",
+        notes: "",
+      });
+      setBulkPatientQuery("");
+      setBulkPackages([]);
+      setShowBulkForm(false);
+      load();
+    } finally {
+      setSavingBulk(false);
     }
   }
 
@@ -165,13 +245,198 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
           <h1 className="font-display text-3xl">Sessions</h1>
           <p className="mt-1 text-sm text-ink/60">{sessions?.length ?? 0} sessions logged</p>
         </div>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
-        >
-          + Log Session
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setShowBulkForm(false);
+              setShowForm((s) => !s);
+            }}
+            className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
+          >
+            + Log Session
+          </button>
+          <button
+            onClick={() => {
+              setShowForm(false);
+              setShowBulkForm((s) => !s);
+            }}
+            className="rounded-full border border-forest px-5 py-2 text-sm font-medium text-forest hover:bg-forest/10"
+          >
+            + Bulk Log
+          </button>
+        </div>
       </div>
+
+      {showBulkForm && (
+        <Card>
+          <form onSubmit={handleBulkCreate} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="relative" ref={bulkPatientBoxRef}>
+              <label className="text-xs text-ink/60">Patient*</label>
+              {bulkForm.patientId ? (
+                <div className="mt-1 flex items-center justify-between rounded-lg border border-sand bg-sand/20 px-3 py-2 text-sm">
+                  <span>{patients.find((p) => p.id === bulkForm.patientId)?.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBulkForm({ ...bulkForm, patientId: "", packageId: "" });
+                      setBulkPatientQuery("");
+                    }}
+                    className="text-xs text-ink/50 hover:text-clay"
+                  >
+                    Change
+                  </button>
+                </div>
+              ) : (
+                <input
+                  required
+                  placeholder="Search by name or phone…"
+                  value={bulkPatientQuery}
+                  onChange={(e) => {
+                    setBulkPatientQuery(e.target.value);
+                    setBulkPatientOpen(true);
+                  }}
+                  onFocus={() => setBulkPatientOpen(true)}
+                  className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm"
+                />
+              )}
+              {bulkPatientOpen && !bulkForm.patientId && bulkPatientQuery.trim().length > 0 && (
+                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-sand bg-white shadow-lg">
+                  {patients
+                    .filter((p) => {
+                      const q = bulkPatientQuery.trim().toLowerCase();
+                      return p.name.toLowerCase().includes(q) || p.phone?.includes(q);
+                    })
+                    .slice(0, 20)
+                    .map((p) => (
+                      <li key={p.id}>
+                        <button
+                          type="button"
+                          onMouseDown={() => {
+                            setBulkForm({ ...bulkForm, patientId: p.id, packageId: "" });
+                            setBulkPatientQuery("");
+                            setBulkPatientOpen(false);
+                          }}
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-sand/40"
+                        >
+                          {p.name} <span className="text-ink/60">{p.phone}</span>
+                        </button>
+                      </li>
+                    ))}
+                  {patients.filter((p) => {
+                    const q = bulkPatientQuery.trim().toLowerCase();
+                    return p.name.toLowerCase().includes(q) || p.phone?.includes(q);
+                  }).length === 0 && <li className="px-3 py-2 text-sm text-ink/50">No matches</li>}
+                </ul>
+              )}
+            </div>
+            <div>
+              <label className="text-xs text-ink/60">Package*</label>
+              <select
+                required
+                disabled={!bulkForm.patientId}
+                value={bulkForm.packageId}
+                onChange={(e) => setBulkForm({ ...bulkForm, packageId: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm disabled:opacity-50"
+              >
+                <option value="">— select —</option>
+                {bulkPackages.map((pkg) => (
+                  <option
+                    key={pkg.id}
+                    value={pkg.id}
+                    disabled={pkg.status !== "ACTIVE" || pkg.usedSessions >= pkg.totalSessions}
+                  >
+                    {pkg.name} ({pkg.usedSessions}/{pkg.totalSessions}
+                    {pkg.status !== "ACTIVE" ? ` · ${pkg.status.toLowerCase()}` : ""})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-ink/60">Number of sessions*</label>
+              <input
+                required
+                type="number"
+                min={1}
+                max={60}
+                value={bulkForm.count}
+                onChange={(e) => setBulkForm({ ...bulkForm, count: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="col-span-full flex flex-wrap gap-6 rounded-lg border border-sand bg-sand/20 p-3">
+              <div className="flex-1 min-w-[220px]">
+                <label className="flex items-center gap-2 text-xs font-medium text-ink/70">
+                  <input
+                    type="checkbox"
+                    checked={bulkForm.includeDate}
+                    onChange={(e) => setBulkForm({ ...bulkForm, includeDate: e.target.checked })}
+                  />
+                  Set a date (applies to all)
+                </label>
+                {bulkForm.includeDate && (
+                  <div className="mt-2">
+                    <DateTimePicker value={bulkForm.date} onChange={(date) => setBulkForm({ ...bulkForm, date })} />
+                  </div>
+                )}
+                {!bulkForm.includeDate && (
+                  <p className="mt-1 text-xs text-ink/50">Unchecked: logged as today.</p>
+                )}
+              </div>
+              <div className="flex-1 min-w-[220px]">
+                <label className="flex items-center gap-2 text-xs font-medium text-ink/70">
+                  <input
+                    type="checkbox"
+                    checked={bulkForm.includeDoctor}
+                    onChange={(e) => setBulkForm({ ...bulkForm, includeDoctor: e.target.checked })}
+                  />
+                  Assign a therapist
+                </label>
+                {bulkForm.includeDoctor && (
+                  <select
+                    required
+                    value={bulkForm.doctorId}
+                    onChange={(e) => setBulkForm({ ...bulkForm, doctorId: e.target.value })}
+                    className="mt-2 w-full rounded-lg border border-sand px-3 py-2 text-sm"
+                  >
+                    <option value="">— select —</option>
+                    {doctors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {!bulkForm.includeDoctor && (
+                  <p className="mt-1 text-xs text-ink/50">Unchecked: sessions left unassigned.</p>
+                )}
+              </div>
+            </div>
+            <div className="col-span-full">
+              <label className="text-xs text-ink/60">Notes (applies to all)</label>
+              <textarea
+                value={bulkForm.notes}
+                onChange={(e) => setBulkForm({ ...bulkForm, notes: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm min-h-[70px]"
+              />
+            </div>
+            <div className="col-span-full flex gap-3">
+              <button
+                disabled={savingBulk}
+                className="rounded-lg bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+              >
+                {savingBulk ? "Saving…" : "Log sessions"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowBulkForm(false)}
+                className="rounded-lg px-5 py-2 text-sm text-ink/60 hover:bg-sand/60"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Card>
+      )}
 
       {showForm && (
         <Card>
@@ -398,7 +663,7 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
                       {s.patient.name}
                     </Link>
                     <p className="text-xs text-ink/70">
-                      {s.doctor.name} · {s.doctor.specialty ?? "—"}
+                      {s.doctor ? `${s.doctor.name} · ${s.doctor.specialty ?? "—"}` : "Unassigned"}
                     </p>
                   </div>
                   <button onClick={() => handleUndo(s.id)} className="text-xs text-clay/70 hover:text-clay">
