@@ -86,7 +86,7 @@ export default function MarketingClient({ initialData }: { initialData: any }) {
               <option value="WORKSHOP">Workshop</option>
             </FloatingSelect>
             <FloatingInput required type="date" label="Start date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-            <FloatingInput required type="date" label="End date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+            <FloatingInput required type="date" label="End date" min={form.startDate || undefined} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
             <FloatingInput required type="number" label="Cost" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} />
             <FloatingInput type="number" label="Leads" value={form.leads} onChange={(e) => setForm({ ...form, leads: e.target.value })} />
             <FloatingInput type="number" label="Conversions" value={form.conversions} onChange={(e) => setForm({ ...form, conversions: e.target.value })} />

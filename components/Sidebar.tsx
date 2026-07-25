@@ -39,7 +39,9 @@ export function Sidebar({
       <nav className="mt-8 flex flex-1 flex-col gap-1">
         {items.map((item) => {
           const active =
-            item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+            item.href === "/admin"
+              ? pathname === "/admin" || pathname === "/admin/"
+              : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
