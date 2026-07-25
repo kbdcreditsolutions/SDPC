@@ -22,7 +22,7 @@ export async function getRatings(doctorIdParam?: string) {
   }
 
   const ratings = await db!.rating.findMany({
-    where: { ...scope, doctorId },
+    where: { ...scope, doctorId, deletedAt: null },
     orderBy: { date: "desc" },
   });
 

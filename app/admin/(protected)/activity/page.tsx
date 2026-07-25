@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/Card";
 import { getAuditLog } from "@/lib/queries/audit";
 
-const ENTITY_FILTERS = ["Patient", "Invoice", "Payment", "Package", "Appointment", "PackageSession"];
+const ENTITY_FILTERS = ["Patient", "Invoice", "Payment", "Package", "Appointment", "PackageSession", "Rating"];
 
 const ACTION_LABEL: Record<string, string> = {
   CREATE: "Added",
