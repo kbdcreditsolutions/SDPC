@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/Card";
 import { toValue } from "@/components/DateTimePicker";
+import { PatientCombobox, type PatientOption } from "@/components/PatientCombobox";
 
 type Appointment = {
   id: string;
@@ -22,7 +23,7 @@ const emptyForm = { patientId: "", doctorId: "", datetime: "", durationMin: "45"
 
 export default function AppointmentsClient({ initialAppointments }: { initialAppointments: Appointment[] }) {
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
-  const [patients, setPatients] = useState<{ id: string; name: string }[]>([]);
+  const [patients, setPatients] = useState<PatientOption[]>([]);
   const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -139,22 +140,12 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
             {editingId ? "Edit appointment" : "New appointment"}
           </p>
           <form onSubmit={handleSubmit} className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="text-xs text-ink/60">Patient*</label>
-              <select
-                required
-                value={form.patientId}
-                onChange={(e) => setForm({ ...form, patientId: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-sand px-3 py-2 text-sm"
-              >
-                <option value="">— select —</option>
-                {patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <PatientCombobox
+              required
+              patients={patients}
+              value={form.patientId}
+              onChange={(patientId) => setForm({ ...form, patientId })}
+            />
             <div>
               <label className="text-xs text-ink/60">Doctor*</label>
               <select

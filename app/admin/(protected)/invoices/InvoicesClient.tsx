@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { FloatingInput } from "@/components/FloatingField";
+import { PatientCombobox, type PatientOption } from "@/components/PatientCombobox";
 
 type Invoice = {
   id: string;
@@ -25,7 +26,7 @@ const fmtDate = (d: string) =>
 
 export default function InvoicesClient({ initialInvoices }: { initialInvoices: Invoice[] }) {
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
-  const [patients, setPatients] = useState<{ id: string; name: string }[]>([]);
+  const [patients, setPatients] = useState<PatientOption[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [patientId, setPatientId] = useState("");
   const [items, setItems] = useState<LineItemForm[]>([
@@ -105,21 +106,8 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
       {showForm && (
         <Card>
           <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <label className="text-xs text-ink/60">Patient*</label>
-              <select
-                required
-                value={patientId}
-                onChange={(e) => setPatientId(e.target.value)}
-                className="mt-1 w-full max-w-sm rounded-lg border border-sand px-3 py-2 text-sm"
-              >
-                <option value="">— select —</option>
-                {patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+            <div className="max-w-sm">
+              <PatientCombobox required patients={patients} value={patientId} onChange={setPatientId} />
             </div>
             <div className="space-y-2">
               {items.map((it, i) => (
