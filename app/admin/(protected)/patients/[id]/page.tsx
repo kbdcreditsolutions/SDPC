@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/Card";
 import { computeSessionOrdinals } from "@/lib/sessionOrdinal";
 import { FloatingInput, FloatingSelect, FloatingTextarea } from "@/components/FloatingField";
+import { DateTimePicker, toValue } from "@/components/DateTimePicker";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmtDate = (d: string) =>
@@ -46,6 +47,9 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [deletingPkg, setDeletingPkg] = useState(false);
   const [confirmExtraPkg, setConfirmExtraPkg] = useState(false);
   const [savingPkg, setSavingPkg] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [sessionEditForm, setSessionEditForm] = useState({ doctorId: "", date: "", notes: "" });
+  const [savingSessionEdit, setSavingSessionEdit] = useState(false);
 
   useEffect(() => {
     fetch("/api/doctors/")
@@ -185,6 +189,32 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       return;
     }
     load();
+  }
+
+  function startEditSession(s: any) {
+    setEditingSessionId(s.id);
+    setSessionEditForm({ doctorId: s.doctor?.id ?? "", date: toValue(new Date(s.date)), notes: s.notes ?? "" });
+  }
+
+  async function saveSessionEdit(e: React.FormEvent, sessionId: string) {
+    e.preventDefault();
+    setSavingSessionEdit(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sessionEditForm),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to update session");
+        return;
+      }
+      setEditingSessionId(null);
+      load();
+    } finally {
+      setSavingSessionEdit(false);
+    }
   }
 
   async function handleDeleteInvoice(invId: string) {
@@ -511,12 +541,15 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                       </option>
                     ))}
                   </FloatingSelect>
-                  <FloatingInput
-                    type="datetime-local"
-                    label="Date & time"
-                    value={sessionForm.date}
-                    onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })}
-                  />
+                  <div>
+                    <label className="text-xs text-ink/60">Date &amp; time</label>
+                    <div className="mt-1">
+                      <DateTimePicker
+                        value={sessionForm.date}
+                        onChange={(date) => setSessionForm({ ...sessionForm, date })}
+                      />
+                    </div>
+                  </div>
                   <FloatingInput
                     label="Notes (optional)"
                     value={sessionForm.notes}
@@ -545,20 +578,76 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                   {(() => {
                     const ordinal = computeSessionOrdinals(pkg.sessions);
                     return pkg.sessions.map((s: any) => (
-                      <li key={s.id} className="flex items-start justify-between text-xs">
-                        <div>
-                          <span className="font-medium text-ink">
-                            Session {ordinal.get(s.id)} of {pkg.totalSessions}
-                          </span>
-                          <span className="text-ink/70">
-                            {" "}
-                            · {fmtDate(s.date)} · {s.doctor ? s.doctor.name : "Unassigned"}
-                          </span>
-                          {s.notes && <p className="mt-0.5 text-ink/60">{s.notes}</p>}
-                        </div>
-                        <button onClick={() => undoSession(s.id)} className="text-clay/70 hover:text-clay">
-                          Undo
-                        </button>
+                      <li key={s.id} className="text-xs">
+                        {editingSessionId === s.id ? (
+                          <form
+                            onSubmit={(e) => saveSessionEdit(e, s.id)}
+                            className="grid grid-cols-1 gap-2 rounded-lg border border-sand bg-sand/20 p-3 sm:grid-cols-3"
+                          >
+                            <FloatingSelect
+                              label="Therapist"
+                              value={sessionEditForm.doctorId}
+                              onChange={(e) => setSessionEditForm({ ...sessionEditForm, doctorId: e.target.value })}
+                            >
+                              <option value=""></option>
+                              {doctors.map((d) => (
+                                <option key={d.id} value={d.id}>
+                                  {d.name}
+                                </option>
+                              ))}
+                            </FloatingSelect>
+                            <div>
+                              <label className="text-xs text-ink/60">Date &amp; time</label>
+                              <div className="mt-1">
+                                <DateTimePicker
+                                  value={sessionEditForm.date}
+                                  onChange={(date) => setSessionEditForm({ ...sessionEditForm, date })}
+                                />
+                              </div>
+                            </div>
+                            <FloatingInput
+                              label="Notes (optional)"
+                              value={sessionEditForm.notes}
+                              onChange={(e) => setSessionEditForm({ ...sessionEditForm, notes: e.target.value })}
+                            />
+                            <div className="col-span-full flex gap-3">
+                              <button
+                                disabled={savingSessionEdit}
+                                className="rounded-lg bg-forest px-4 py-2 text-xs font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+                              >
+                                {savingSessionEdit ? "Saving…" : "Save changes"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingSessionId(null)}
+                                className="rounded-lg px-4 py-2 text-xs text-ink/60 hover:bg-sand/60"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <span className="font-medium text-ink">
+                                Session {ordinal.get(s.id)} of {pkg.totalSessions}
+                              </span>
+                              <span className="text-ink/70">
+                                {" "}
+                                · {fmtDate(s.date)} · {s.doctor ? s.doctor.name : "Unassigned"}
+                              </span>
+                              {s.notes && <p className="mt-0.5 text-ink/60">{s.notes}</p>}
+                            </div>
+                            <div className="flex shrink-0 gap-3">
+                              <button onClick={() => startEditSession(s)} className="text-ink/70 hover:text-ink">
+                                Edit
+                              </button>
+                              <button onClick={() => undoSession(s.id)} className="text-clay/70 hover:text-clay">
+                                Undo
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </li>
                     ));
                   })()}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/Card";
+import { toValue } from "@/components/DateTimePicker";
 
 type Appointment = {
   id: string;
@@ -16,11 +17,6 @@ type Appointment = {
 const fmtDay = (d: Date) =>
   d.toLocaleDateString("en-IN", { weekday: "long", day: "2-digit", month: "long" });
 
-const localDateTimeInput = (iso: string) => {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
 
 const emptyForm = { patientId: "", doctorId: "", datetime: "", durationMin: "45", notes: "" };
 
@@ -60,7 +56,7 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
     setForm({
       patientId: a.patient.id,
       doctorId: a.doctor.id,
-      datetime: localDateTimeInput(a.datetime),
+      datetime: toValue(new Date(a.datetime)),
       durationMin: String(a.durationMin),
       notes: a.notes ?? "",
     });

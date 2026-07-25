@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
-import { DateTimePicker } from "@/components/DateTimePicker";
+import { DateTimePicker, toValue } from "@/components/DateTimePicker";
 import { computeSessionOrdinals } from "@/lib/sessionOrdinal";
 import { FloatingInput, FloatingSelect } from "@/components/FloatingField";
 
@@ -44,6 +44,10 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
   const [showPkgForm, setShowPkgForm] = useState(false);
   const [pkgForm, setPkgForm] = useState({ name: "10 Session Package", totalSessions: "10", price: "8000", paymentMode: "Cash" });
   const [savingPkg, setSavingPkg] = useState(false);
+
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [sessionEditForm, setSessionEditForm] = useState({ doctorId: "", date: "", notes: "" });
+  const [savingSessionEdit, setSavingSessionEdit] = useState(false);
 
   const [showBulkForm, setShowBulkForm] = useState(false);
   const [bulkForm, setBulkForm] = useState({
@@ -216,6 +220,32 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
       alert("Failed to add package — check your connection and try again.");
     } finally {
       setSavingPkg(false);
+    }
+  }
+
+  function startEditSession(s: PackageSession) {
+    setEditingSessionId(s.id);
+    setSessionEditForm({ doctorId: s.doctor?.id ?? "", date: toValue(new Date(s.date)), notes: s.notes ?? "" });
+  }
+
+  async function saveSessionEdit(e: React.FormEvent, sessionId: string) {
+    e.preventDefault();
+    setSavingSessionEdit(true);
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sessionEditForm),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to update session");
+        return;
+      }
+      setEditingSessionId(null);
+      load();
+    } finally {
+      setSavingSessionEdit(false);
     }
   }
 
@@ -665,33 +695,86 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
             <span className="rounded-full bg-sand px-2 py-0.5 text-xs">{items.length}</span>
           </div>
           <div className="flex flex-wrap gap-4">
-            {items.map((s) => (
-              <Card key={s.id} className="w-80">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs text-ink/70">
-                      {new Date(s.date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                    <Link href={`/admin/patients/${s.patient.id}`} className="mt-1 font-medium hover:text-forest">
-                      {s.patient.name}
-                    </Link>
-                    <p className="text-xs text-ink/70">
-                      {s.doctor ? `${s.doctor.name} · ${s.doctor.specialty ?? "—"}` : "Unassigned"}
-                    </p>
+            {items.map((s) =>
+              editingSessionId === s.id ? (
+                <Card key={s.id} className="w-80">
+                  <form onSubmit={(e) => saveSessionEdit(e, s.id)} className="space-y-2">
+                    <FloatingSelect
+                      label="Therapist"
+                      value={sessionEditForm.doctorId}
+                      onChange={(e) => setSessionEditForm({ ...sessionEditForm, doctorId: e.target.value })}
+                    >
+                      <option value=""></option>
+                      {doctors.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </FloatingSelect>
+                    <div>
+                      <label className="text-xs text-ink/60">Date &amp; time</label>
+                      <div className="mt-1">
+                        <DateTimePicker
+                          value={sessionEditForm.date}
+                          onChange={(date) => setSessionEditForm({ ...sessionEditForm, date })}
+                        />
+                      </div>
+                    </div>
+                    <FloatingInput
+                      label="Notes (optional)"
+                      value={sessionEditForm.notes}
+                      onChange={(e) => setSessionEditForm({ ...sessionEditForm, notes: e.target.value })}
+                    />
+                    <div className="flex gap-3">
+                      <button
+                        disabled={savingSessionEdit}
+                        className="rounded-lg bg-forest px-4 py-2 text-xs font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+                      >
+                        {savingSessionEdit ? "Saving…" : "Save changes"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingSessionId(null)}
+                        className="rounded-lg px-4 py-2 text-xs text-ink/60 hover:bg-sand/60"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </Card>
+              ) : (
+                <Card key={s.id} className="w-80">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs text-ink/70">
+                        {new Date(s.date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                      <Link href={`/admin/patients/${s.patient.id}`} className="mt-1 font-medium hover:text-forest">
+                        {s.patient.name}
+                      </Link>
+                      <p className="text-xs text-ink/70">
+                        {s.doctor ? `${s.doctor.name} · ${s.doctor.specialty ?? "—"}` : "Unassigned"}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-3 text-xs">
+                      <button onClick={() => startEditSession(s)} className="text-ink/70 hover:text-ink">
+                        Edit
+                      </button>
+                      <button onClick={() => handleUndo(s.id)} className="text-clay/70 hover:text-clay">
+                        Undo
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => handleUndo(s.id)} className="text-xs text-clay/70 hover:text-clay">
-                    Undo
-                  </button>
-                </div>
-                <div className="mt-3 flex items-center justify-between text-xs text-ink/70">
-                  <span>
-                    {s.package.name} · Session {sessionOrdinal.get(s.id) ?? "—"}
-                  </span>
-                  <span>of {s.package.totalSessions}</span>
-                </div>
-                {s.notes && <p className="mt-3 text-xs text-ink/70">{s.notes}</p>}
-              </Card>
-            ))}
+                  <div className="mt-3 flex items-center justify-between text-xs text-ink/70">
+                    <span>
+                      {s.package.name} · Session {sessionOrdinal.get(s.id) ?? "—"}
+                    </span>
+                    <span>of {s.package.totalSessions}</span>
+                  </div>
+                  {s.notes && <p className="mt-3 text-xs text-ink/70">{s.notes}</p>}
+                </Card>
+              )
+            )}
           </div>
         </div>
       ))}
