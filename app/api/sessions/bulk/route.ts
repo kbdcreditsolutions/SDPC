@@ -72,14 +72,19 @@ export async function POST(req: NextRequest) {
       `;
       if (claim === 0) throw new Error("PACKAGE_EXHAUSTED");
 
+      // Stagger each row's date by 1s so same-batch sessions don't tie on the
+      // ordinal sort — Postgres freezes now() to transaction start, so an
+      // unstaggered createMany would give every row in this batch the exact
+      // same `date` (and `createdAt`), making their display order ambiguous.
+      const base = date ? date.getTime() : Date.now();
       await tx.packageSession.createMany({
-        data: Array.from({ length: count }).map(() => ({
+        data: Array.from({ length: count }).map((_, i) => ({
           patientId: rest.patientId,
           packageId: rest.packageId,
           doctorId: doctorId ?? null,
           notes: rest.notes,
           tenantId: session.tenantId!,
-          ...(date ? { date } : {}),
+          date: new Date(base + i * 1000),
         })),
       });
 

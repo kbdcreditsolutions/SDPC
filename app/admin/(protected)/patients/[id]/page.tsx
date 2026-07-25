@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
+import { computeSessionOrdinals } from "@/lib/sessionOrdinal";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmtDate = (d: string) =>
@@ -544,18 +545,26 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
               {pkg.sessions?.length > 0 && (
                 <ul className="mt-4 space-y-2 border-t border-sand/60 pt-4">
-                  {pkg.sessions.map((s: any) => (
-                    <li key={s.id} className="flex items-start justify-between text-xs">
-                      <div>
-                        <span className="font-medium text-ink">{fmtDate(s.date)}</span>
-                        <span className="text-ink/70"> · {s.doctor ? s.doctor.name : "Unassigned"}</span>
-                        {s.notes && <p className="mt-0.5 text-ink/60">{s.notes}</p>}
-                      </div>
-                      <button onClick={() => undoSession(s.id)} className="text-clay/70 hover:text-clay">
-                        Undo
-                      </button>
-                    </li>
-                  ))}
+                  {(() => {
+                    const ordinal = computeSessionOrdinals(pkg.sessions);
+                    return pkg.sessions.map((s: any) => (
+                      <li key={s.id} className="flex items-start justify-between text-xs">
+                        <div>
+                          <span className="font-medium text-ink">
+                            Session {ordinal.get(s.id)} of {pkg.totalSessions}
+                          </span>
+                          <span className="text-ink/70">
+                            {" "}
+                            · {fmtDate(s.date)} · {s.doctor ? s.doctor.name : "Unassigned"}
+                          </span>
+                          {s.notes && <p className="mt-0.5 text-ink/60">{s.notes}</p>}
+                        </div>
+                        <button onClick={() => undoSession(s.id)} className="text-clay/70 hover:text-clay">
+                          Undo
+                        </button>
+                      </li>
+                    ));
+                  })()}
                 </ul>
               )}
             </Card>

@@ -4,10 +4,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { DateTimePicker } from "@/components/DateTimePicker";
+import { computeSessionOrdinals } from "@/lib/sessionOrdinal";
 
 type PackageSession = {
   id: string;
   date: string;
+  createdAt: string;
   notes: string | null;
   patient: { id: string; name: string };
   doctor: { id: string; name: string; specialty: string | null } | null;
@@ -246,10 +248,7 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
       byPackage.get(s.package.id)!.push(s);
     }
     for (const pkgSessions of byPackage.values()) {
-      const chronological = [...pkgSessions].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      );
-      chronological.forEach((s, i) => sessionOrdinal.set(s.id, i + 1));
+      for (const [id, n] of computeSessionOrdinals(pkgSessions)) sessionOrdinal.set(id, n);
     }
   }
 
