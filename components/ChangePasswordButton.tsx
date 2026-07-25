@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/Card";
+import { FloatingInput } from "@/components/FloatingField";
 
 export function ChangePasswordButton({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
@@ -60,30 +61,27 @@ export function ChangePasswordButton({ className }: { className?: string }) {
           <Card className="w-full max-w-sm">
             <h2 className="font-display text-lg">Change password</h2>
             <form onSubmit={submit} className="mt-4 space-y-3">
-              <input
+              <FloatingInput
                 required
                 type="password"
-                placeholder="Current password"
+                label="Current password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full rounded-lg border border-sand px-3 py-2 text-sm"
               />
-              <input
+              <FloatingInput
                 required
                 type="password"
                 minLength={8}
-                placeholder="New password (min 8 characters)"
+                label="New password (min 8 characters)"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full rounded-lg border border-sand px-3 py-2 text-sm"
               />
-              <input
+              <FloatingInput
                 required
                 type="password"
-                placeholder="Confirm new password"
+                label="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-lg border border-sand px-3 py-2 text-sm"
               />
               {error && <p className="text-xs text-clay">{error}</p>}
               <div className="mt-2 flex justify-end gap-3">

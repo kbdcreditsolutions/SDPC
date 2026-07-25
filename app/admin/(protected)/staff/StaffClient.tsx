@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/Card";
+import { FloatingInput, FloatingSelect } from "@/components/FloatingField";
 
 type StaffUser = {
   id: string;
@@ -99,31 +100,29 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
       {showForm && (
         <Card>
           <form onSubmit={handleAdd} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            <input
+            <FloatingInput
               required
-              placeholder="Full name"
+              label="Full name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
-            <select
+            <FloatingSelect
+              label="Role"
               value={form.role}
               onChange={(e) => {
                 const role = e.target.value;
                 setForm({ ...form, role, hasAccess: role === "CLINIC_ADMIN" ? true : form.hasAccess });
               }}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             >
               <option value="STAFF">Staff</option>
               <option value="DOCTOR">Doctor</option>
               <option value="CLINIC_ADMIN">Clinic Admin</option>
-            </select>
+            </FloatingSelect>
             {form.role === "DOCTOR" && (
-              <input
-                placeholder="Specialty"
+              <FloatingInput
+                label="Specialty"
                 value={form.specialty}
                 onChange={(e) => setForm({ ...form, specialty: e.target.value })}
-                className="rounded-lg border border-sand px-3 py-2 text-sm"
               />
             )}
             <label className="flex items-center gap-2 text-sm text-ink/70">
@@ -144,21 +143,19 @@ export default function StaffClient({ initialUsers }: { initialUsers: StaffUser[
             )}
             {form.hasAccess && (
               <>
-                <input
+                <FloatingInput
                   required
                   type="email"
-                  placeholder="Email"
+                  label="Email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="rounded-lg border border-sand px-3 py-2 text-sm"
                 />
-                <input
+                <FloatingInput
                   required
                   type="password"
-                  placeholder="Temp password"
+                  label="Temp password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="rounded-lg border border-sand px-3 py-2 text-sm"
                 />
               </>
             )}

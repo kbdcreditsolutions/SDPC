@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
+import { FloatingInput, FloatingSelect } from "@/components/FloatingField";
 
 type PatientRef = { id: string; name: string; phone: string };
 
@@ -254,56 +255,52 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
       {showForm && (
         <Card>
           <form onSubmit={editingId ? handleEdit : handleAdd} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <input
+            <FloatingInput
               required
-              placeholder="Full name"
+              label="Full name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
-            <input
+            <FloatingInput
               required
-              placeholder="Phone"
+              label="Phone"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
-            <input
+            <FloatingInput
               required
               type="number"
               min={0}
               max={150}
-              placeholder="Age"
+              label="Age"
               value={form.age}
               onChange={(e) => setForm({ ...form, age: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
-            <select
+            <FloatingSelect
               required
+              label="Gender"
               value={form.gender}
               onChange={(e) => setForm({ ...form, gender: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             >
-              <option value="" disabled>Gender</option>
+              <option value="" disabled hidden></option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
-            </select>
-            <input
+            </FloatingSelect>
+            <FloatingInput
               required
-              placeholder="Reason for consultation"
+              label="Reason for consultation"
               value={form.reason}
               onChange={(e) => setForm({ ...form, reason: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
-            <select
+            <FloatingSelect
+              label="Lead source"
               value={form.leadSource}
               onChange={(e) => {
                 const leadSource = e.target.value;
                 setForm({ ...form, leadSource, referredByPatientId: "" });
                 setReferrerQuery("");
               }}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             >
               {LEAD_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -313,11 +310,11 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               {form.leadSource && LEGACY_LEAD_LABELS[form.leadSource] && (
                 <option value={form.leadSource}>{LEGACY_LEAD_LABELS[form.leadSource]}</option>
               )}
-            </select>
+            </FloatingSelect>
             {form.leadSource === "PATIENT_REFERRAL" && (
               <div className="relative">
-                <input
-                  placeholder="Referring patient — name or phone (optional)"
+                <FloatingInput
+                  label="Referring patient — name or phone (optional)"
                   value={referrerQuery}
                   onChange={(e) => {
                     setReferrerQuery(e.target.value);
@@ -326,7 +323,6 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                   }}
                   onFocus={() => setReferrerOpen(true)}
                   onBlur={() => setTimeout(() => setReferrerOpen(false), 150)}
-                  className="w-full rounded-lg border border-sand px-3 py-2 text-sm"
                 />
                 {form.referredByPatientId && (
                   <p className="mt-1 text-xs text-forest">Linked ✓</p>
@@ -357,30 +353,29 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                 )}
               </div>
             )}
-            <input
-              placeholder="Referral doctor (optional)"
+            <FloatingInput
+              label="Referral doctor (optional)"
               value={form.referralDoctor}
               onChange={(e) => setForm({ ...form, referralDoctor: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             />
-            <select
+            <FloatingSelect
+              label="Branch"
               value={form.branchId}
               onChange={(e) => setForm({ ...form, branchId: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm"
             >
-              <option value="">Branch</option>
+              <option value=""></option>
               {branches.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
                 </option>
               ))}
-            </select>
-            <input
+            </FloatingSelect>
+            <FloatingInput
               required
-              placeholder="Address"
+              label="Address"
+              wrapperClassName="sm:col-span-2 lg:col-span-3"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="rounded-lg border border-sand px-3 py-2 text-sm sm:col-span-2 lg:col-span-3"
             />
             <label className="flex flex-col gap-1 text-xs text-ink/70">
               Joined date
@@ -416,14 +411,14 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
       )}
 
       <div className="flex flex-wrap items-center gap-4">
-        <input
-          placeholder="Search by name, phone, PID…"
+        <FloatingInput
+          label="Search by name, phone, PID…"
+          wrapperClassName="w-full max-w-md"
           value={q}
           onChange={(e) => {
             setQ(e.target.value);
             load(e.target.value);
           }}
-          className="w-full max-w-md rounded-lg border border-sand bg-white px-4 py-2.5 text-sm outline-none focus:border-forest"
         />
         <label className="flex items-center gap-2 text-sm text-ink/70">
           <input

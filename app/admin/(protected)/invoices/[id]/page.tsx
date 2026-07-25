@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/Card";
+import { FloatingInput } from "@/components/FloatingField";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmtDate = (d: string) =>
@@ -167,32 +168,28 @@ export default function InvoiceDetailPage({
             <div className="space-y-2">
               {items.map((it, i) => (
                 <div key={i} className="grid grid-cols-4 gap-2">
-                  <input
-                    placeholder="Description"
+                  <FloatingInput
+                    label="Description"
                     value={it.description}
                     onChange={(e) => updateItem(i, "description", e.target.value)}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
-                  <input
+                  <FloatingInput
                     type="number"
-                    placeholder="Qty"
+                    label="Qty"
                     value={it.qty}
                     onChange={(e) => updateItem(i, "qty", e.target.value)}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
-                  <input
+                  <FloatingInput
                     type="number"
-                    placeholder="Unit price"
+                    label="Unit price"
                     value={it.unitPrice}
                     onChange={(e) => updateItem(i, "unitPrice", e.target.value)}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
-                  <input
+                  <FloatingInput
                     type="number"
-                    placeholder="GST %"
+                    label="GST %"
                     value={it.gstPercent}
                     onChange={(e) => updateItem(i, "gstPercent", e.target.value)}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
                 </div>
               ))}

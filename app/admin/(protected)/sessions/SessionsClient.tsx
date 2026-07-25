@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/Card";
 import { DateTimePicker } from "@/components/DateTimePicker";
 import { computeSessionOrdinals } from "@/lib/sessionOrdinal";
+import { FloatingInput, FloatingSelect } from "@/components/FloatingField";
 
 type PackageSession = {
   id: string;
@@ -554,40 +555,38 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
                   <p className="text-[10px] uppercase tracking-widest text-ink/60">New package</p>
                   <p className="mt-1 text-xs text-ink/60">Full amount is invoiced and marked paid immediately.</p>
                   <div className="mt-2 grid grid-cols-2 gap-2">
-                    <input
+                    <FloatingInput
                       required
-                      placeholder="Package name"
+                      label="Package name"
+                      wrapperClassName="col-span-2"
                       value={pkgForm.name}
                       onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })}
-                      className="col-span-2 rounded-lg border border-sand px-2 py-1.5 text-sm"
                     />
-                    <input
+                    <FloatingInput
                       required
                       type="number"
-                      placeholder="Sessions"
+                      label="Sessions"
                       value={pkgForm.totalSessions}
                       onChange={(e) => setPkgForm({ ...pkgForm, totalSessions: e.target.value })}
-                      className="rounded-lg border border-sand px-2 py-1.5 text-sm"
                     />
-                    <input
+                    <FloatingInput
                       required
                       type="number"
-                      placeholder="Price"
+                      label="Price"
                       value={pkgForm.price}
                       onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })}
-                      className="rounded-lg border border-sand px-2 py-1.5 text-sm"
                     />
-                    <select
+                    <FloatingSelect
                       required
+                      label="Payment mode"
                       value={pkgForm.paymentMode}
                       onChange={(e) => setPkgForm({ ...pkgForm, paymentMode: e.target.value })}
-                      className="rounded-lg border border-sand px-2 py-1.5 text-sm"
                     >
                       <option value="Cash">Cash</option>
                       <option value="UPI">UPI</option>
                       <option value="Card">Card</option>
                       <option value="Netbanking">Netbanking</option>
-                    </select>
+                    </FloatingSelect>
                     <div className="flex gap-2">
                       <button
                         type="button"

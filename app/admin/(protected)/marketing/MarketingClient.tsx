@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Card, StatCard } from "@/components/Card";
+import { FloatingInput, FloatingSelect } from "@/components/FloatingField";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmtDate = (d: string) =>
@@ -79,17 +80,17 @@ export default function MarketingClient({ initialData }: { initialData: any }) {
       {showForm && (
         <Card>
           <form onSubmit={handleAdd} className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            <input required placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm" />
-            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm">
+            <FloatingInput required label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <FloatingSelect label="Type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
               <option value="CAMPAIGN">Campaign</option>
               <option value="WORKSHOP">Workshop</option>
-            </select>
-            <input required type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm" />
-            <input required type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm" />
-            <input required type="number" placeholder="Cost" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm" />
-            <input type="number" placeholder="Leads" value={form.leads} onChange={(e) => setForm({ ...form, leads: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm" />
-            <input type="number" placeholder="Conversions" value={form.conversions} onChange={(e) => setForm({ ...form, conversions: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm" />
-            <input type="number" placeholder="Revenue" value={form.revenue} onChange={(e) => setForm({ ...form, revenue: e.target.value })} className="rounded-lg border border-sand px-3 py-2 text-sm" />
+            </FloatingSelect>
+            <FloatingInput required type="date" label="Start date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+            <FloatingInput required type="date" label="End date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+            <FloatingInput required type="number" label="Cost" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} />
+            <FloatingInput type="number" label="Leads" value={form.leads} onChange={(e) => setForm({ ...form, leads: e.target.value })} />
+            <FloatingInput type="number" label="Conversions" value={form.conversions} onChange={(e) => setForm({ ...form, conversions: e.target.value })} />
+            <FloatingInput type="number" label="Revenue" value={form.revenue} onChange={(e) => setForm({ ...form, revenue: e.target.value })} />
             <div className="col-span-full flex gap-3">
               <button disabled={saving} className="rounded-lg bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60">
                 {saving ? "Saving…" : "Save campaign"}

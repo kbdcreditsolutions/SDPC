@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { computeSessionOrdinals } from "@/lib/sessionOrdinal";
+import { FloatingInput, FloatingSelect, FloatingTextarea } from "@/components/FloatingField";
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const fmtDate = (d: string) =>
@@ -455,30 +456,27 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
               {editingPkgId === pkg.id && (
                 <form onSubmit={(e) => savePkgEdit(e, pkg.id)} className="mt-4 grid grid-cols-1 gap-3 border-t border-sand/60 pt-4 sm:grid-cols-3">
-                  <input
+                  <FloatingInput
                     required
-                    placeholder="Package name"
+                    label="Package name"
                     value={pkgEditForm.name}
                     onChange={(e) => setPkgEditForm({ ...pkgEditForm, name: e.target.value })}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
-                  <input
+                  <FloatingInput
                     required
                     type="number"
                     min={1}
-                    placeholder="Total sessions"
+                    label="Total sessions"
                     value={pkgEditForm.totalSessions}
                     onChange={(e) => setPkgEditForm({ ...pkgEditForm, totalSessions: e.target.value })}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
-                  <input
+                  <FloatingInput
                     required
                     type="number"
                     min={1}
-                    placeholder="Price"
+                    label="Price"
                     value={pkgEditForm.price}
                     onChange={(e) => setPkgEditForm({ ...pkgEditForm, price: e.target.value })}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
                   <div className="col-span-full flex gap-3">
                     <button
@@ -500,30 +498,29 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
               {sessionFormPkg === pkg.id && (
                 <form onSubmit={(e) => logSession(e, pkg.id)} className="mt-4 grid grid-cols-1 gap-3 border-t border-sand/60 pt-4 sm:grid-cols-3">
-                  <select
+                  <FloatingSelect
                     required
+                    label="Therapist"
                     value={sessionForm.doctorId}
                     onChange={(e) => setSessionForm({ ...sessionForm, doctorId: e.target.value })}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   >
-                    <option value="">— therapist —</option>
+                    <option value=""></option>
                     {doctors.map((d) => (
                       <option key={d.id} value={d.id}>
                         {d.name}
                       </option>
                     ))}
-                  </select>
-                  <input
+                  </FloatingSelect>
+                  <FloatingInput
                     type="datetime-local"
+                    label="Date & time"
                     value={sessionForm.date}
                     onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
-                  <input
-                    placeholder="Notes (optional)"
+                  <FloatingInput
+                    label="Notes (optional)"
                     value={sessionForm.notes}
                     onChange={(e) => setSessionForm({ ...sessionForm, notes: e.target.value })}
-                    className="rounded-lg border border-sand px-3 py-2 text-sm"
                   />
                   <div className="col-span-full flex gap-3">
                     <button
@@ -573,40 +570,37 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">New package</p>
             <p className="mt-1 text-xs text-ink/65">Full amount is invoiced and marked paid immediately.</p>
             <form onSubmit={addPackage} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-5">
-              <input
+              <FloatingInput
                 required
-                placeholder="Package name"
+                label="Package name"
                 value={pkgForm.name}
                 onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })}
-                className="rounded-lg border border-sand px-3 py-2 text-sm"
               />
-              <input
+              <FloatingInput
                 required
                 type="number"
-                placeholder="Sessions"
+                label="Sessions"
                 value={pkgForm.totalSessions}
                 onChange={(e) => setPkgForm({ ...pkgForm, totalSessions: e.target.value })}
-                className="rounded-lg border border-sand px-3 py-2 text-sm"
               />
-              <input
+              <FloatingInput
                 required
                 type="number"
-                placeholder="Price"
+                label="Price"
                 value={pkgForm.price}
                 onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })}
-                className="rounded-lg border border-sand px-3 py-2 text-sm"
               />
-              <select
+              <FloatingSelect
                 required
+                label="Payment mode"
                 value={pkgForm.paymentMode}
                 onChange={(e) => setPkgForm({ ...pkgForm, paymentMode: e.target.value })}
-                className="rounded-lg border border-sand px-3 py-2 text-sm"
               >
                 <option value="Cash">Cash</option>
                 <option value="UPI">UPI</option>
                 <option value="Card">Card</option>
                 <option value="Netbanking">Netbanking</option>
-              </select>
+              </FloatingSelect>
               <button
                 disabled={savingPkg}
                 className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
@@ -649,11 +643,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           )}
           <Card>
             <form onSubmit={addNote} className="space-y-3">
-              <textarea
-                placeholder="Add a clinical note…"
+              <FloatingTextarea
+                label="Add a clinical note…"
+                wrapperClassName="w-full"
                 value={noteForm}
                 onChange={(e) => setNoteForm(e.target.value)}
-                className="w-full rounded-lg border border-sand px-3 py-2 text-sm min-h-[80px]"
+                className="min-h-[80px]"
               />
               <div className="flex items-center justify-between">
                 <input
