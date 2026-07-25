@@ -238,6 +238,21 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
     groups.get(key)!.push(s);
   }
 
+  const sessionOrdinal = new Map<string, number>();
+  {
+    const byPackage = new Map<string, PackageSession[]>();
+    for (const s of sessions ?? []) {
+      if (!byPackage.has(s.package.id)) byPackage.set(s.package.id, []);
+      byPackage.get(s.package.id)!.push(s);
+    }
+    for (const pkgSessions of byPackage.values()) {
+      const chronological = [...pkgSessions].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      chronological.forEach((s, i) => sessionOrdinal.set(s.id, i + 1));
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -670,21 +685,11 @@ export default function SessionsClient({ initialSessions }: { initialSessions: P
                     Undo
                   </button>
                 </div>
-                <div className="mt-3">
-                  <div className="flex items-center justify-between text-xs text-ink/70">
-                    <span>{s.package.name}</span>
-                    <span>
-                      {s.package.usedSessions}/{s.package.totalSessions}
-                    </span>
-                  </div>
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-sand">
-                    <div
-                      className="h-full bg-forest"
-                      style={{
-                        width: `${Math.min(100, (s.package.usedSessions / s.package.totalSessions) * 100)}%`,
-                      }}
-                    />
-                  </div>
+                <div className="mt-3 flex items-center justify-between text-xs text-ink/70">
+                  <span>
+                    {s.package.name} · Session {sessionOrdinal.get(s.id) ?? "—"}
+                  </span>
+                  <span>of {s.package.totalSessions}</span>
                 </div>
                 {s.notes && <p className="mt-3 text-xs text-ink/70">{s.notes}</p>}
               </Card>
