@@ -12,7 +12,7 @@ function dayRange(dateStr: string) {
 }
 
 export async function GET(req: NextRequest) {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
   const scope = tenantScope(session);
 
@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
 
   const [staff, patients, records] = await Promise.all([
     prisma.user.findMany({ where: { ...scope, isActive: true, deletedAt: null, ...(session.role === "DOCTOR" ? { id: session.userId } : {}) }, orderBy: { name: "asc" } }),
-    prisma.patient.findMany({ where: { ...scope, deletedAt: null, ...(session.role === "DOCTOR" ? { appointments: { some: { doctorId: session.userId } } } : {}) }, orderBy: { name: "asc" } }),
-    prisma.attendanceRecord.findMany({ where: { ...scope, date, ...(session.role === "DOCTOR" ? { OR: [{ userId: session.userId }, { patient: { appointments: { some: { doctorId: session.userId } } } }] } : {}) } }),
+    db!.patient.findMany({ where: { ...scope, deletedAt: null, ...(session.role === "DOCTOR" ? { appointments: { some: { doctorId: session.userId } } } : {}) }, orderBy: { name: "asc" } }),
+    db!.attendanceRecord.findMany({ where: { ...scope, date, ...(session.role === "DOCTOR" ? { OR: [{ userId: session.userId }, { patient: { appointments: { some: { doctorId: session.userId } } } }] } : {}) } }),
   ]);
 
   type AttRec = (typeof records)[number];
@@ -58,7 +58,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
 
   const body = await req.json();
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       ? { tenantId_date_userId: { tenantId: session.tenantId!, date, userId: userId! } }
       : { tenantId_date_patientId: { tenantId: session.tenantId!, date, patientId: patientId! } };
 
-  const record = await prisma.attendanceRecord.upsert({
+  const record = await db!.attendanceRecord.upsert({
     where: where as any,
     create: {
       tenantId: session.tenantId!,

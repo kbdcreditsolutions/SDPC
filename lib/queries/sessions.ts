@@ -1,13 +1,12 @@
-import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 
 export async function getPackageSessions() {
-  const { session } = await requireSession();
+  const { session, db } = await requireSession();
   if (!session) return [];
   const scope = tenantScope(session);
 
-  const sessions = await prisma.packageSession.findMany({
+  const sessions = await db!.packageSession.findMany({
     where: { ...scope, deletedAt: null, ...(session.role === "DOCTOR" ? { doctorId: session.userId } : {}) },
     include: {
       patient: { select: { id: true, name: true } },

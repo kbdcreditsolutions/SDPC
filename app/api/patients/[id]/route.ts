@@ -4,9 +4,10 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
-
 import { zodErrorMessage } from "@/lib/zodError";
+
 const updateSchema = z
   .object({
     name: z.string().min(1).trim(),
@@ -44,12 +45,12 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
   const { id } = await params;
   const scope = tenantScope(session);
 
-  const patient = await prisma.patient.findFirst({
+  const patient = await db!.patient.findFirst({
     where: { id, ...scope },
     include: {
       packages: {
@@ -106,7 +107,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
   const { id } = await params;
   const scope = tenantScope(session);
@@ -122,7 +123,7 @@ export async function PUT(
     if (referredByPatientId === id) {
       return NextResponse.json({ error: "A patient cannot refer themselves" }, { status: 400 });
     }
-    const referrer = await prisma.patient.findFirst({
+    const referrer = await db!.patient.findFirst({
       where: { id: referredByPatientId, ...scope, deletedAt: null },
     });
     if (!referrer) {
@@ -131,7 +132,7 @@ export async function PUT(
   }
 
   if (branchId) {
-    const branch = await prisma.branch.findFirst({ where: { id: branchId, ...scope, deletedAt: null } });
+    const branch = await db!.branch.findFirst({ where: { id: branchId, ...scope, deletedAt: null } });
     if (!branch) {
       return NextResponse.json({ error: "Branch not found" }, { status: 400 });
     }
@@ -139,6 +140,7 @@ export async function PUT(
 
   try {
     const updated = await prisma.$transaction(async (tx) => {
+      await setTenantContext(tx, session.tenantId!);
       const before = await tx.patient.findFirst({ where: { id, tenantId: session.tenantId! } });
       const result = await tx.patient.update({
         where: { id, tenantId: session.tenantId! },
@@ -183,6 +185,7 @@ export async function DELETE(
 
   try {
     await prisma.$transaction(async (tx) => {
+      await setTenantContext(tx, session.tenantId!);
       const deleted = await tx.patient.update({
         where: { id, tenantId: session.tenantId! },
         data: { deletedAt: new Date() },

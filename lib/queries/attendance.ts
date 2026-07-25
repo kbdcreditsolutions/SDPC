@@ -9,7 +9,7 @@ function dayRange(dateStr: string) {
 }
 
 export async function getAttendance(dateStr?: string) {
-  const { session } = await requireSession();
+  const { session, db } = await requireSession();
   if (!session) return { date: "", staff: [], patients: [] };
   const scope = tenantScope(session);
 
@@ -18,8 +18,8 @@ export async function getAttendance(dateStr?: string) {
 
   const [staff, patients, records] = await Promise.all([
     prisma.user.findMany({ where: { ...scope, isActive: true, deletedAt: null, ...(session.role === "DOCTOR" ? { id: session.userId } : {}) }, orderBy: { name: "asc" } }),
-    prisma.patient.findMany({ where: { ...scope, deletedAt: null, ...(session.role === "DOCTOR" ? { appointments: { some: { doctorId: session.userId } } } : {}) }, orderBy: { name: "asc" } }),
-    prisma.attendanceRecord.findMany({ where: { ...scope, date, ...(session.role === "DOCTOR" ? { OR: [{ userId: session.userId }, { patient: { appointments: { some: { doctorId: session.userId } } } }] } : {}) } }),
+    db!.patient.findMany({ where: { ...scope, deletedAt: null, ...(session.role === "DOCTOR" ? { appointments: { some: { doctorId: session.userId } } } : {}) }, orderBy: { name: "asc" } }),
+    db!.attendanceRecord.findMany({ where: { ...scope, date, ...(session.role === "DOCTOR" ? { OR: [{ userId: session.userId }, { patient: { appointments: { some: { doctorId: session.userId } } } }] } : {}) } }),
   ]);
 
   type AttRec = (typeof records)[number];

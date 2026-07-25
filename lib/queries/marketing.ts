@@ -1,15 +1,14 @@
-import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 
 export async function getMarketing() {
-  const { session } = await requireSession();
+  const { session, db } = await requireSession();
   if (!session) return { campaigns: [], referrals: [], totalSpend: 0, revenueAttributed: 0, overallRoi: 0, totalLeads: 0 };
   const scope = tenantScope(session);
 
   const [campaigns, referrals] = await Promise.all([
-    prisma.campaign.findMany({ where: scope, orderBy: { startDate: "desc" } }),
-    prisma.referral.findMany({ where: scope, orderBy: { date: "desc" } }),
+    db!.campaign.findMany({ where: scope, orderBy: { startDate: "desc" } }),
+    db!.referral.findMany({ where: scope, orderBy: { date: "desc" } }),
   ]);
 
   const totalSpend = campaigns.reduce((s, c) => s + Number(c.cost), 0);

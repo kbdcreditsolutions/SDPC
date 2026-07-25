@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 
@@ -13,12 +12,12 @@ export type AuditLogRow = {
 };
 
 export async function getAuditLog(entity?: string): Promise<AuditLogRow[]> {
-  const { session } = await requireSession(["CLINIC_ADMIN", "SUPER_ADMIN"]);
+  const { session, db } = await requireSession(["CLINIC_ADMIN", "SUPER_ADMIN"]);
   if (!session) return [];
 
   const scope = tenantScope(session);
 
-  const rows = await prisma.auditLog.findMany({
+  const rows = await db!.auditLog.findMany({
     where: {
       ...scope,
       ...(entity ? { entity } : {}),

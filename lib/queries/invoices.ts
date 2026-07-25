@@ -1,13 +1,12 @@
-import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 
 export async function getInvoices() {
-  const { session } = await requireSession();
+  const { session, db } = await requireSession();
   if (!session) return [];
   const scope = tenantScope(session);
 
-  const invoices = await prisma.invoice.findMany({
+  const invoices = await db!.invoice.findMany({
     where: { ...scope, deletedAt: null },
     include: { patient: true },
     orderBy: { date: "desc" },

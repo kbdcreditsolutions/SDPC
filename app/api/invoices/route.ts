@@ -3,15 +3,16 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
-
 import { zodErrorMessage } from "@/lib/zodError";
+
 export async function GET() {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
   const scope = tenantScope(session);
 
-  const invoices = await prisma.invoice.findMany({
+  const invoices = await db!.invoice.findMany({
     where: { ...scope, deletedAt: null },
     include: { patient: true },
     orderBy: { date: "desc" },
@@ -46,14 +47,14 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF", "DOCTOR"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "STAFF", "DOCTOR"]);
   if (!session) return response!;
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
-  const patient = await prisma.patient.findFirst({
+  const patient = await db!.patient.findFirst({
     where: { id: parsed.data.patientId, tenantId: session.tenantId!, deletedAt: null },
   });
   if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -68,10 +69,11 @@ export async function POST(req: NextRequest) {
   const total = subtotal + gst;
 
   const year = new Date().getFullYear();
-  const count = await prisma.invoice.count({ where: { tenantId: session.tenantId! } });
+  const count = await db!.invoice.count({ where: { tenantId: session.tenantId! } });
   const number = `INV-${year}-${String(count + 1).padStart(5, "0")}`;
 
   const invoice = await prisma.$transaction(async (tx) => {
+    await setTenantContext(tx, session.tenantId!);
     const created = await tx.invoice.create({
       data: {
         tenantId: session.tenantId!,

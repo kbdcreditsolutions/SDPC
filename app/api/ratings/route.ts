@@ -7,7 +7,7 @@ const PATIENT_DIMS = ["punctuality", "attentionToDetail", "understanding", "comm
 const DEPT_DIMS = ["clinicalSkills", "documentation", "knowledge", "caseManagement"];
 
 export async function GET(req: NextRequest) {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
   const scope = tenantScope(session);
 
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ doctors: doctors.map((d) => ({ id: d.id, name: d.name, specialty: d.specialty })) });
   }
 
-  const ratings = await prisma.rating.findMany({
+  const ratings = await db!.rating.findMany({
     where: { ...scope, doctorId },
     orderBy: { date: "desc" },
   });

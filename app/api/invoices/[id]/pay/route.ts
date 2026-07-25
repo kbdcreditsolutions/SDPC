@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { logAudit } from "@/lib/audit";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
-
 import { zodErrorMessage } from "@/lib/zodError";
+
 const schema = z.object({
   method: z.enum(["Cash", "UPI", "Card", "Netbanking"]),
   amount: z.coerce.number().positive(),
@@ -25,6 +26,7 @@ export async function POST(
   if (!session.tenantId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const result = await prisma.$transaction(async (tx) => {
+    await setTenantContext(tx, session.tenantId!);
     const invoice = await tx.invoice.findFirst({ where: { id, tenantId: session.tenantId!, deletedAt: null } });
     if (!invoice) return { error: "Not found", status: 404 as const };
 

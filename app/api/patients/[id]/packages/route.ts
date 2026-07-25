@@ -3,9 +3,10 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
-
 import { zodErrorMessage } from "@/lib/zodError";
+
 const schema = z.object({
   name: z.string().min(1),
   totalSessions: z.coerce.number().int().positive(),
@@ -17,12 +18,12 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
   const { id } = await params;
   const scope = tenantScope(session);
 
-  const packages = await prisma.package.findMany({
+  const packages = await db!.package.findMany({
     where: { patientId: id, ...scope, deletedAt: null },
     orderBy: { createdAt: "desc" },
   });
@@ -36,7 +37,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
   const { id } = await params;
 
@@ -44,12 +45,13 @@ export async function POST(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
-  const patient = await prisma.patient.findFirst({
+  const patient = await db!.patient.findFirst({
     where: { id, tenantId: session.tenantId!, deletedAt: null },
   });
   if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const pkg = await prisma.$transaction(async (tx) => {
+    await setTenantContext(tx, session.tenantId!);
     const year = new Date().getFullYear();
     const count = await tx.invoice.count({ where: { tenantId: session.tenantId! } });
     const number = `INV-${year}-${String(count + 1).padStart(5, "0")}`;

@@ -6,7 +6,7 @@ const PATIENT_DIMS = ["punctuality", "attentionToDetail", "understanding", "comm
 const DEPT_DIMS = ["clinicalSkills", "documentation", "knowledge", "caseManagement"];
 
 export async function getRatings(doctorIdParam?: string) {
-  const { session } = await requireSession();
+  const { session, db } = await requireSession();
   if (!session) return { doctors: [], patientCount: 0, deptCount: 0, patientAvg: {}, deptAvg: {}, recent: [] };
   const scope = tenantScope(session);
 
@@ -21,7 +21,7 @@ export async function getRatings(doctorIdParam?: string) {
     return { doctors: doctors.map((d) => ({ id: d.id, name: d.name, specialty: d.specialty })), patientCount: 0, deptCount: 0, patientAvg: {}, deptAvg: {}, recent: [] };
   }
 
-  const ratings = await prisma.rating.findMany({
+  const ratings = await db!.rating.findMany({
     where: { ...scope, doctorId },
     orderBy: { date: "desc" },
   });

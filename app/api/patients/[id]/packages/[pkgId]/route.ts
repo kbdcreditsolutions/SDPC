@@ -3,9 +3,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { logAudit } from "@/lib/audit";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
-
 import { zodErrorMessage } from "@/lib/zodError";
+
 const schema = z.object({
   action: z.enum(["freeze", "unfreeze", "extend", "refund", "edit"]),
   extendDays: z.coerce.number().int().positive().optional(),
@@ -18,7 +19,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; pkgId: string }> }
 ) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
   const { pkgId } = await params;
 
@@ -26,7 +27,7 @@ export async function PATCH(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
-  const pkg = await prisma.package.findFirst({ where: { id: pkgId, tenantId: session.tenantId! } });
+  const pkg = await db!.package.findFirst({ where: { id: pkgId, tenantId: session.tenantId! } });
   if (!pkg) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (parsed.data.action === "edit") {
@@ -45,6 +46,7 @@ export async function PATCH(
 
     try {
       const updated = await prisma.$transaction(async (tx) => {
+        await setTenantContext(tx, session.tenantId!);
         const result = await tx.package.update({
           where: { id: pkgId },
           data: { name, totalSessions, price },
@@ -99,6 +101,7 @@ export async function PATCH(
 
   try {
     const updated = await prisma.$transaction(async (tx) => {
+      await setTenantContext(tx, session.tenantId!);
       const result = await tx.package.update({ where: { id: pkgId }, data });
       if (parsed.data.action === "refund" && pkg.invoiceId) {
         await tx.invoice.update({ where: { id: pkg.invoiceId }, data: { deletedAt: new Date() } });
@@ -126,15 +129,16 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; pkgId: string }> }
 ) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN"]);
   if (!session) return response!;
   const { pkgId } = await params;
 
-  const pkg = await prisma.package.findFirst({ where: { id: pkgId, tenantId: session.tenantId! } });
+  const pkg = await db!.package.findFirst({ where: { id: pkgId, tenantId: session.tenantId! } });
   if (!pkg) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   try {
     await prisma.$transaction(async (tx) => {
+      await setTenantContext(tx, session.tenantId!);
       await tx.package.update({ where: { id: pkgId }, data: { deletedAt: new Date() } });
       if (pkg.invoiceId) {
         await tx.invoice.update({ where: { id: pkg.invoiceId }, data: { deletedAt: new Date() } });

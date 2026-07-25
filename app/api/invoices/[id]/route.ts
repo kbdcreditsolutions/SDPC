@@ -3,19 +3,20 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
-
 import { zodErrorMessage } from "@/lib/zodError";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
   const { id } = await params;
   const scope = tenantScope(session);
 
-  const invoice = await prisma.invoice.findFirst({
+  const invoice = await db!.invoice.findFirst({
     where: { id, ...scope },
     include: { patient: true, lineItems: true, payments: true, tenant: true },
   });
@@ -56,7 +57,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "SUPER_ADMIN"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "SUPER_ADMIN"]);
   if (!session) return response!;
   const { id } = await params;
   const scope = tenantScope(session);
@@ -71,10 +72,10 @@ export async function PUT(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
 
-  const existing = await prisma.invoice.findFirst({ where: { id, ...scope } });
+  const existing = await db!.invoice.findFirst({ where: { id, ...scope } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const patient = await prisma.patient.findFirst({
+  const patient = await db!.patient.findFirst({
     where: { id: parsed.data.patientId, tenantId: session.tenantId!, deletedAt: null },
   });
   if (!patient) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -93,6 +94,7 @@ export async function PUT(
 
   // Transaction to update invoice and replace line items
   await prisma.$transaction(async (tx) => {
+    await setTenantContext(tx, session.tenantId!);
     await tx.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
     await tx.invoice.update({
       where: { id },
@@ -133,15 +135,16 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response } = await requireSession(["CLINIC_ADMIN", "SUPER_ADMIN"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "SUPER_ADMIN"]);
   if (!session) return response!;
   const { id } = await params;
   const scope = tenantScope(session);
 
-  const existing = await prisma.invoice.findFirst({ where: { id, ...scope } });
+  const existing = await db!.invoice.findFirst({ where: { id, ...scope } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await prisma.$transaction(async (tx) => {
+    await setTenantContext(tx, session.tenantId!);
     await tx.invoice.update({
       where: { id },
       data: { deletedAt: new Date() },

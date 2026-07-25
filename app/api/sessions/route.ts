@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
-
 import { zodErrorMessage } from "@/lib/zodError";
+
 export async function GET(req: NextRequest) {
-  const { session, response } = await requireSession();
+  const { session, response, db } = await requireSession();
   if (!session) return response!;
   const scope = tenantScope(session);
 
   const patientId = req.nextUrl.searchParams.get("patientId")?.trim();
 
-  const sessions = await prisma.packageSession.findMany({
+  const sessions = await db!.packageSession.findMany({
     where: {
       ...scope,
       deletedAt: null,
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
+      await setTenantContext(tx, session.tenantId!);
       const pkg = await tx.package.findFirst({
         where: { id: rest.packageId, patientId: rest.patientId, ...scope, deletedAt: null },
       });

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
+import { withTenant } from "@/lib/tenantPrisma";
 import type { SessionPayload } from "@/lib/auth";
 import {
   istDateKey,
@@ -51,6 +52,7 @@ async function computeDashboardData(
   scope: ReturnType<typeof tenantScope>,
   range: DateRange
 ): Promise<DashboardData> {
+  const db = withTenant(scope.tenantId);
   const now = new Date();
   const todayKey = istDateKey(now);
   const { start: today0, end: today1 } = istDayBounds(todayKey);
@@ -83,34 +85,34 @@ async function computeDashboardData(
     previousRangePayments,
     previousRangeNewPatients,
   ] = await Promise.all([
-    prisma.payment.findMany({
+    db.payment.findMany({
       where: { date: { gte: today0, lte: today1 }, invoice: { ...scope, deletedAt: null } },
     }),
-    prisma.invoice.findMany({ where: { ...scope, deletedAt: null } }),
-    prisma.patient.count({ where: { ...scope, deletedAt: null } }),
+    db.invoice.findMany({ where: { ...scope, deletedAt: null } }),
+    db.patient.count({ where: { ...scope, deletedAt: null } }),
     prisma.user.count({ where: { ...scope, role: "DOCTOR", isActive: true, deletedAt: null } }),
     prisma.user.count({ where: { ...scope, role: "STAFF", isActive: true, deletedAt: null } }),
-    prisma.appointment.findMany({
+    db.appointment.findMany({
       where: { ...scope, datetime: { gte: today0, lte: today1 }, deletedAt: null },
     }),
-    prisma.appointment.count({
+    db.appointment.count({
       where: { ...scope, datetime: { gt: now }, status: "SCHEDULED", deletedAt: null },
     }),
-    prisma.payment.findMany({
+    db.payment.findMany({
       where: { date: { gte: fyStart, lte: now }, invoice: { ...scope, deletedAt: null } },
       select: { amount: true },
     }),
-    prisma.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: fyStart, lte: now } } }),
-    prisma.payment.findMany({
+    db.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: fyStart, lte: now } } }),
+    db.payment.findMany({
       where: { date: { gte: lastFyStart, lte: lastFyEnd }, invoice: { ...scope, deletedAt: null } },
       select: { amount: true },
     }),
-    prisma.patient.findMany({
+    db.patient.findMany({
       where: { ...scope, deletedAt: null, createdAt: { gte: from, lte: to } },
       select: { leadSource: true },
     }),
-    prisma.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: from, lte: to } } }),
-    prisma.payment.findMany({
+    db.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: from, lte: to } } }),
+    db.payment.findMany({
       where: { date: { gte: from, lte: to }, invoice: { ...scope, deletedAt: null } },
       select: { amount: true, date: true },
     }),
@@ -120,7 +122,7 @@ async function computeDashboardData(
         appointments: { where: { deletedAt: null }, select: { patientId: true } },
       },
     }),
-    prisma.branch.findMany({
+    db.branch.findMany({
       where: { ...scope, deletedAt: null },
       include: {
         patients: {
@@ -131,15 +133,15 @@ async function computeDashboardData(
         },
       },
     }),
-    prisma.payment.findMany({
+    db.payment.findMany({
       where: { date: { gte: yesterday0, lte: yesterday1 }, invoice: { ...scope, deletedAt: null } },
       select: { amount: true },
     }),
-    prisma.payment.findMany({
+    db.payment.findMany({
       where: { date: { gte: prevFrom, lt: prevTo }, invoice: { ...scope, deletedAt: null } },
       select: { amount: true },
     }),
-    prisma.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: prevFrom, lt: prevTo } } }),
+    db.patient.count({ where: { ...scope, deletedAt: null, createdAt: { gte: prevFrom, lt: prevTo } } }),
   ]);
 
   const todayRevenue = todayPayments.reduce((s, p) => s + Number(p.amount), 0);
