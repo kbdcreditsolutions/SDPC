@@ -548,7 +548,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     <li key={s.id} className="flex items-start justify-between text-xs">
                       <div>
                         <span className="font-medium text-ink">{fmtDate(s.date)}</span>
-                        <span className="text-ink/70"> · {s.doctor.name}</span>
+                        <span className="text-ink/70"> · {s.doctor ? s.doctor.name : "Unassigned"}</span>
                         {s.notes && <p className="mt-0.5 text-ink/60">{s.notes}</p>}
                       </div>
                       <button onClick={() => undoSession(s.id)} className="text-clay/70 hover:text-clay">
