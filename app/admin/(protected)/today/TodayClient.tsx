@@ -27,6 +27,8 @@ function prettyDate(dateKey: string) {
   });
 }
 
+const PAYMENT_MODES = ["Cash", "UPI", "Card", "Netbanking"] as const;
+
 // One row's in-progress state: which patient is being logged, and the extra
 // answers needed when the one-tap path isn't unambiguous.
 type Draft = {
@@ -38,6 +40,10 @@ type Draft = {
   doctorId: string;
   needsDoctor: boolean;
   confirmDuplicate: boolean;
+  // Only used when packages is empty: billing a one-off visit is the only
+  // option left, so the form shows fee/paymentMode instead of a package picker.
+  fee: string;
+  paymentMode: (typeof PAYMENT_MODES)[number];
 };
 
 export default function TodayClient({
@@ -175,6 +181,8 @@ export default function TodayClient({
         doctorId: appt.doctor.id,
         needsDoctor: false,
         confirmDuplicate: false,
+        fee: "",
+        paymentMode: "Cash",
       });
       return;
     }
@@ -187,6 +195,8 @@ export default function TodayClient({
       doctorId: appt.doctor.id,
       needsDoctor: false,
       confirmDuplicate: false,
+      fee: "",
+      paymentMode: "Cash",
     });
   }
 
@@ -204,6 +214,8 @@ export default function TodayClient({
         doctorId: "",
         needsDoctor: true,
         confirmDuplicate: false,
+        fee: "",
+        paymentMode: "Cash",
       });
     } catch {
       setError("Couldn't load this patient's packages. Check your connection and try again.");
@@ -223,10 +235,17 @@ export default function TodayClient({
       // The appointment shape takes its therapist from the booking, so once a
       // replacement has been picked by hand the visit has to be sent as a
       // walk-in — /api/visits would otherwise strip the doctorId.
-      const payload =
+      const base =
         d.appointmentId && !d.needsDoctor
-          ? { appointmentId: d.appointmentId, packageId: d.packageId || undefined }
-          : { patientId: d.patientId, packageId: d.packageId, doctorId: d.doctorId };
+          ? { appointmentId: d.appointmentId }
+          : { patientId: d.patientId, doctorId: d.doctorId };
+      // No packages at all means billing a one-off visit is the only option
+      // this draft was ever offering — same condition draftPanel used to
+      // decide which fields to show.
+      const payload =
+        d.packages.length === 0
+          ? { ...base, fee: Number(d.fee), paymentMode: d.paymentMode }
+          : { ...base, packageId: d.packageId || undefined };
       const res = await fetch("/api/visits/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -281,7 +300,11 @@ export default function TodayClient({
   const scheduled = data.appointments.filter((a) => a.status !== "CANCELLED");
 
   function draftPanel(d: Draft, patientName: string) {
-    const ready = d.packageId && (!d.needsDoctor || d.doctorId);
+    const singleVisit = d.packages.length === 0;
+    const fee = Number(d.fee);
+    const ready = singleVisit
+      ? fee > 0 && d.paymentMode && (!d.needsDoctor || d.doctorId)
+      : d.packageId && (!d.needsDoctor || d.doctorId);
     return (
       <div className="mt-3 rounded-xl border border-sand bg-sand/20 p-3">
         {d.confirmDuplicate ? (
@@ -297,14 +320,40 @@ export default function TodayClient({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {d.packages.length === 0 ? (
-              <p className="text-sm text-ink/70 sm:col-span-2">
-                No active package with sessions left.{" "}
-                <Link href={`/admin/patients/${d.patientId}`} className="text-forest underline">
-                  Add a package first
-                </Link>
-                .
-              </p>
+            {singleVisit ? (
+              <>
+                <p className="text-sm text-ink/70 sm:col-span-2">
+                  No active package with sessions left — bill this as a one-off visit, or{" "}
+                  <Link href={`/admin/patients/${d.patientId}`} className="text-forest underline">
+                    add a package
+                  </Link>{" "}
+                  instead.
+                </p>
+                <div>
+                  <label className="text-xs text-ink/60">Visit fee (₹)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={d.fee}
+                    onChange={(e) => setDraft({ ...d, fee: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-ink/60">Payment mode</label>
+                  <select
+                    value={d.paymentMode}
+                    onChange={(e) => setDraft({ ...d, paymentMode: e.target.value as Draft["paymentMode"] })}
+                    className="mt-1 w-full rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+                  >
+                    {PAYMENT_MODES.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
             ) : (
               <div>
                 <label className="text-xs text-ink/60">Package</label>
@@ -322,7 +371,7 @@ export default function TodayClient({
                 </select>
               </div>
             )}
-            {d.needsDoctor && d.packages.length > 0 && (
+            {d.needsDoctor && (
               <div>
                 <label className="text-xs text-ink/60">Therapist</label>
                 <select
@@ -342,16 +391,20 @@ export default function TodayClient({
           </div>
         )}
         <div className="mt-3 flex items-center gap-3">
-          {(d.confirmDuplicate || d.packages.length > 0) && (
-            <button
-              type="button"
-              disabled={busyKey === d.key || (!d.confirmDuplicate && !ready)}
-              onClick={() => submit(d)}
-              className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-50"
-            >
-              {busyKey === d.key ? "Saving…" : d.confirmDuplicate ? "Yes, log it" : "Log visit"}
-            </button>
-          )}
+          <button
+            type="button"
+            disabled={busyKey === d.key || (!d.confirmDuplicate && !ready)}
+            onClick={() => submit(d)}
+            className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-50"
+          >
+            {busyKey === d.key
+              ? "Saving…"
+              : d.confirmDuplicate
+                ? "Yes, log it"
+                : singleVisit
+                  ? "Bill & log visit"
+                  : "Log visit"}
+          </button>
           <button
             type="button"
             onClick={() => setDraft(null)}
@@ -495,14 +548,7 @@ export default function TodayClient({
                           Logged
                         </span>
                       )}
-                      {!canLog ? null : a.packages.length === 0 ? (
-                        <Link
-                          href={`/admin/patients/${a.patient.id}`}
-                          className="rounded-full border border-clay px-4 py-2 text-sm font-medium text-clay hover:bg-clay/10"
-                        >
-                          Add package
-                        </Link>
-                      ) : (
+                      {canLog && (
                         <button
                           type="button"
                           disabled={busyPatientId === a.patient.id || draft?.key === a.id}

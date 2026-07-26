@@ -4,32 +4,55 @@ import { requireSession } from "@/lib/guard";
 import { logAudit } from "@/lib/audit";
 import { setTenantContext } from "@/lib/tenantPrisma";
 import { logSession, sessionErrorMessage } from "@/lib/logSession";
+import { logSingleVisit } from "@/lib/logSingleVisit";
 import { istDateKey, istDayBounds } from "@/lib/istDate";
 import { z } from "zod";
 import { zodErrorMessage } from "@/lib/zodError";
 
-// Two shapes, one action ("this patient was seen today"):
-//  - from a booking: { appointmentId, packageId? } — the therapist comes from
-//    the appointment, so the common case needs no extra input.
-//  - walk-in / unbooked: { patientId, packageId, doctorId }.
+const paymentMode = z.enum(["Cash", "UPI", "Card", "Netbanking"]);
+
+// Four shapes, one action ("this patient was seen today"), split along two
+// independent axes: how the patient/doctor are identified (booking vs
+// walk-in), and how the visit is paid for (an existing package vs a one-off
+// fee billed on the spot for someone with no active package).
 //
 // The appointment's own status is deliberately left alone: "was this patient
 // seen today" is derived from whether a session exists for them today, which
 // means Undo fully reverses a mistaken tap with no status left behind.
+// .strict() on every variant matters here: without it, Zod's union tries
+// members in order and the first structural match wins even if it silently
+// drops keys the request actually sent (e.g. an {appointmentId, fee,
+// paymentMode} body would otherwise match the first, fee-less variant with
+// fee/paymentMode discarded, rather than falling through to the 2nd variant).
 const schema = z.union([
   z.object({
     appointmentId: z.string().min(1),
     packageId: z.string().min(1).optional(),
     notes: z.string().optional(),
     force: z.boolean().optional(),
-  }),
+  }).strict(),
+  z.object({
+    appointmentId: z.string().min(1),
+    fee: z.coerce.number().positive(),
+    paymentMode,
+    notes: z.string().optional(),
+    force: z.boolean().optional(),
+  }).strict(),
   z.object({
     patientId: z.string().min(1),
     packageId: z.string().min(1),
     doctorId: z.string().min(1),
     notes: z.string().optional(),
     force: z.boolean().optional(),
-  }),
+  }).strict(),
+  z.object({
+    patientId: z.string().min(1),
+    doctorId: z.string().min(1),
+    fee: z.coerce.number().positive(),
+    paymentMode,
+    notes: z.string().optional(),
+    force: z.boolean().optional(),
+  }).strict(),
 ]);
 
 export async function POST(req: NextRequest) {
@@ -45,7 +68,7 @@ export async function POST(req: NextRequest) {
   // this tenant before it reaches a write.
   let patientId: string;
   let doctorId: string;
-  let packageId: string | undefined = data.packageId;
+  let packageId: string | undefined = "packageId" in data ? data.packageId : undefined;
 
   if ("appointmentId" in data) {
     // Soft-deleting a patient doesn't cascade to their appointments, and the
@@ -80,9 +103,13 @@ export async function POST(req: NextRequest) {
     doctorId = data.doctorId;
   }
 
-  // No package given (one tap from a booking): only proceed when the choice is
-  // unambiguous — exactly one active package with a session left.
-  if (!packageId) {
+  // Billing a one-off visit on the spot is an explicit alternative to picking
+  // a package, not a fallback — skip the auto-pick/404 logic below entirely.
+  if ("fee" in data) {
+    packageId = undefined;
+  } else if (!packageId) {
+    // No package given (one tap from a booking): only proceed when the choice
+    // is unambiguous — exactly one active package with a session left.
     const candidates = await db!.package.findMany({
       where: { patientId, tenantId: session.tenantId!, deletedAt: null, status: "ACTIVE" },
       select: { id: true, totalSessions: true, usedSessions: true },
@@ -101,6 +128,10 @@ export async function POST(req: NextRequest) {
   const { start, end } = istDayBounds(dateKey);
 
   try {
+    // This path does ~9 sequential round-trips (advisory lock, dedupe check,
+    // doctor lookup, invoice numbering, invoice/package/session creates, two
+    // audit logs) — comfortably over Prisma's 5000ms default against Neon's
+    // per-query latency, so it needs a longer budget than the default.
     const result = await prisma.$transaction(async (tx) => {
       await setTenantContext(tx, session.tenantId!);
 
@@ -115,6 +146,43 @@ export async function POST(req: NextRequest) {
           select: { id: true },
         });
         if (alreadyToday) throw new Error("ALREADY_LOGGED_TODAY");
+      }
+
+      if ("fee" in data) {
+        const { package: pkg, session: created, invoice } = await logSingleVisit(tx, {
+          tenantId: session.tenantId!,
+          patientId,
+          doctorId,
+          fee: data.fee,
+          paymentMode: data.paymentMode,
+          ...(data.notes !== undefined ? { notes: data.notes } : {}),
+        });
+
+        await logAudit(tx, {
+          tenantId: session.tenantId,
+          actorId: session.userId,
+          action: "CREATE",
+          entity: "Package",
+          entityId: pkg.id,
+          diff: { via: "today", singleVisit: true, patientId, price: data.fee, invoiceId: invoice.id },
+        });
+        await logAudit(tx, {
+          tenantId: session.tenantId,
+          actorId: session.userId,
+          action: "CREATE",
+          entity: "PackageSession",
+          entityId: created.id,
+          diff: {
+            via: "today",
+            singleVisit: true,
+            patientId,
+            packageId: pkg.id,
+            doctorId,
+            ...("appointmentId" in data ? { appointmentId: data.appointmentId } : {}),
+          },
+        });
+
+        return created;
       }
 
       const created = await logSession(tx, {
@@ -141,7 +209,7 @@ export async function POST(req: NextRequest) {
       });
 
       return created;
-    });
+    }, { timeout: 15000, maxWait: 10000 });
 
     return NextResponse.json({ session: result });
   } catch (err) {

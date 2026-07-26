@@ -98,7 +98,10 @@ export async function DELETE(
   try {
     await prisma.$transaction(async (tx) => {
       await setTenantContext(tx, session.tenantId!);
-      const existing = await tx.packageSession.findFirst({ where: { id, ...scope, deletedAt: null } });
+      const existing = await tx.packageSession.findFirst({
+        where: { id, ...scope, deletedAt: null },
+        include: { package: { select: { singleVisit: true, invoiceId: true } } },
+      });
       if (!existing) throw new Error("NOT_FOUND");
 
       // Conditional on deletedAt: null so a concurrent double-click ("Undo" clicked
@@ -110,10 +113,29 @@ export async function DELETE(
       });
       if (claim.count === 0) throw new Error("ALREADY_UNDONE");
 
-      await tx.package.update({
-        where: { id: existing.packageId },
-        data: { usedSessions: { decrement: 1 } },
-      });
+      if (existing.package.singleVisit) {
+        // A single-visit "package" always has exactly one session — undoing it
+        // undoes the whole billed visit, not just a slot on a real package, so
+        // the package and its invoice get soft-deleted too (same as a package
+        // refund does), instead of leaving a paid invoice with nothing behind it.
+        await tx.package.update({ where: { id: existing.packageId }, data: { deletedAt: new Date() } });
+        if (existing.package.invoiceId) {
+          await tx.invoice.update({ where: { id: existing.package.invoiceId }, data: { deletedAt: new Date() } });
+        }
+        await logAudit(tx, {
+          tenantId: session.tenantId,
+          actorId: session.userId,
+          action: "DELETE",
+          entity: "Package",
+          entityId: existing.packageId,
+          diff: { via: "undo", singleVisit: true, patientId: existing.patientId, invoiceId: existing.package.invoiceId },
+        });
+      } else {
+        await tx.package.update({
+          where: { id: existing.packageId },
+          data: { usedSessions: { decrement: 1 } },
+        });
+      }
 
       // Undo is a one-tap primary action on the Today screen: reversing a paid
       // session has to leave a trace in the activity log, same as logging it does.
@@ -128,6 +150,7 @@ export async function DELETE(
           packageId: existing.packageId,
           doctorId: existing.doctorId,
           date: existing.date,
+          ...(existing.package.singleVisit ? { singleVisit: true, invoiceId: existing.package.invoiceId } : {}),
         },
       });
     });

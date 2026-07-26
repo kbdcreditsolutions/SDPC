@@ -187,6 +187,10 @@ model Package {
   usedSessions   Int           @default(0)
   price          Decimal       @db.Decimal(10, 2)
   status         PackageStatus @default(ACTIVE)
+  // Marks the auto-created 1-session package behind a Today-screen "bill a
+  // one-off visit" — its only session's Undo must reverse the whole package
+  // and invoice, not just decrement a counter on a real multi-session package.
+  singleVisit    Boolean       @default(false)
   startDate      DateTime      @default(now())
   endDate        DateTime?
   createdAt      DateTime      @default(now())
