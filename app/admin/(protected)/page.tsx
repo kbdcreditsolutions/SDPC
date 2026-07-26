@@ -5,7 +5,9 @@ import DashboardClient from "./DashboardClient";
 
 export default async function DashboardPage() {
   const session = await getSession();
-  if (session?.role === "STAFF") redirect("/admin/patients");
+  // Staff start their day on Today, not on a records list — the first screen
+  // should be "who's here now", not "add a patient".
+  if (session?.role === "STAFF") redirect("/admin/today");
 
   const data = await getDashboardData();
 

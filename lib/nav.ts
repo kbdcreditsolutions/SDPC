@@ -4,6 +4,7 @@ export type NavItem = { label: string; href: string };
 
 export function getNavItems(role?: Role): NavItem[] {
   const items: NavItem[] = [
+    { label: "Today", href: "/admin/today" },
     { label: "Dashboard", href: "/admin" },
     { label: "Patients", href: "/admin/patients" },
     { label: "Appointments", href: "/admin/appointments" },

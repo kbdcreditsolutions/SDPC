@@ -14,20 +14,35 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim();
   const scope = tenantScope(session);
 
+  const where = {
+    ...scope,
+    deletedAt: null,
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { phone: { contains: q } },
+            { pid: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
+
+  // Search-as-you-type (the Today screen) only needs identifying fields. The
+  // full row below joins invoices, packages, referrer and branch to compute
+  // billing totals — far too heavy to run on every keystroke.
+  if (req.nextUrl.searchParams.get("lite") === "1") {
+    const matches = await db!.patient.findMany({
+      where,
+      select: { id: true, name: true, phone: true, pid: true, reason: true },
+      orderBy: { name: "asc" },
+      take: 20,
+    });
+    return NextResponse.json({ patients: matches });
+  }
+
   const patients = await db!.patient.findMany({
-    where: {
-      ...scope,
-      deletedAt: null,
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { phone: { contains: q } },
-              { pid: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
+    where,
     include: {
       invoices: { where: { deletedAt: null } },
       packages: { where: { deletedAt: null }, select: { id: true } },

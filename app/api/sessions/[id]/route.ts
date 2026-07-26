@@ -114,6 +114,22 @@ export async function DELETE(
         where: { id: existing.packageId },
         data: { usedSessions: { decrement: 1 } },
       });
+
+      // Undo is a one-tap primary action on the Today screen: reversing a paid
+      // session has to leave a trace in the activity log, same as logging it does.
+      await logAudit(tx, {
+        tenantId: session.tenantId,
+        actorId: session.userId,
+        action: "DELETE",
+        entity: "PackageSession",
+        entityId: existing.id,
+        diff: {
+          patientId: existing.patientId,
+          packageId: existing.packageId,
+          doctorId: existing.doctorId,
+          date: existing.date,
+        },
+      });
     });
     return NextResponse.json({ success: true });
   } catch {

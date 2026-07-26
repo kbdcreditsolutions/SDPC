@@ -662,7 +662,7 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
               {duplicateWarning.pid ? ` (${duplicateWarning.pid})` : ""}. Create a new patient anyway, or use the
               existing record instead?
             </p>
-            <div className="mt-5 flex justify-end gap-3">
+            <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setDuplicateWarning(null)}
@@ -675,10 +675,19 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
                 type="button"
                 onClick={() => submitAdd(true)}
                 disabled={saving}
-                className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
+                className="rounded-lg px-4 py-2 text-sm text-clay hover:bg-clay/10 disabled:opacity-60"
               >
                 {saving ? "Creating…" : "Create anyway"}
               </button>
+              {/* The likely-right answer, so it gets the primary button — the
+                  previous version only offered Cancel or Create anyway, which
+                  left "use the existing record" as advice with no way to act. */}
+              <Link
+                href={`/admin/patients/${duplicateWarning.id}`}
+                className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
+              >
+                Open existing record
+              </Link>
             </div>
           </Card>
         </div>

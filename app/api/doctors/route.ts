@@ -8,8 +8,11 @@ export async function GET() {
   if (!session) return response!;
   const scope = tenantScope(session);
 
+  // Explicit select: a bare findMany ships every column to the browser,
+  // passwordHash included. Only the picker fields are needed.
   const doctors = await prisma.user.findMany({
-    where: { ...scope, role: "DOCTOR", isActive: true },
+    where: { ...scope, role: "DOCTOR", isActive: true, deletedAt: null },
+    select: { id: true, name: true, specialty: true },
     orderBy: { name: "asc" },
   });
 

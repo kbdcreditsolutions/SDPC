@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { setTenantContext } from "@/lib/tenantPrisma";
+import { logSession, sessionErrorMessage } from "@/lib/logSession";
 import { z } from "zod";
 import { zodErrorMessage } from "@/lib/zodError";
 
@@ -55,7 +56,6 @@ const createSchema = z.object({
 export async function POST(req: NextRequest) {
   const { session, response } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
-  const scope = tenantScope(session);
 
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
@@ -67,50 +67,21 @@ export async function POST(req: NextRequest) {
   try {
     const result = await prisma.$transaction(async (tx) => {
       await setTenantContext(tx, session.tenantId!);
-      const pkg = await tx.package.findFirst({
-        where: { id: rest.packageId, patientId: rest.patientId, ...scope, deletedAt: null },
+      return logSession(tx, {
+        tenantId: session.tenantId!,
+        patientId: rest.patientId,
+        packageId: rest.packageId,
+        doctorId: rest.doctorId,
+        ...(date ? { date } : {}),
+        ...(rest.notes !== undefined ? { notes: rest.notes } : {}),
       });
-      if (!pkg) throw new Error("PACKAGE_NOT_FOUND");
-      if (pkg.status !== "ACTIVE") throw new Error("PACKAGE_NOT_ACTIVE");
-      if (pkg.usedSessions >= pkg.totalSessions) throw new Error("PACKAGE_EXHAUSTED");
-
-      const doctor = await tx.user.findFirst({
-        where: { id: rest.doctorId, ...scope, role: "DOCTOR", isActive: true, deletedAt: null },
-      });
-      if (!doctor) throw new Error("DOCTOR_NOT_FOUND");
-
-      // Atomic claim: literal `lt: pkg.totalSessions` (immutable, never edited elsewhere)
-      // means only one of N concurrent requests can win this UPDATE once the package
-      // is at capacity — prevents usedSessions from overshooting totalSessions.
-      const claim = await tx.package.updateMany({
-        where: { id: pkg.id, status: "ACTIVE", usedSessions: { lt: pkg.totalSessions } },
-        data: { usedSessions: { increment: 1 } },
-      });
-      if (claim.count === 0) throw new Error("PACKAGE_EXHAUSTED");
-
-      const created = await tx.packageSession.create({
-        data: {
-          ...rest,
-          ...(date ? { date } : {}),
-          tenantId: session.tenantId!,
-        },
-      });
-
-      return created;
     });
 
     return NextResponse.json({ session: result });
   } catch (err) {
-    const message =
-      err instanceof Error && err.message === "PACKAGE_EXHAUSTED"
-        ? "Package has no remaining sessions"
-        : err instanceof Error && err.message === "PACKAGE_NOT_ACTIVE"
-        ? "Package is not active"
-        : err instanceof Error && err.message === "PACKAGE_NOT_FOUND"
-        ? "Package not found"
-        : err instanceof Error && err.message === "DOCTOR_NOT_FOUND"
-        ? "Therapist not found"
-        : "Failed to log session";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const known = sessionErrorMessage(err);
+    if (known) return NextResponse.json({ error: known }, { status: 400 });
+    console.error("POST /api/sessions failed", err);
+    return NextResponse.json({ error: "Failed to log session" }, { status: 500 });
   }
 }
