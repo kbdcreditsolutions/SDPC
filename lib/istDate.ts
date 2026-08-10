@@ -24,6 +24,26 @@ export function istDayBounds(dateKey: string) {
   return { start, end };
 }
 
+/** `now`'s IST time-of-day, replayed onto a different "YYYY-MM-DD" IST calendar
+ * date — for backdating an entry logged today to a visit that actually
+ * happened earlier, without collapsing it to a bare midnight timestamp. */
+export function istDateWithTimeOf(dateKey: string, now: Date) {
+  const nowIst = toIST(now);
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const ist = new Date(
+    Date.UTC(
+      y,
+      m - 1,
+      d,
+      nowIst.getUTCHours(),
+      nowIst.getUTCMinutes(),
+      nowIst.getUTCSeconds(),
+      nowIst.getUTCMilliseconds()
+    )
+  );
+  return new Date(ist.getTime() - IST_OFFSET_MS);
+}
+
 /** Pure calendar-date arithmetic on a "YYYY-MM-DD" key — no timezone involved. */
 export function addDaysToKey(key: string, days: number) {
   const [y, m, d] = key.split("-").map(Number);

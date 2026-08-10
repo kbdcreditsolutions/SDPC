@@ -44,6 +44,12 @@ type Draft = {
   // option left, so the form shows fee/paymentMode instead of a package picker.
   fee: string;
   paymentMode: (typeof PAYMENT_MODES)[number];
+  // Fee is often collected days after the visit — isPaid lets staff log the
+  // visit now and settle the invoice later from the Invoices screen.
+  isPaid: boolean;
+  // "YYYY-MM-DD", defaults to today — staff catching up on a visit they
+  // forgot to log can backdate it instead of it landing on today's date.
+  date: string;
 };
 
 export default function TodayClient({
@@ -183,6 +189,8 @@ export default function TodayClient({
         confirmDuplicate: false,
         fee: "",
         paymentMode: "Cash",
+        isPaid: true,
+        date: data.dateKey,
       });
       return;
     }
@@ -197,6 +205,8 @@ export default function TodayClient({
       confirmDuplicate: false,
       fee: "",
       paymentMode: "Cash",
+      isPaid: true,
+      date: data.dateKey,
     });
   }
 
@@ -216,6 +226,8 @@ export default function TodayClient({
         confirmDuplicate: false,
         fee: "",
         paymentMode: "Cash",
+        isPaid: true,
+        date: data.dateKey,
       });
     } catch {
       setError("Couldn't load this patient's packages. Check your connection and try again.");
@@ -242,10 +254,11 @@ export default function TodayClient({
       // No packages at all means billing a one-off visit is the only option
       // this draft was ever offering — same condition draftPanel used to
       // decide which fields to show.
+      const visitDate = d.date || data.dateKey;
       const payload =
         d.packages.length === 0
-          ? { ...base, fee: Number(d.fee), paymentMode: d.paymentMode }
-          : { ...base, packageId: d.packageId || undefined };
+          ? { ...base, fee: Number(d.fee), paymentMode: d.paymentMode, paid: d.isPaid, date: visitDate }
+          : { ...base, packageId: d.packageId || undefined, date: visitDate };
       const res = await fetch("/api/visits/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -309,7 +322,10 @@ export default function TodayClient({
       <div className="mt-3 rounded-xl border border-sand bg-sand/20 p-3">
         {d.confirmDuplicate ? (
           <div className="text-sm text-clay">
-            <p>{patientName} already has a session logged today. Log another one anyway?</p>
+            <p>
+              {patientName} already has a session logged {d.date === data.dateKey ? "today" : "on that date"}. Log
+              another one anyway?
+            </p>
             {/* Undo is CLINIC_ADMIN-only, so staff need to know this one is
                 one-way before they confirm it. */}
             {!canUndo && (
@@ -320,6 +336,19 @@ export default function TodayClient({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="text-xs text-ink/60">Visit date</label>
+              <input
+                type="date"
+                value={d.date}
+                max={data.dateKey}
+                onChange={(e) => setDraft({ ...d, date: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+              />
+              {d.date !== data.dateKey && (
+                <p className="mt-1 text-xs text-ink/60">Backdated — won&apos;t show under today&apos;s log.</p>
+              )}
+            </div>
             {singleVisit ? (
               <>
                 <p className="text-sm text-ink/70 sm:col-span-2">
@@ -340,19 +369,52 @@ export default function TodayClient({
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-ink/60">Payment mode</label>
-                  <select
-                    value={d.paymentMode}
-                    onChange={(e) => setDraft({ ...d, paymentMode: e.target.value as Draft["paymentMode"] })}
-                    className="mt-1 w-full rounded-lg border border-sand bg-white px-3 py-2 text-sm"
-                  >
-                    {PAYMENT_MODES.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-xs text-ink/60">Payment</label>
+                  <div className="mt-1 flex gap-4 pt-2 text-sm">
+                    <label className="flex items-center gap-1.5">
+                      <input
+                        type="radio"
+                        name={`paid-${d.key}`}
+                        checked={d.isPaid}
+                        onChange={() => setDraft({ ...d, isPaid: true })}
+                      />
+                      Paid now
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <input
+                        type="radio"
+                        name={`paid-${d.key}`}
+                        checked={!d.isPaid}
+                        onChange={() => setDraft({ ...d, isPaid: false })}
+                      />
+                      Collect later
+                    </label>
+                  </div>
                 </div>
+                {d.isPaid ? (
+                  <div>
+                    <label className="text-xs text-ink/60">Payment mode</label>
+                    <select
+                      value={d.paymentMode}
+                      onChange={(e) => setDraft({ ...d, paymentMode: e.target.value as Draft["paymentMode"] })}
+                      className="mt-1 w-full rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+                    >
+                      {PAYMENT_MODES.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <p className="self-end text-xs text-ink/60">
+                    Marked unpaid — collect from{" "}
+                    <Link href="/admin/invoices" className="text-forest underline">
+                      Invoices
+                    </Link>{" "}
+                    when the fee comes in.
+                  </p>
+                )}
               </>
             ) : (
               <div>

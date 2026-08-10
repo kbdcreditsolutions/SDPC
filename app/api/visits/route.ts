@@ -5,11 +5,15 @@ import { logAudit } from "@/lib/audit";
 import { setTenantContext } from "@/lib/tenantPrisma";
 import { logSession, sessionErrorMessage } from "@/lib/logSession";
 import { logSingleVisit } from "@/lib/logSingleVisit";
-import { istDateKey, istDayBounds } from "@/lib/istDate";
+import { istDateKey, istDayBounds, istDateWithTimeOf } from "@/lib/istDate";
 import { z } from "zod";
 import { zodErrorMessage } from "@/lib/zodError";
 
 const paymentMode = z.enum(["Cash", "UPI", "Card", "Netbanking"]);
+// Present on every variant: staff logging a visit they forgot to enter on the
+// day it actually happened need to backdate the session, not just the moment
+// they got around to typing it in.
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional();
 
 // Four shapes, one action ("this patient was seen today"), split along two
 // independent axes: how the patient/doctor are identified (booking vs
@@ -30,13 +34,16 @@ const schema = z.union([
     packageId: z.string().min(1).optional(),
     notes: z.string().optional(),
     force: z.boolean().optional(),
+    date,
   }).strict(),
   z.object({
     appointmentId: z.string().min(1),
     fee: z.coerce.number().positive(),
     paymentMode,
+    paid: z.boolean().optional(),
     notes: z.string().optional(),
     force: z.boolean().optional(),
+    date,
   }).strict(),
   z.object({
     patientId: z.string().min(1),
@@ -44,14 +51,17 @@ const schema = z.union([
     doctorId: z.string().min(1),
     notes: z.string().optional(),
     force: z.boolean().optional(),
+    date,
   }).strict(),
   z.object({
     patientId: z.string().min(1),
     doctorId: z.string().min(1),
     fee: z.coerce.number().positive(),
     paymentMode,
+    paid: z.boolean().optional(),
     notes: z.string().optional(),
     force: z.boolean().optional(),
+    date,
   }).strict(),
 ]);
 
@@ -63,6 +73,16 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
   const data = parsed.data;
+
+  // A backdated visit is still bounded by "not in the future" — everything
+  // else about the chosen date is the caller's call to make.
+  let sessionDate: Date | undefined;
+  if (data.date) {
+    if (data.date > istDateKey(new Date())) {
+      return NextResponse.json({ error: "Visit date can't be in the future" }, { status: 400 });
+    }
+    sessionDate = istDateWithTimeOf(data.date, new Date());
+  }
 
   // Resolve who this visit is for, verifying every id from the request against
   // this tenant before it reaches a write.
@@ -124,7 +144,11 @@ export async function POST(req: NextRequest) {
     packageId = usable[0].id;
   }
 
-  const dateKey = istDateKey(new Date());
+  // A backdated visit's own dedupe window follows the date it's dated for,
+  // not the day it happens to be entered on — otherwise a real visit logged
+  // today wrongly blocks an unrelated backdated entry for the same patient,
+  // and two backdated entries for the same past date wouldn't be caught at all.
+  const dateKey = data.date ?? istDateKey(new Date());
   const { start, end } = istDayBounds(dateKey);
 
   try {
@@ -141,20 +165,23 @@ export async function POST(req: NextRequest) {
       // lock is released when this transaction ends either way.
       if (!data.force) {
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`${patientId}:${dateKey}`}, 0))`;
-        const alreadyToday = await tx.packageSession.findFirst({
+        const alreadyLogged = await tx.packageSession.findFirst({
           where: { patientId, tenantId: session.tenantId!, deletedAt: null, date: { gte: start, lte: end } },
           select: { id: true },
         });
-        if (alreadyToday) throw new Error("ALREADY_LOGGED_TODAY");
+        if (alreadyLogged) throw new Error("ALREADY_LOGGED_TODAY");
       }
 
       if ("fee" in data) {
+        const paid = data.paid ?? true;
         const { package: pkg, session: created, invoice } = await logSingleVisit(tx, {
           tenantId: session.tenantId!,
           patientId,
           doctorId,
           fee: data.fee,
           paymentMode: data.paymentMode,
+          paid,
+          ...(sessionDate ? { date: sessionDate } : {}),
           ...(data.notes !== undefined ? { notes: data.notes } : {}),
         });
 
@@ -164,7 +191,7 @@ export async function POST(req: NextRequest) {
           action: "CREATE",
           entity: "Package",
           entityId: pkg.id,
-          diff: { via: "today", singleVisit: true, patientId, price: data.fee, invoiceId: invoice.id },
+          diff: { via: "today", singleVisit: true, patientId, price: data.fee, paid, invoiceId: invoice.id },
         });
         await logAudit(tx, {
           tenantId: session.tenantId,
@@ -190,6 +217,7 @@ export async function POST(req: NextRequest) {
         patientId,
         packageId: packageId!,
         doctorId,
+        ...(sessionDate ? { date: sessionDate } : {}),
         ...(data.notes !== undefined ? { notes: data.notes } : {}),
       });
 
@@ -215,7 +243,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     if (err instanceof Error && err.message === "ALREADY_LOGGED_TODAY") {
       return NextResponse.json(
-        { error: "A session for this patient is already logged today.", alreadyLogged: true },
+        { error: "A session for this patient is already logged on that date.", alreadyLogged: true },
         { status: 409 }
       );
     }

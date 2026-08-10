@@ -175,7 +175,7 @@ async function computeDashboardData(
     if (inv.date < from || inv.date > to) continue;
     rangeInvoicesByPatient.set(
       inv.patientId,
-      (rangeInvoicesByPatient.get(inv.patientId) ?? 0) + Number(inv.total)
+      (rangeInvoicesByPatient.get(inv.patientId) ?? 0) + Number(inv.paidAmount)
     );
   }
 
@@ -194,7 +194,7 @@ async function computeDashboardData(
     .map((b) => ({
       name: b.name,
       revenue: b.patients.reduce(
-        (s: number, p) => s + p.invoices.reduce((si: number, i) => si + Number(i.total), 0),
+        (s: number, p) => s + p.invoices.reduce((si: number, i) => si + Number(i.paidAmount), 0),
         0
       ),
     }))

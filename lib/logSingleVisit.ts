@@ -24,6 +24,7 @@ export async function logSingleVisit(
     doctorId,
     fee,
     paymentMode,
+    paid = true,
     date,
     notes,
   }: {
@@ -32,6 +33,7 @@ export async function logSingleVisit(
     doctorId: string;
     fee: number;
     paymentMode: "Cash" | "UPI" | "Card" | "Netbanking";
+    paid?: boolean;
     date?: Date;
     notes?: string;
   }
@@ -52,12 +54,12 @@ export async function logSingleVisit(
       subtotal: fee,
       gst: 0,
       total: fee,
-      paidAmount: fee,
-      status: "PAID",
+      paidAmount: paid ? fee : 0,
+      status: paid ? "PAID" : "UNPAID",
       lineItems: {
         create: [{ description: "Single visit", qty: 1, unitPrice: fee, gstPercent: 0, lineTotal: fee }],
       },
-      payments: { create: [{ method: paymentMode, amount: fee }] },
+      ...(paid ? { payments: { create: [{ method: paymentMode, amount: fee }] } } : {}),
     },
   });
 

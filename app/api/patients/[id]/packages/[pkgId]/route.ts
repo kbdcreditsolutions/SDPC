@@ -52,9 +52,16 @@ export async function PATCH(
           data: { name, totalSessions, price },
         });
         if (pkg.invoiceId && (name !== pkg.name || totalSessions !== pkg.totalSessions || price !== Number(pkg.price))) {
+          // Don't assume the invoice was ever fully paid — an unpaid/partial
+          // one-off visit (see logSingleVisit) can have its price edited too.
+          // Clamp paidAmount to the new price and re-derive status the same
+          // way pay/route.ts does, instead of overwriting both to "paid".
+          const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: pkg.invoiceId } });
+          const paidAmount = Math.min(Number(invoice.paidAmount), price);
+          const status = paidAmount >= price ? "PAID" : paidAmount > 0 ? "PARTIAL" : "UNPAID";
           await tx.invoice.update({
             where: { id: pkg.invoiceId },
-            data: { subtotal: price, total: price, paidAmount: price },
+            data: { subtotal: price, total: price, paidAmount, status },
           });
           await tx.invoiceLineItem.updateMany({
             where: { invoiceId: pkg.invoiceId },
