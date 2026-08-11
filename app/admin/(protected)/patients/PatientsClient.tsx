@@ -264,16 +264,24 @@ export default function PatientsClient({ initialPatients }: { initialPatients: P
           <h1 className="font-display text-3xl">Patients</h1>
           <p className="mt-1 text-sm text-ink/60">{patients?.length ?? 0} records</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingId(null);
-            resetForm();
-            setShowForm((s) => !s);
-          }}
-          className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
-        >
-          + Add Patient
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/patients/duplicates"
+            className="rounded-full border border-sand px-4 py-2 text-sm text-ink/70 hover:border-ink/30 hover:text-ink"
+          >
+            Duplicates
+          </Link>
+          <button
+            onClick={() => {
+              setEditingId(null);
+              resetForm();
+              setShowForm((s) => !s);
+            }}
+            className="rounded-full bg-forest px-5 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
+          >
+            + Add Patient
+          </button>
+        </div>
       </div>
 
       {showForm && (
