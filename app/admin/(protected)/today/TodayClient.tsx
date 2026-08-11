@@ -365,7 +365,7 @@ export default function TodayClient({
                       type="radio"
                       name={`billing-${d.key}`}
                       checked={!d.billAsOneOff}
-                      onChange={() => setDraft({ ...d, billAsOneOff: false })}
+                      onChange={() => setDraft({ ...d, billAsOneOff: false, packageId: d.packages.length === 1 ? d.packages[0].id : d.packageId })}
                     />
                     Use package
                   </label>
