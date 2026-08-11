@@ -24,8 +24,10 @@ export default function DuplicatesClient({ initialGroups }: { initialGroups: Gro
   const [merging, setMerging] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [merged, setMerged] = useState<string[]>([]);
+  const [confirm, setConfirm] = useState<{ canonical: PatientSummary; duplicates: PatientSummary[] } | null>(null);
 
   async function mergeGroup(canonical: PatientSummary, duplicates: PatientSummary[]) {
+    setConfirm(null);
     setMerging(canonical.id);
     setError(null);
     try {
@@ -50,6 +52,36 @@ export default function DuplicatesClient({ initialGroups }: { initialGroups: Gro
 
   return (
     <div className="space-y-6">
+      {/* Confirm modal */}
+      {confirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="font-display text-xl">Merge duplicates?</h2>
+            <p className="mt-2 text-sm text-ink/70">
+              This will move all packages, invoices, sessions, appointments, and clinical notes from{" "}
+              <strong>{confirm.duplicates.map((d) => d.pid ?? d.name).join(", ")}</strong> into{" "}
+              <strong>{confirm.canonical.pid ?? confirm.canonical.name}</strong>, then permanently remove the
+              duplicate records. This cannot be undone.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => mergeGroup(confirm.canonical, confirm.duplicates)}
+                className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-white hover:bg-clay/80"
+              >
+                Yes, merge
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirm(null)}
+                className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div>
         <h1 className="font-display text-3xl">Duplicate Patients</h1>
         <p className="mt-1 text-sm text-ink/60">
@@ -88,7 +120,7 @@ export default function DuplicatesClient({ initialGroups }: { initialGroups: Gro
             <button
               type="button"
               disabled={merging === g.canonical.id}
-              onClick={() => mergeGroup(g.canonical, g.duplicates)}
+              onClick={() => setConfirm({ canonical: g.canonical, duplicates: g.duplicates })}
               className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-50"
             >
               {merging === g.canonical.id ? "Merging…" : `Merge ${g.duplicates.length} duplicate${g.duplicates.length > 1 ? "s" : ""} into canonical`}

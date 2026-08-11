@@ -41,16 +41,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   if (dryRun) {
-    // Count what would be moved without writing anything.
+    const tid = session.tenantId!;
     const counts = await Promise.all(
       duplicateIds.map(async (dupId) => ({
         dupId,
-        packages: await prisma.package.count({ where: { patientId: dupId, deletedAt: null } }),
-        invoices: await prisma.invoice.count({ where: { patientId: dupId, deletedAt: null } }),
-        sessions: await prisma.packageSession.count({ where: { patientId: dupId, deletedAt: null } }),
-        appointments: await prisma.appointment.count({ where: { patientId: dupId, deletedAt: null } }),
+        packages: await prisma.package.count({ where: { patientId: dupId, tenantId: tid, deletedAt: null } }),
+        invoices: await prisma.invoice.count({ where: { patientId: dupId, tenantId: tid, deletedAt: null } }),
+        sessions: await prisma.packageSession.count({ where: { patientId: dupId, tenantId: tid, deletedAt: null } }),
+        appointments: await prisma.appointment.count({ where: { patientId: dupId, tenantId: tid, deletedAt: null } }),
         clinicalNotes: await prisma.clinicalNote.count({ where: { patientId: dupId, deletedAt: null } }),
-        attendance: await prisma.attendanceRecord.count({ where: { patientId: dupId } }),
+        attendance: await prisma.attendanceRecord.count({ where: { patientId: dupId, tenantId: tid } }),
       }))
     );
     return NextResponse.json({ dryRun: true, canonicalId, counts });
@@ -60,48 +60,60 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     async (tx) => {
       await setTenantContext(tx, session.tenantId!);
 
+      const tid = session.tenantId!;
+
       // Accumulate fields to copy to canonical from duplicates if canonical is missing them.
+      // Notes are clinical data — concatenate rather than last-write-wins.
       const fieldUpdates: Record<string, unknown> = {};
+      let accumulatedNotes = canonical.notes ?? "";
 
       for (const dup of duplicates) {
         const dupId = dup.id;
 
-        // Copy any non-empty fields canonical is missing.
         if (!canonical.reason && dup.reason) fieldUpdates.reason = dup.reason;
-        if (!canonical.notes && dup.notes) fieldUpdates.notes = dup.notes;
         if (!canonical.address && dup.address) fieldUpdates.address = dup.address;
         if (!canonical.age && dup.age) fieldUpdates.age = dup.age;
         if (!canonical.gender && dup.gender) fieldUpdates.gender = dup.gender;
         if (!canonical.leadSource && dup.leadSource) fieldUpdates.leadSource = dup.leadSource;
         if (!canonical.referralDoctor && dup.referralDoctor) fieldUpdates.referralDoctor = dup.referralDoctor;
+        if (dup.notes && dup.notes !== accumulatedNotes) {
+          accumulatedNotes = accumulatedNotes ? `${accumulatedNotes}\n${dup.notes}` : dup.notes;
+        }
 
-        // Reassign all child records.
-        await tx.package.updateMany({ where: { patientId: dupId }, data: { patientId: canonicalId } });
-        await tx.packageSession.updateMany({ where: { patientId: dupId }, data: { patientId: canonicalId } });
-        await tx.invoice.updateMany({ where: { patientId: dupId }, data: { patientId: canonicalId } });
-        await tx.appointment.updateMany({ where: { patientId: dupId }, data: { patientId: canonicalId } });
+        // Reassign all child records — tenantId guard on every clause per AGENTS.md policy.
+        await tx.package.updateMany({ where: { patientId: dupId, tenantId: tid }, data: { patientId: canonicalId } });
+        await tx.packageSession.updateMany({ where: { patientId: dupId, tenantId: tid }, data: { patientId: canonicalId } });
+        await tx.invoice.updateMany({ where: { patientId: dupId, tenantId: tid }, data: { patientId: canonicalId } });
+        await tx.appointment.updateMany({ where: { patientId: dupId, tenantId: tid }, data: { patientId: canonicalId } });
+        // ClinicalNote has no tenantId column — patientId scope is the only available guard.
         await tx.clinicalNote.updateMany({ where: { patientId: dupId }, data: { patientId: canonicalId } });
 
-        // Any patient referred by this duplicate should now point to canonical.
+        // If canonical itself was referred by this duplicate, nullify that — can't
+        // point to itself. Then remap all other patients referred by the duplicate.
+        if (canonical.referredByPatientId === dupId) {
+          await tx.patient.update({ where: { id: canonicalId }, data: { referredByPatientId: null } });
+        }
         await tx.patient.updateMany({
-          where: { referredByPatientId: dupId },
+          where: { referredByPatientId: dupId, NOT: { id: canonicalId } },
           data: { referredByPatientId: canonicalId },
         });
 
-        // AttendanceRecord has @@unique([tenantId, date, patientId]) — must delete
-        // any duplicate-date records before moving the rest to avoid constraint violations.
+        // AttendanceRecord has @@unique([tenantId, date, patientId]) — delete conflicting
+        // dates before moving the rest to avoid constraint violations.
         const canonicalDates = (
           await tx.attendanceRecord.findMany({ where: { patientId: canonicalId }, select: { date: true } })
         ).map((r) => r.date);
 
         if (canonicalDates.length > 0) {
-          await tx.attendanceRecord.deleteMany({ where: { patientId: dupId, date: { in: canonicalDates } } });
+          await tx.attendanceRecord.deleteMany({ where: { patientId: dupId, tenantId: tid, date: { in: canonicalDates } } });
         }
-        await tx.attendanceRecord.updateMany({ where: { patientId: dupId }, data: { patientId: canonicalId } });
+        await tx.attendanceRecord.updateMany({ where: { patientId: dupId, tenantId: tid }, data: { patientId: canonicalId } });
 
         // Soft-delete the duplicate.
         await tx.patient.update({ where: { id: dupId }, data: { deletedAt: new Date() } });
       }
+
+      if (accumulatedNotes !== (canonical.notes ?? "")) fieldUpdates.notes = accumulatedNotes || null;
 
       // Apply any field backfills to canonical.
       if (Object.keys(fieldUpdates).length > 0) {
@@ -111,7 +123,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await logAudit(tx, {
         tenantId: session.tenantId,
         actorId: session.userId,
-        action: "MERGE",
+        action: "DELETE",
         entity: "Patient",
         entityId: canonicalId,
         diff: { mergedFrom: duplicateIds, duplicateCount: duplicates.length },
