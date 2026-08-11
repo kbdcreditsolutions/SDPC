@@ -30,10 +30,17 @@ export default async function DuplicatesPage() {
     orderBy: { createdAt: "asc" },
   });
 
+  const HONORIFICS = /^(mr|mrs|ms|dr|prof|sri|smt|b|g)\.?$/i;
+
+  function nameKey(name: string) {
+    const words = name.trim().toLowerCase().split(/\s+/);
+    const first = words.find((w) => !HONORIFICS.test(w)) ?? words[0];
+    return first;
+  }
+
   const groupMap = new Map<string, typeof patients>();
   for (const p of patients) {
-    const firstName = p.name.trim().split(/\s+/)[0].toLowerCase();
-    const key = `${p.phone.trim()}:${firstName}`;
+    const key = `${p.phone.trim()}:${nameKey(p.name)}`;
     if (!groupMap.has(key)) groupMap.set(key, []);
     groupMap.get(key)!.push(p);
   }
