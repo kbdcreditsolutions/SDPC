@@ -50,6 +50,10 @@ type Draft = {
   // "YYYY-MM-DD", defaults to today — staff catching up on a visit they
   // forgot to log can backdate it instead of it landing on today's date.
   date: string;
+  // True when staff deliberately choose a one-off billing even though the
+  // patient has active packages — e.g. a walk-in consultation outside their
+  // package's scope.
+  billAsOneOff: boolean;
 };
 
 export default function TodayClient({
@@ -191,6 +195,7 @@ export default function TodayClient({
         paymentMode: "Cash",
         isPaid: true,
         date: data.dateKey,
+        billAsOneOff: false,
       });
       return;
     }
@@ -207,6 +212,7 @@ export default function TodayClient({
       paymentMode: "Cash",
       isPaid: true,
       date: data.dateKey,
+      billAsOneOff: false,
     });
   }
 
@@ -228,6 +234,7 @@ export default function TodayClient({
         paymentMode: "Cash",
         isPaid: true,
         date: data.dateKey,
+        billAsOneOff: false,
       });
     } catch {
       setError("Couldn't load this patient's packages. Check your connection and try again.");
@@ -256,7 +263,7 @@ export default function TodayClient({
       // decide which fields to show.
       const visitDate = d.date || data.dateKey;
       const payload =
-        d.packages.length === 0
+        d.packages.length === 0 || d.billAsOneOff
           ? { ...base, fee: Number(d.fee), paymentMode: d.paymentMode, paid: d.isPaid, date: visitDate }
           : { ...base, packageId: d.packageId || undefined, date: visitDate };
       const res = await fetch("/api/visits/", {
@@ -313,7 +320,7 @@ export default function TodayClient({
   const scheduled = data.appointments.filter((a) => a.status !== "CANCELLED");
 
   function draftPanel(d: Draft, patientName: string) {
-    const singleVisit = d.packages.length === 0;
+    const singleVisit = d.packages.length === 0 || d.billAsOneOff;
     const fee = Number(d.fee);
     const ready = singleVisit
       ? fee > 0 && d.paymentMode && (!d.needsDoctor || d.doctorId)
@@ -349,15 +356,42 @@ export default function TodayClient({
                 <p className="mt-1 text-xs text-ink/60">Backdated — won&apos;t show under today&apos;s log.</p>
               )}
             </div>
+            {d.packages.length > 0 && (
+              <div className="sm:col-span-2">
+                <label className="text-xs text-ink/60">Billing</label>
+                <div className="mt-1 flex flex-wrap gap-x-6 gap-y-2 pt-1 text-sm">
+                  <label className="flex items-center gap-1.5">
+                    <input
+                      type="radio"
+                      name={`billing-${d.key}`}
+                      checked={!d.billAsOneOff}
+                      onChange={() => setDraft({ ...d, billAsOneOff: false })}
+                    />
+                    Use package
+                  </label>
+                  <label className="flex items-center gap-1.5">
+                    <input
+                      type="radio"
+                      name={`billing-${d.key}`}
+                      checked={d.billAsOneOff}
+                      onChange={() => setDraft({ ...d, billAsOneOff: true, packageId: "" })}
+                    />
+                    Charge separately — different service
+                  </label>
+                </div>
+              </div>
+            )}
             {singleVisit ? (
               <>
-                <p className="text-sm text-ink/70 sm:col-span-2">
-                  No active package with sessions left — bill this as a one-off visit, or{" "}
-                  <Link href={`/admin/patients/${d.patientId}`} className="text-forest underline">
-                    add a package
-                  </Link>{" "}
-                  instead.
-                </p>
+                {d.packages.length === 0 && (
+                  <p className="text-sm text-ink/70 sm:col-span-2">
+                    No active package with sessions left — bill this as a one-off visit, or{" "}
+                    <Link href={`/admin/patients/${d.patientId}`} className="text-forest underline">
+                      add a package
+                    </Link>{" "}
+                    instead.
+                  </p>
+                )}
                 <div>
                   <label className="text-xs text-ink/60">Visit fee (₹)</label>
                   <input
