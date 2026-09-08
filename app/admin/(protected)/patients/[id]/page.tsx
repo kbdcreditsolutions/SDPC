@@ -50,6 +50,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [sessionEditForm, setSessionEditForm] = useState({ doctorId: "", date: "", notes: "" });
   const [savingSessionEdit, setSavingSessionEdit] = useState(false);
+  const [pkgMarkPaid, setPkgMarkPaid] = useState(true);
+  const [mergeMode, setMergeMode] = useState(false);
+  const [mergeSelected, setMergeSelected] = useState<string[]>([]);
+  const [mergeForm, setMergeForm] = useState({ name: "", price: "", paymentMode: "Cash", markPaid: true });
+  const [savingMerge, setSavingMerge] = useState(false);
+  const [confirmMerge, setConfirmMerge] = useState(false);
 
   useEffect(() => {
     fetch("/api/doctors/")
@@ -89,7 +95,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       const res = await fetch(`/api/patients/${id}/packages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pkgForm),
+        body: JSON.stringify({ ...pkgForm, markPaid: pkgMarkPaid }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -214,6 +220,37 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       load();
     } finally {
       setSavingSessionEdit(false);
+    }
+  }
+
+  async function mergeSingleVisits(e: React.FormEvent) {
+    e.preventDefault();
+    if (mergeSelected.length === 0) return;
+    setConfirmMerge(true);
+  }
+
+  async function executeMerge() {
+    setSavingMerge(true);
+    try {
+      const res = await fetch(`/api/patients/${id}/packages/merge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...mergeForm, singleVisitPackageIds: mergeSelected }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Merge failed");
+        return;
+      }
+      setConfirmMerge(false);
+      setMergeMode(false);
+      setMergeSelected([]);
+      setMergeForm({ name: "", price: "", paymentMode: "Cash", markPaid: true });
+      load();
+    } catch {
+      alert("Merge failed — check connection and try again.");
+    } finally {
+      setSavingMerge(false);
     }
   }
 
@@ -657,7 +694,28 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           ))}
           <Card>
             <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">New package</p>
-            <p className="mt-1 text-xs text-ink/65">Full amount is invoiced and marked paid immediately.</p>
+            <div className="mt-2 flex gap-4 text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pkgPayType"
+                  checked={pkgMarkPaid}
+                  onChange={() => setPkgMarkPaid(true)}
+                  className="accent-forest"
+                />
+                <span>Paid now</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pkgPayType"
+                  checked={!pkgMarkPaid}
+                  onChange={() => setPkgMarkPaid(false)}
+                  className="accent-forest"
+                />
+                <span>Unpaid (collect later)</span>
+              </label>
+            </div>
             <form onSubmit={addPackage} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-5">
               <FloatingInput
                 required
@@ -679,17 +737,19 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 value={pkgForm.price}
                 onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })}
               />
-              <FloatingSelect
-                required
-                label="Payment mode"
-                value={pkgForm.paymentMode}
-                onChange={(e) => setPkgForm({ ...pkgForm, paymentMode: e.target.value })}
-              >
-                <option value="Cash">Cash</option>
-                <option value="UPI">UPI</option>
-                <option value="Card">Card</option>
-                <option value="Netbanking">Netbanking</option>
-              </FloatingSelect>
+              {pkgMarkPaid && (
+                <FloatingSelect
+                  required
+                  label="Payment mode"
+                  value={pkgForm.paymentMode}
+                  onChange={(e) => setPkgForm({ ...pkgForm, paymentMode: e.target.value })}
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Card">Card</option>
+                  <option value="Netbanking">Netbanking</option>
+                </FloatingSelect>
+              )}
               <button
                 disabled={savingPkg}
                 className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
@@ -698,6 +758,137 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               </button>
             </form>
           </Card>
+
+          {/* Merge single visits into a package */}
+          {(() => {
+            const singleVisitPkgs = patient.packages.filter((p: any) => p.singleVisit && !p.deletedAt);
+            if (singleVisitPkgs.length === 0) return null;
+            const selectedCount = mergeSelected.length;
+            const selectedPkgs = singleVisitPkgs.filter((p: any) => mergeSelected.includes(p.id));
+            const autoPrice = selectedPkgs.reduce((s: number, p: any) => s + Number(p.price), 0);
+            return (
+              <Card>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">Merge single visits into package</p>
+                    <p className="mt-0.5 text-xs text-ink/65">
+                      {singleVisitPkgs.length} single-visit record{singleVisitPkgs.length !== 1 ? "s" : ""} found. Select to merge into one package — old invoices will be voided.
+                    </p>
+                  </div>
+                  {!mergeMode && (
+                    <button
+                      onClick={() => { setMergeMode(true); setMergeSelected([]); }}
+                      className="rounded-lg border border-sand px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-sand/60"
+                    >
+                      Merge visits
+                    </button>
+                  )}
+                </div>
+                {mergeMode && (
+                  <div className="mt-3 space-y-3 border-t border-sand/60 pt-3">
+                    <ul className="space-y-1.5">
+                      {singleVisitPkgs.map((p: any) => (
+                        <li key={p.id} className="flex items-center gap-3 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={mergeSelected.includes(p.id)}
+                            onChange={(e) => {
+                              setMergeSelected(e.target.checked
+                                ? [...mergeSelected, p.id]
+                                : mergeSelected.filter((x) => x !== p.id)
+                              );
+                            }}
+                            className="accent-forest"
+                          />
+                          <span className="text-ink">
+                            {p.sessions?.length ?? 0} session{(p.sessions?.length ?? 0) !== 1 ? "s" : ""} · {fmtDate(p.startDate)} · {inr(Number(p.price))}
+                          </span>
+                          <span className={`rounded-full px-1.5 py-0.5 ${p.invoiceStatus === "PAID" || (p.invoice?.status === "PAID") ? "bg-forest/10 text-forest" : "bg-sand text-ink/60"}`}>
+                            {p.status?.toLowerCase() ?? "active"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {selectedCount > 0 && (
+                      <form onSubmit={mergeSingleVisits} className="space-y-3 border-t border-sand/60 pt-3">
+                        <p className="text-xs text-ink/70">
+                          Merging <span className="font-medium text-ink">{selectedCount} visit{selectedCount !== 1 ? "s" : ""}</span> ({selectedPkgs.reduce((s: number, p: any) => s + (p.sessions?.length ?? 0), 0)} sessions) — combined fee: {inr(autoPrice)}
+                        </p>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                          <FloatingInput
+                            required
+                            label="Package name"
+                            value={mergeForm.name}
+                            onChange={(e) => setMergeForm({ ...mergeForm, name: e.target.value })}
+                          />
+                          <FloatingInput
+                            required
+                            type="number"
+                            label={`Price (suggested: ${inr(autoPrice)})`}
+                            value={mergeForm.price}
+                            onChange={(e) => setMergeForm({ ...mergeForm, price: e.target.value })}
+                          />
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-xs text-ink/60">Payment</span>
+                            <div className="flex gap-3 text-xs">
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="mergePay" checked={mergeForm.markPaid} onChange={() => setMergeForm({ ...mergeForm, markPaid: true })} className="accent-forest" />
+                                Paid now
+                              </label>
+                              <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="mergePay" checked={!mergeForm.markPaid} onChange={() => setMergeForm({ ...mergeForm, markPaid: false })} className="accent-forest" />
+                                Unpaid
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        {mergeForm.markPaid && (
+                          <FloatingSelect
+                            required
+                            label="Payment mode"
+                            value={mergeForm.paymentMode}
+                            onChange={(e) => setMergeForm({ ...mergeForm, paymentMode: e.target.value })}
+                          >
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Card">Card</option>
+                            <option value="Netbanking">Netbanking</option>
+                          </FloatingSelect>
+                        )}
+                        <div className="flex gap-3">
+                          <button
+                            type="submit"
+                            disabled={savingMerge}
+                            className="rounded-lg bg-forest px-4 py-2 text-xs font-medium text-cream hover:bg-forest-deep disabled:opacity-60"
+                          >
+                            {savingMerge ? "Merging…" : `Merge ${selectedCount} visit${selectedCount !== 1 ? "s" : ""} into package`}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setMergeMode(false); setMergeSelected([]); }}
+                            className="rounded-lg px-3 py-2 text-xs text-ink/60 hover:bg-sand/60"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                    {selectedCount === 0 && (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => { setMergeMode(false); setMergeSelected([]); }}
+                          className="rounded-lg px-3 py-1.5 text-xs text-ink/60 hover:bg-sand/60"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+            );
+          })()}
         </div>
       )}
 
@@ -863,6 +1054,37 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
               >
                 {deletingPkg ? "Deleting…" : "Delete package"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {confirmMerge && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4">
+          <Card className="w-full max-w-sm">
+            <h2 className="font-display text-lg">Merge {mergeSelected.length} single visit{mergeSelected.length !== 1 ? "s" : ""}?</h2>
+            <p className="mt-2 text-sm text-ink/70">
+              This will combine them into package <span className="font-medium text-ink">{mergeForm.name}</span> at{" "}
+              <span className="font-medium text-ink">{inr(Number(mergeForm.price) || 0)}</span>.
+              Old single-visit invoices will be voided. This can&apos;t be undone from here.
+            </p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmMerge(false)}
+                disabled={savingMerge}
+                className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeMerge}
+                disabled={savingMerge}
+                className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
+              >
+                {savingMerge ? "Merging…" : "Confirm merge"}
               </button>
             </div>
           </Card>
