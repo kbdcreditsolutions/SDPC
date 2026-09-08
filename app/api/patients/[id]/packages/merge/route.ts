@@ -7,7 +7,14 @@ import { setTenantContext } from "@/lib/tenantPrisma";
 import { z } from "zod";
 import { zodErrorMessage } from "@/lib/zodError";
 
-const schema = z.discriminatedUnion("markPaid", [
+// Merge into an existing package — no new invoice created
+const existingPkgSchema = z.object({
+  targetPackageId: z.string().uuid(),
+  singleVisitPackageIds: z.array(z.string().uuid()).min(1),
+});
+
+// Create a new package from the merged visits
+const newPkgSchema = z.discriminatedUnion("markPaid", [
   z.object({
     markPaid: z.literal(true),
     singleVisitPackageIds: z.array(z.string().uuid()).min(1),
@@ -33,9 +40,6 @@ export async function POST(
   const { id: patientId } = await params;
 
   const body = await req.json();
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
-
   const scope = tenantScope(session);
 
   const patient = await db!.patient.findFirst({
@@ -43,18 +47,83 @@ export async function POST(
   });
   if (!patient) return NextResponse.json({ error: "Patient not found" }, { status: 404 });
 
-  // Verify all packages belong to this patient + tenant and are singleVisit
+  // Route: merge into existing package
+  if (body.targetPackageId) {
+    const parsed = existingPkgSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
+
+    const targetPkg = await db!.package.findFirst({
+      where: { id: parsed.data.targetPackageId, patientId, tenantId: session.tenantId!, singleVisit: false, deletedAt: null },
+    });
+    if (!targetPkg) return NextResponse.json({ error: "Target package not found" }, { status: 404 });
+
+    const packages = await db!.package.findMany({
+      where: { id: { in: parsed.data.singleVisitPackageIds }, patientId, tenantId: session.tenantId!, singleVisit: true, deletedAt: null },
+      include: { sessions: { where: { deletedAt: null } } },
+    });
+    if (packages.length !== parsed.data.singleVisitPackageIds.length) {
+      return NextResponse.json({ error: "One or more packages not found or not eligible for merge" }, { status: 400 });
+    }
+
+    const totalSessions = packages.reduce((s, p) => s + p.sessions.length, 0);
+
+    const result = await prisma.$transaction(async (tx) => {
+      await setTenantContext(tx, session.tenantId!);
+      const now = new Date();
+
+      // Reassign sessions to target package
+      for (const oldPkg of packages) {
+        if (oldPkg.sessions.length > 0) {
+          await tx.packageSession.updateMany({
+            where: { packageId: oldPkg.id, deletedAt: null },
+            data: { packageId: parsed.data.targetPackageId },
+          });
+        }
+      }
+
+      // Increment usedSessions on target package
+      await tx.package.update({
+        where: { id: parsed.data.targetPackageId },
+        data: { usedSessions: { increment: totalSessions } },
+      });
+
+      // Soft-delete old single-visit packages and void their invoices
+      for (const oldPkg of packages) {
+        await tx.package.updateMany({
+          where: { id: oldPkg.id, tenantId: session.tenantId! },
+          data: { deletedAt: now },
+        });
+        if (oldPkg.invoiceId) {
+          await tx.invoice.update({
+            where: { id: oldPkg.invoiceId, tenantId: session.tenantId! },
+            data: { deletedAt: now },
+          });
+        }
+      }
+
+      await logAudit(tx, {
+        tenantId: session.tenantId,
+        actorId: session.userId,
+        action: "UPDATE",
+        entity: "Package",
+        entityId: parsed.data.targetPackageId,
+        diff: { mergedFrom: packages.map((p) => p.id), sessionsAdded: totalSessions },
+      });
+
+      return await tx.package.findUnique({ where: { id: parsed.data.targetPackageId } });
+    });
+
+    return NextResponse.json({ package: result ? { ...result, price: Number(result.price) } : null });
+  }
+
+  // Route: create new package
+  const parsed = newPkgSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: zodErrorMessage(parsed.error) }, { status: 400 });
+
   const packages = await db!.package.findMany({
-    where: {
-      id: { in: parsed.data.singleVisitPackageIds },
-      patientId,
-      tenantId: session.tenantId!,
-      singleVisit: true,
-      deletedAt: null,
-    },
+    where: { id: { in: parsed.data.singleVisitPackageIds }, patientId, tenantId: session.tenantId!, singleVisit: true, deletedAt: null },
     include: { sessions: { where: { deletedAt: null } } },
   });
-
   if (packages.length !== parsed.data.singleVisitPackageIds.length) {
     return NextResponse.json({ error: "One or more packages not found or not eligible for merge" }, { status: 400 });
   }
@@ -69,7 +138,6 @@ export async function POST(
     const count = await tx.invoice.count({ where: { tenantId: session.tenantId! } });
     const number = `INV-${year}-${String(count + 1).padStart(5, "0")}`;
 
-    // Create new package invoice
     const invoice = await tx.invoice.create({
       data: {
         tenantId: session.tenantId!,
@@ -90,14 +158,11 @@ export async function POST(
           }],
         },
         ...(isPaid && parsed.data.paymentMode ? {
-          payments: {
-            create: [{ method: parsed.data.paymentMode, amount: parsed.data.price }],
-          },
+          payments: { create: [{ method: parsed.data.paymentMode, amount: parsed.data.price }] },
         } : {}),
       },
     });
 
-    // Create new merged package
     const newPkg = await tx.package.create({
       data: {
         tenantId: session.tenantId!,
@@ -111,7 +176,6 @@ export async function POST(
       },
     });
 
-    // Reassign all sessions from old packages to new package
     for (const oldPkg of packages) {
       if (oldPkg.sessions.length > 0) {
         await tx.packageSession.updateMany({
@@ -121,7 +185,6 @@ export async function POST(
       }
     }
 
-    // Soft-delete old packages and void their invoices
     const now = new Date();
     for (const oldPkg of packages) {
       await tx.package.updateMany({
@@ -142,13 +205,7 @@ export async function POST(
       action: "CREATE",
       entity: "Package",
       entityId: newPkg.id,
-      diff: {
-        name: newPkg.name,
-        price: Number(newPkg.price),
-        totalSessions: newPkg.totalSessions,
-        mergedFrom: packages.map((p) => p.id),
-        invoiceId: invoice.id,
-      },
+      diff: { name: newPkg.name, price: Number(newPkg.price), totalSessions: newPkg.totalSessions, mergedFrom: packages.map((p) => p.id), invoiceId: invoice.id },
     });
 
     return newPkg;
