@@ -827,7 +827,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                             <input type="radio" name="mergeTarget" checked={mergeTarget === "new"} onChange={() => { setMergeTarget("new"); setMergeTargetPkgId(""); }} className="accent-forest" />
                             Create new package
                           </label>
-                          {patient.packages.filter((p: any) => !p.singleVisit && !p.deletedAt && p.status !== "REFUNDED").length > 0 && (
+                          {patient.packages.filter((p: any) => !p.singleVisit && !p.deletedAt && p.status === "ACTIVE").length > 0 && (
                             <label className="flex items-center gap-1.5 cursor-pointer">
                               <input type="radio" name="mergeTarget" checked={mergeTarget === "existing"} onChange={() => setMergeTarget("existing")} className="accent-forest" />
                               Add to existing package
@@ -844,7 +844,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                           >
                             <option value=""></option>
                             {patient.packages
-                              .filter((p: any) => !p.singleVisit && !p.deletedAt && p.status !== "REFUNDED")
+                              .filter((p: any) => !p.singleVisit && !p.deletedAt && p.status === "ACTIVE")
                               .map((p: any) => (
                                 <option key={p.id} value={p.id}>
                                   {p.name} ({p.usedSessions}/{p.totalSessions} sessions)

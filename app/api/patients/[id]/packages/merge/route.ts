@@ -57,19 +57,33 @@ export async function POST(
     });
     if (!targetPkg) return NextResponse.json({ error: "Target package not found" }, { status: 404 });
 
-    const packages = await db!.package.findMany({
+    // Pre-check source packages exist (full verification happens inside tx)
+    const sourceCount = await db!.package.count({
       where: { id: { in: parsed.data.singleVisitPackageIds }, patientId, tenantId: session.tenantId!, singleVisit: true, deletedAt: null },
-      include: { sessions: { where: { deletedAt: null } } },
     });
-    if (packages.length !== parsed.data.singleVisitPackageIds.length) {
+    if (sourceCount !== parsed.data.singleVisitPackageIds.length) {
       return NextResponse.json({ error: "One or more packages not found or not eligible for merge" }, { status: 400 });
     }
-
-    const totalSessions = packages.reduce((s, p) => s + p.sessions.length, 0);
 
     const result = await prisma.$transaction(async (tx) => {
       await setTenantContext(tx, session.tenantId!);
       const now = new Date();
+
+      // Re-fetch inside tx so session counts are consistent with the rows we move
+      const packages = await tx.package.findMany({
+        where: { id: { in: parsed.data.singleVisitPackageIds }, patientId, tenantId: session.tenantId!, singleVisit: true, deletedAt: null },
+        include: { sessions: { where: { deletedAt: null } } },
+      });
+      const totalSessions = packages.reduce((s, p) => s + p.sessions.length, 0);
+
+      // Re-fetch target inside tx and auto-extend totalSessions if needed
+      const currentTarget = await tx.package.findFirst({
+        where: { id: parsed.data.targetPackageId, tenantId: session.tenantId!, deletedAt: null },
+      });
+      if (!currentTarget) return null;
+
+      const newUsed = currentTarget.usedSessions + totalSessions;
+      const newTotal = Math.max(currentTarget.totalSessions, newUsed);
 
       // Reassign sessions to target package
       for (const oldPkg of packages) {
@@ -81,11 +95,12 @@ export async function POST(
         }
       }
 
-      // Increment usedSessions on target package
-      await tx.package.update({
-        where: { id: parsed.data.targetPackageId },
-        data: { usedSessions: { increment: totalSessions } },
+      // Update usedSessions (and totalSessions if auto-extended)
+      const updated = await tx.package.updateMany({
+        where: { id: parsed.data.targetPackageId, tenantId: session.tenantId!, deletedAt: null },
+        data: { usedSessions: newUsed, totalSessions: newTotal },
       });
+      if (updated.count !== 1) return null;
 
       // Soft-delete old single-visit packages and void their invoices
       for (const oldPkg of packages) {
@@ -113,7 +128,8 @@ export async function POST(
       return await tx.package.findUnique({ where: { id: parsed.data.targetPackageId } });
     });
 
-    return NextResponse.json({ package: result ? { ...result, price: Number(result.price) } : null });
+    if (!result) return NextResponse.json({ error: "Target package no longer available" }, { status: 409 });
+    return NextResponse.json({ package: { ...result, price: Number(result.price) } });
   }
 
   // Route: create new package
