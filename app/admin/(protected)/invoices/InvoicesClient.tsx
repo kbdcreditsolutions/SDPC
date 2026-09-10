@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/Card";
 import { FloatingInput } from "@/components/FloatingField";
@@ -25,6 +26,11 @@ const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 
 export default function InvoicesClient({ initialInvoices }: { initialInvoices: Invoice[] }) {
+  const searchParams = useSearchParams();
+  const initFrom = searchParams.get("from") ?? "";
+  const initTo = searchParams.get("to") ?? "";
+  const initStatus = searchParams.get("status") ?? "";
+
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
   const [patients, setPatients] = useState<PatientOption[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -33,11 +39,32 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
     { description: "Consultation", qty: "1", unitPrice: "800", gstPercent: "18" },
   ]);
   const [saving, setSaving] = useState(false);
+  const [filterFrom, setFilterFrom] = useState(initFrom);
+  const [filterTo, setFilterTo] = useState(initTo);
+  const [filterStatus, setFilterStatus] = useState(initStatus);
 
-  const load = useCallback(async () => {
-    const res = await fetch("/api/invoices/");
+  const load = useCallback(async (from?: string, to?: string, status?: string) => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (status) params.set("status", status);
+    const qs = params.toString();
+    const res = await fetch(`/api/invoices/${qs ? `?${qs}` : ""}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err.error || "Failed to load invoices");
+      return;
+    }
     const data = await res.json();
     setInvoices(data.invoices);
+  }, []);
+
+  // Auto-apply filters from URL on mount
+  useEffect(() => {
+    if (initFrom || initTo || initStatus) {
+      load(initFrom, initTo, initStatus);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -69,7 +96,7 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
       setShowForm(false);
       setItems([{ description: "Consultation", qty: "1", unitPrice: "800", gstPercent: "18" }]);
       setPatientId("");
-      load();
+      load(filterFrom, filterTo, filterStatus);
     } catch {
       alert("Failed to create invoice — check your connection and try again.");
     } finally {
@@ -82,7 +109,7 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
     try {
       const res = await fetch(`/api/invoices/${id}/`, { method: "DELETE" });
       if (!res.ok) throw new Error();
-      load();
+      load(filterFrom, filterTo, filterStatus);
     } catch {
       alert("Failed to delete invoice");
     }
@@ -101,6 +128,61 @@ export default function InvoicesClient({ initialInvoices }: { initialInvoices: I
         >
           + New Invoice
         </button>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex items-end gap-2">
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] uppercase tracking-widest text-ink/65">From</label>
+            <input
+              type="date"
+              value={filterFrom}
+              onChange={(e) => setFilterFrom(e.target.value)}
+              className="rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] uppercase tracking-widest text-ink/65">To</label>
+            <input
+              type="date"
+              value={filterTo}
+              onChange={(e) => setFilterTo(e.target.value)}
+              className="rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] uppercase tracking-widest text-ink/65">Status</label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+            >
+              <option value="">All</option>
+              <option value="PAID">Paid</option>
+              <option value="UNPAID">Unpaid</option>
+              <option value="PARTIAL">Partial</option>
+            </select>
+          </div>
+        </div>
+        <button
+          onClick={() => load(filterFrom, filterTo, filterStatus)}
+          className="rounded-lg bg-forest px-4 py-2 text-sm font-medium text-cream hover:bg-forest-deep"
+        >
+          Apply
+        </button>
+        {(filterFrom || filterTo || filterStatus) && (
+          <button
+            onClick={() => {
+              setFilterFrom("");
+              setFilterTo("");
+              setFilterStatus("");
+              load("", "", "");
+            }}
+            className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {showForm && (

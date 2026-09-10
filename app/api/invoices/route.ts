@@ -4,16 +4,44 @@ import { requireSession } from "@/lib/guard";
 import { tenantScope } from "@/lib/scope";
 import { logAudit } from "@/lib/audit";
 import { setTenantContext } from "@/lib/tenantPrisma";
+import { istDayBounds } from "@/lib/istDate";
 import { z } from "zod";
 import { zodErrorMessage } from "@/lib/zodError";
 
-export async function GET() {
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const VALID_STATUSES = ["PAID", "UNPAID", "PARTIAL", "OUTSTANDING"] as const;
+type InvoiceStatusFilter = (typeof VALID_STATUSES)[number];
+
+export async function GET(req: NextRequest) {
   const { session, response, db } = await requireSession();
   if (!session) return response!;
   const scope = tenantScope(session);
 
+  const { searchParams } = new URL(req.url);
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  const status = searchParams.get("status") as InvoiceStatusFilter | null;
+
+  if (from && !DATE_RE.test(from)) return NextResponse.json({ error: "Invalid from date" }, { status: 400 });
+  if (to && !DATE_RE.test(to)) return NextResponse.json({ error: "Invalid to date" }, { status: 400 });
+  if (status && !VALID_STATUSES.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+
   const invoices = await db!.invoice.findMany({
-    where: { ...scope, deletedAt: null },
+    where: {
+      ...scope,
+      deletedAt: null,
+      ...(from || to ? {
+        date: {
+          ...(from ? { gte: istDayBounds(from).start } : {}),
+          ...(to ? { lte: istDayBounds(to).end } : {}),
+        },
+      } : {}),
+      ...(status === "OUTSTANDING"
+        ? { status: { in: ["UNPAID", "PARTIAL"] } }
+        : status
+        ? { status }
+        : {}),
+    },
     include: { patient: true },
     orderBy: { date: "desc" },
   });

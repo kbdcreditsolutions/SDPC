@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 export function Card({
@@ -19,14 +20,16 @@ export function StatCard({
   value,
   sub,
   trend,
+  href,
 }: {
   label: string;
   value: string;
   sub?: string;
   trend?: { value: string; isPositive: boolean };
+  href?: string;
 }) {
-  return (
-    <Card>
+  const inner = (
+    <>
       <div className="flex items-center justify-between">
         <p className="font-data text-[10px] uppercase tracking-widest text-ink/65">{label}</p>
         {trend && (
@@ -42,6 +45,16 @@ export function StatCard({
       </div>
       <p className="mt-2 font-display text-3xl">{value}</p>
       {sub && <p className="mt-1 text-xs text-ink/70">{sub}</p>}
-    </Card>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block rounded-2xl border border-sand bg-white/60 p-6 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2">
+        {inner}
+      </Link>
+    );
+  }
+
+  return <Card>{inner}</Card>;
 }

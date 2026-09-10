@@ -97,6 +97,12 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
     applyRange(from, to);
   }
 
+  const todayKey = istDateKey(new Date());
+  const { from: rangeFrom, to: rangeTo } =
+    preset === "custom" ? { from: customFrom, to: customTo } : rangeForPreset(preset);
+  const fyStartYear = fyStartYearFor(new Date());
+  const fyFrom = `${fyStartYear}-04-01`;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -153,11 +159,13 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
           value={inr(data.todayRevenue)}
           sub={`Total ${inr(data.totalBilled)}`}
           trend={periodTrend(data.todayRevenue, data.yesterdayRevenue)}
+          href={`/admin/invoices?from=${todayKey}&to=${todayKey}`}
         />
         <StatCard
           label="Patients"
           value={String(data.patientsCount)}
           sub={`${data.doctorsCount} doctors · ${data.staffCount} active staff`}
+          href="/admin/patients"
         />
         <StatCard
           label="Today's appointments"
@@ -168,6 +176,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
           label="Outstanding"
           value={inr(data.outstanding)}
           sub={`Billed ${inr(data.totalBilled)}`}
+          href="/admin/invoices?status=OUTSTANDING"
         />
       </div>
 
@@ -177,23 +186,27 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
           value={inr(data.fyRevenue)}
           sub={data.lastFyRevenue > 0 ? "vs last FY" : "No data for last FY"}
           trend={periodTrend(data.fyRevenue, data.lastFyRevenue)}
+          href={`/admin/invoices?from=${fyFrom}&to=${todayKey}`}
         />
         <StatCard
           label={`${data.fyLabel} new patients`}
           value={String(data.fyNewPatients)}
           sub="Since 1 April"
+          href="/admin/patients"
         />
         <StatCard
           label="Selected range revenue"
           value={inr(data.rangeRevenue)}
           sub={`vs previous ${PRESET_LABELS[preset].toLowerCase()}`}
           trend={periodTrend(data.rangeRevenue, data.previousRangeRevenue)}
+          href={`/admin/invoices?from=${rangeFrom}&to=${rangeTo}`}
         />
         <StatCard
           label="Selected range new patients"
           value={String(data.rangeNewPatients)}
           sub={`vs previous ${PRESET_LABELS[preset].toLowerCase()}`}
           trend={periodTrend(data.rangeNewPatients, data.previousRangeNewPatients)}
+          href="/admin/patients"
         />
       </div>
 
