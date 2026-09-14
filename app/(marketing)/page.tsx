@@ -232,7 +232,7 @@ export default function HomePage() {
                 name: "Shivam Road",
                 address: "17, Bagh Amberpet, Amberpet, Hyderabad – 500013",
                 hours: "All Days: 9am – 10pm",
-                phone: "+91 80957 28918",
+                phone: "+91 81432 38246",
               },
             ].map((loc) => (
               <div key={loc.name} className="rounded-3xl border border-teal-100 bg-teal-50/50 p-8 flex flex-col gap-3">

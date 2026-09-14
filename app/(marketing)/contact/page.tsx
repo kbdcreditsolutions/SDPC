@@ -22,7 +22,7 @@ const contactItems = [
   {
     Icon: Phone,
     label: "Phone",
-    value: "+91 81432 38246 / +91 82477 31436 / +91 80957 28918",
+    value: "+91 81432 38246",
   },
   {
     Icon: Mail,
