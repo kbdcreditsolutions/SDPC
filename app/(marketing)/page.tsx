@@ -224,15 +224,15 @@ export default function HomePage() {
             {[
               {
                 name: "Narayanguda",
-                address: "Plot No. 11, Narayanguda, Hyderabad – 500029",
-                hours: "Mon–Sat: 9 AM – 7 PM",
-                phone: "+91 98765 43210",
+                address: "Flat 101, Narasimha Nilayam, 3-4-529/2, Narayanguda, Hyderabad – 500027",
+                hours: "All Days: 8am – 9pm",
+                phone: "+91 81432 38246",
               },
               {
-                name: "Himayatnagar",
-                address: "Himayatnagar Main Road, Hyderabad – 500029",
-                hours: "Mon–Sat: 9 AM – 7 PM",
-                phone: "+91 98765 43211",
+                name: "Shivam Road",
+                address: "17, Bagh Amberpet, Amberpet, Hyderabad – 500013",
+                hours: "All Days: 9am – 10pm",
+                phone: "+91 80957 28918",
               },
             ].map((loc) => (
               <div key={loc.name} className="rounded-3xl border border-teal-100 bg-teal-50/50 p-8 flex flex-col gap-3">

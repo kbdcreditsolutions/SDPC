@@ -11,13 +11,18 @@ export const metadata: Metadata = {
 const contactItems = [
   {
     Icon: MapPin,
-    label: "Location",
+    label: "Narayanguda",
     value: "Flat 101, Narasimha Nilayam, 3-4-529/2, Narayanguda, Hyderabad, Telangana 500027",
+  },
+  {
+    Icon: MapPin,
+    label: "Shivam Road",
+    value: "17, Bagh Amberpet, Amberpet, Hyderabad, Telangana 500013",
   },
   {
     Icon: Phone,
     label: "Phone",
-    value: "+91 81432 38246 / +91 82477 31436",
+    value: "+91 81432 38246 / +91 82477 31436 / +91 80957 28918",
   },
   {
     Icon: Mail,
@@ -72,7 +77,7 @@ export default function ContactPage() {
             {/* Map Embed */}
             <div className="w-full h-64 rounded-3xl overflow-hidden border border-slate-100 shadow-sm mt-4">
               <iframe
-                src="https://maps.google.com/maps?q=Flat%20101,%20Narasimha%20Nilayam,%203-4-529/2,%20Narayanguda,%20Hyderabad,%20Telangana%20500027&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                src="https://maps.google.com/maps?q=Flat+101+Narasimha+Nilayam+Narayanguda+Hyderabad+Telangana+500027&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
