@@ -31,6 +31,8 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
   const [saving, setSaving] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<{ id: string; patientName: string } | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; patientName: string; datetime: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/appointments/");
@@ -109,6 +111,27 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
       load();
     } finally {
       setCancelling(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/appointments/${deleteTarget.id}/`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to delete appointment");
+        return;
+      }
+      setDeleteTarget(null);
+      load();
+    } catch {
+      alert("Network error. Failed to delete appointment.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -237,19 +260,36 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
                     {a.status.toLowerCase()}
                   </span>
                 </div>
-                {a.status === "SCHEDULED" && (
-                  <div className="mt-3 flex gap-3 border-t border-sand/60 pt-3 text-xs font-medium">
-                    <button onClick={() => startEdit(a)} className="text-ink/70 hover:text-ink">
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setCancelTarget({ id: a.id, patientName: a.patient.name })}
-                      className="text-clay/70 hover:text-clay"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
+                <div className="mt-3 flex items-center justify-between border-t border-sand/60 pt-3 text-xs font-medium">
+                  {a.status === "SCHEDULED" ? (
+                    <div className="flex gap-3">
+                      <button onClick={() => startEdit(a)} className="text-ink/70 hover:text-ink">
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setCancelTarget({ id: a.id, patientName: a.patient.name })}
+                        className="text-clay/70 hover:text-clay"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-ink/50 italic capitalize">{a.status.toLowerCase()}</span>
+                  )}
+                  <button
+                    onClick={() =>
+                      setDeleteTarget({
+                        id: a.id,
+                        patientName: a.patient.name,
+                        datetime: a.datetime,
+                      })
+                    }
+                    className="text-red-500 hover:text-red-700 transition"
+                    title="Delete appointment"
+                  >
+                    Delete
+                  </button>
+                </div>
               </Card>
             ))}
           </div>
@@ -281,6 +321,54 @@ export default function AppointmentsClient({ initialAppointments }: { initialApp
                 className="rounded-lg bg-clay px-4 py-2 text-sm font-medium text-cream hover:bg-clay/90 disabled:opacity-60"
               >
                 {cancelling ? "Cancelling…" : "Cancel appointment"}
+              </button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-xs px-4">
+          <Card className="w-full max-w-sm border-red-200 shadow-xl">
+            <div className="flex items-center gap-2.5 text-red-600">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-sm">
+                !
+              </span>
+              <h2 className="font-display text-lg font-semibold text-ink">Delete appointment?</h2>
+            </div>
+            <p className="mt-3 text-sm text-ink/80 leading-relaxed">
+              Are you sure you want to delete the appointment for{" "}
+              <span className="font-semibold text-ink">{deleteTarget.patientName}</span>?
+            </p>
+            <p className="mt-1 text-xs text-ink/60">
+              Scheduled for:{" "}
+              {new Date(deleteTarget.datetime).toLocaleString("en-IN", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+            <div className="mt-3 rounded-xl bg-amber-50 border border-amber-200/80 p-3 text-xs text-amber-900 leading-relaxed">
+              ⚠️ <strong>Warning:</strong> This permanently removes this appointment from the schedule. This action cannot be undone.
+            </div>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="rounded-lg px-4 py-2 text-sm text-ink/60 hover:bg-sand/60 disabled:opacity-60"
+              >
+                Keep it
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 shadow-xs"
+              >
+                {deleting ? "Deleting…" : "Yes, Delete"}
               </button>
             </div>
           </Card>

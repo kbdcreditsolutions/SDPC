@@ -56,3 +56,18 @@ body {
     @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)];
   }
 }
+
+/* Eliminate default browser blue focus rings globally */
+select, input, textarea, button {
+  outline: none !important;
+}
+
+select:focus, input:focus, textarea:focus {
+  outline: none !important;
+}
+
+select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(31, 77, 58, 0.25);
+  border-color: var(--forest);
+}

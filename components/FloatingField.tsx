@@ -3,7 +3,7 @@
 import { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, useId, useState } from "react";
 
 const FIELD_CLASS =
-  "peer w-full rounded-lg border border-sand bg-white px-3 pt-5 pb-2 text-sm text-ink focus:outline-none focus:ring-1 focus:ring-forest";
+  "peer w-full rounded-lg border border-sand bg-white px-3 pt-5 pb-2 text-sm text-ink outline-none focus:outline-none focus:ring-1 focus:ring-forest focus:border-forest";
 
 const LABEL_BASE = "pointer-events-none absolute left-3 transition-all duration-150";
 const LABEL_FLOATED = "top-2 text-[11px] text-ink/60 peer-focus:text-forest";

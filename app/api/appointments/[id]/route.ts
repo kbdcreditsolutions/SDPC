@@ -127,7 +127,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, response, db } = await requireSession(["CLINIC_ADMIN"]);
+  const { session, response, db } = await requireSession(["CLINIC_ADMIN", "STAFF"]);
   if (!session) return response!;
   const { id } = await params;
 

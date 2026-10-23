@@ -114,7 +114,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
           <select
             value={preset}
             onChange={(e) => handlePresetChange(e.target.value as Preset)}
-            className="rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+            className="rounded-lg border border-sand bg-white px-3 py-2 text-sm text-ink outline-none focus:outline-none focus:ring-1.5 focus:ring-forest focus:border-forest cursor-pointer transition shadow-2xs"
           >
             {Object.entries(PRESET_LABELS).map(([k, v]) => (
               <option key={k} value={k}>
@@ -129,7 +129,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
                 value={customFrom}
                 max={customTo}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+                className="rounded-lg border border-sand bg-white px-3 py-2 text-sm text-ink outline-none focus:outline-none focus:ring-1.5 focus:ring-forest focus:border-forest"
               />
               <span className="text-sm text-ink/65">to</span>
               <input
@@ -138,7 +138,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
                 min={customFrom}
                 max={localDate(new Date())}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="rounded-lg border border-sand bg-white px-3 py-2 text-sm"
+                className="rounded-lg border border-sand bg-white px-3 py-2 text-sm text-ink outline-none focus:outline-none focus:ring-1.5 focus:ring-forest focus:border-forest"
               />
               <button
                 onClick={() => applyRange(customFrom, customTo)}
